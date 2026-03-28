@@ -1,0 +1,16 @@
+[Unit]
+Description=Zerto Backend (FastAPI + Gunicorn)
+After=network.target
+
+[Service]
+User=adminhpe
+WorkingDirectory=/opt/zerto/backend
+EnvironmentFile=/opt/zerto/backend/.env
+ExecStart=/opt/zerto/.venv/bin/gunicorn main:app --config gunicorn.conf.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
