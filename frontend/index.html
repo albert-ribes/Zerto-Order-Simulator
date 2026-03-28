@@ -14,25 +14,26 @@
     <div class="sidebar-logo">
       <span class="logo-icon">⚡</span>
       <span class="logo-text">Order Sim</span>
+      <button class="sidebar-toggle" id="btnSidebarToggle" title="Compactar">‹</button>
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item active" data-tab="dashboard">
+      <button class="nav-item active" data-tab="dashboard" title="Dashboard">
         <span class="nav-icon">📊</span><span data-i18n="nav_dashboard">Dashboard</span>
       </button>
-      <button class="nav-item" data-tab="orders">
+      <button class="nav-item" data-tab="orders" title="Ordres">
         <span class="nav-icon">📦</span><span data-i18n="nav_orders">Ordres</span>
         <span class="nav-count" id="navCountOrders"></span>
       </button>
-      <button class="nav-item" data-tab="clients">
+      <button class="nav-item" data-tab="clients" title="Clients">
         <span class="nav-icon">👥</span><span data-i18n="nav_clients">Clients</span>
         <span class="nav-count" id="navCountClients"></span>
       </button>
-      <button class="nav-item" data-tab="products">
+      <button class="nav-item" data-tab="products" title="Productes">
         <span class="nav-icon">🏷️</span><span data-i18n="nav_products">Productes</span>
         <span class="nav-count" id="navCountProducts"></span>
       </button>
-      <button class="nav-item" data-tab="about">
+      <button class="nav-item" data-tab="about" title="Sobre">
         <span class="nav-icon">ℹ️</span><span data-i18n="nav_about">Sobre</span>
       </button>
     </nav>
@@ -54,7 +55,20 @@
         <div class="generator-controls">
           <label class="interval-label">
             <span data-i18n="gen_interval">Interval (s)</span>
-            <input type="number" id="genInterval" value="15" min="1" max="60" step="0.5" />
+            <div class="interval-row">
+              <div class="interval-cell">
+                <input type="number" id="genMin" value="1" min="0.5" max="3600" step="0.5" />
+                <span class="interval-cell-lbl" data-i18n="gen_min">Mín</span>
+              </div>
+              <div class="interval-cell">
+                <input type="number" id="genInterval" value="15" min="1" max="60" step="0.5" />
+                <span class="interval-cell-lbl" data-i18n="gen_val">Val</span>
+              </div>
+              <div class="interval-cell">
+                <input type="number" id="genMax" value="60" min="1" max="3600" step="1" />
+                <span class="interval-cell-lbl" data-i18n="gen_max">Màx</span>
+              </div>
+            </div>
           </label>
           <button id="btnGenToggle" class="btn btn-success btn-sm" data-i18n="gen_start">▶ Iniciar</button>
           <button id="btnReset" class="btn btn-reset btn-sm" data-i18n="gen_reset">↺ Reiniciar</button>
@@ -544,9 +558,9 @@
   <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <script src="/js/i18n.js?v=10"></script>
-  <script src="/js/api.js?v=10"></script>
-  <script src="/js/charts.js?v=10"></script>
-  <script src="/js/app.js?v=10"></script>
+  <script src="/js/i18n.js?v=11"></script>
+  <script src="/js/api.js?v=11"></script>
+  <script src="/js/charts.js?v=11"></script>
+  <script src="/js/app.js?v=11"></script>
 </body>
 </html>

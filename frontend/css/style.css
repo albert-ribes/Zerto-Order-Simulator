@@ -55,8 +55,39 @@ body {
   position: fixed;
   top: 0; left: 0; bottom: 0;
   z-index: 100;
-  transition: background var(--transition), border-color var(--transition);
+  overflow: hidden;
+  transition: background var(--transition), border-color var(--transition), width 0.25s ease;
 }
+
+/* Sidebar toggle button */
+.sidebar-toggle {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  line-height: 1;
+  transition: all 0.15s;
+}
+.sidebar-toggle:hover { background: var(--surface2); border-color: var(--border); color: var(--text); }
+
+/* Collapsed state */
+.sidebar.collapsed { width: 60px; }
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-item > span:not(.nav-icon),
+.sidebar.collapsed .nav-count,
+.sidebar.collapsed .controls-row,
+.sidebar.collapsed .generator-card { display: none; }
+.sidebar.collapsed .sidebar-logo { justify-content: center; padding: 20px 0; gap: 0; }
+.sidebar.collapsed .sidebar-toggle { margin-left: 0; }
+.sidebar.collapsed .sidebar-nav    { padding: 16px 8px; }
+.sidebar.collapsed .nav-item       { justify-content: center; padding: 10px; gap: 0; }
+.sidebar.collapsed .nav-icon       { font-size: 1.3rem; }
+.sidebar.collapsed .sidebar-footer { padding: 12px 0 16px; }
 
 .sidebar-logo {
   display: flex;
@@ -162,10 +193,14 @@ body {
 
 .interval-label  { font-size: 0.8rem; color: var(--text-muted); display: flex;
                    flex-direction: column; gap: 4px; }
+.interval-row { display: flex; gap: 6px; }
+.interval-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
+.interval-cell-lbl { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase;
+                     letter-spacing: 0.05em; }
 .interval-label input {
   background: var(--bg); border: 1px solid var(--border); color: var(--text);
-  border-radius: var(--radius-sm); padding: 6px 8px; font-size: 0.85rem; width: 100%;
-  transition: border-color 0.15s;
+  border-radius: var(--radius-sm); padding: 5px 4px; font-size: 0.8rem; width: 100%;
+  text-align: center; transition: border-color 0.15s;
 }
 .interval-label input:focus { outline: none; border-color: var(--accent); }
 
@@ -181,6 +216,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;   /* no scroll horitzontal */
   overflow-y: auto;
+  transition: margin-left 0.25s ease;
   width: calc(100% - var(--sidebar-w));
   max-width: calc(100vw - var(--sidebar-w));
 }
@@ -714,6 +750,7 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
 
 /* ── Last order stat card ────────────────────────────────────────────────────── */
 .stat-value--sm { font-size: 1.4rem; }
+.stat-card--last .stat-value { color: var(--warning); }
 
 /* ── Architecture VM wrappers ────────────────────────────────────────────────── */
 .arch-vms { display: flex; align-items: center; gap: 0; }

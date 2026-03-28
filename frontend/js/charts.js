@@ -29,24 +29,44 @@ const HOUR_BD = Array.from({length: 24}, (_, h) => _hourColor(h, 1.00));
 // ── Shared scale defaults ─────────────────────────────────────────────────────
 const gridColor = () => Chart.defaults.borderColor;
 
+// ── Timestamp → local label ───────────────────────────────────────────────────
+function formatTsLabel(ts, gran) {
+  const d = new Date(ts);
+  const p = n => String(n).padStart(2, '0');
+  if (gran === 'minute' || gran === 'minute10') {
+    return `${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  if (gran === 'hour') {
+    return `${p(d.getDate())}/${p(d.getMonth()+1)} ${p(d.getHours())}h`;
+  }
+  // day
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}`;
+}
+
+function _localDate(ts) {
+  const d = new Date(ts);
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}`;
+}
+
 // ── Day markers: returns array of {index, date, isFirst} ─────────────────────
-function _buildDayMarkers(data) {
+function _buildDayMarkers(data, gran) {
   if (!data || data.length < 2) return [];
-  // If labels look like "dd/mm" (day granularity), no midnight lines needed
-  const sample = data[0]?.time || '';
-  if (/^\d{2}\/\d{2}$/.test(sample)) return [];
-  const allDates = [...new Set(data.map(d => d.date).filter(Boolean))];
+  if (gran === 'day') return []; // day granularity: labels already are dates
+  const allDates = [...new Set(data.map(d => _localDate(d.ts)))];
   if (allDates.length <= 1) return []; // single day: skip
   const markers = [];
-  let prevDate = data[0]?.date;
-  if (prevDate) markers.push({ index: 0, date: prevDate, isFirst: true });
-  for (let i = 1; i < data.length; i++) {
-    const d = data[i]?.date;
-    if (d && d !== prevDate) {
-      markers.push({ index: i, date: d, isFirst: false });
-      prevDate = d;
+  let prevDate = null;
+  data.forEach((d, i) => {
+    const dateStr = _localDate(d.ts);
+    if (i === 0) {
+      markers.push({ index: 0, date: dateStr, isFirst: true });
+      prevDate = dateStr;
+    } else if (dateStr !== prevDate) {
+      markers.push({ index: i, date: dateStr, isFirst: false });
+      prevDate = dateStr;
     }
-  }
+  });
   return markers;
 }
 
@@ -409,16 +429,18 @@ const chartHourly = new Chart(
 );
 
 // ── Update helpers ────────────────────────────────────────────────────────────
-function updateTimeline(data) {
-  chartTimeline.data.labels            = data.map(d => d.time);
-  chartTimeline.data._dayMarkers       = _buildDayMarkers(data);
+function updateTimeline(data, gran) {
+  gran = gran || 'minute';
+  chartTimeline.data.labels            = data.map(d => formatTsLabel(d.ts, gran));
+  chartTimeline.data._dayMarkers       = _buildDayMarkers(data, gran);
   chartTimeline.data.datasets[0].data  = data.map(d => d.count);
   chartTimeline.data.datasets[1].data  = data.map(d => d.revenue);
   chartTimeline.update('none');
 }
 
-function updateCumulative(timelineData) {
-  if (!timelineData || !timelineData.length) {
+function updateCumulative(data, gran) {
+  gran = gran || 'minute';
+  if (!data || !data.length) {
     chartCumulative.data.labels          = [];
     chartCumulative.data._dayMarkers     = [];
     chartCumulative.data.datasets[0].data = [];
@@ -426,9 +448,9 @@ function updateCumulative(timelineData) {
     return;
   }
   let cumsum = 0;
-  chartCumulative.data.labels           = timelineData.map(d => d.time);
-  chartCumulative.data._dayMarkers      = _buildDayMarkers(timelineData);
-  chartCumulative.data.datasets[0].data = timelineData.map(d => {
+  chartCumulative.data.labels           = data.map(d => formatTsLabel(d.ts, gran));
+  chartCumulative.data._dayMarkers      = _buildDayMarkers(data, gran);
+  chartCumulative.data.datasets[0].data = data.map(d => {
     cumsum += d.revenue;
     return parseFloat(cumsum.toFixed(2));
   });
@@ -453,10 +475,16 @@ function updateDailyChart(data) {
 }
 
 function updateHourlyChart(data) {
-  chartHourly.data.datasets[0].data = data.map(d => d.count);
-  chartHourly.data.datasets[1].data = data.map(d => d.revenue);
-  // Store avg values for tooltip
-  chartHourly._avgCounts = data.map(d => d.avg_count);
-  chartHourly._avgRevs   = data.map(d => d.avg_revenue);
+  // Remap UTC hours (from PostgreSQL) to local browser hours
+  const utcOffset = -new Date().getTimezoneOffset() / 60; // hours ahead of UTC
+  const remapped  = Array.from({length: 24}, () => ({count: 0, revenue: 0, avg_count: 0, avg_revenue: 0}));
+  data.forEach(d => {
+    const localH = ((d.hour + utcOffset) % 24 + 24) % 24;
+    remapped[localH] = { count: d.count, revenue: d.revenue, avg_count: d.avg_count, avg_revenue: d.avg_revenue };
+  });
+  chartHourly.data.datasets[0].data = remapped.map(d => d.count);
+  chartHourly.data.datasets[1].data = remapped.map(d => d.revenue);
+  chartHourly._avgCounts = remapped.map(d => d.avg_count);
+  chartHourly._avgRevs   = remapped.map(d => d.avg_revenue);
   chartHourly.update('none');
 }

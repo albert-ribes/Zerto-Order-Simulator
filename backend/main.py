@@ -480,25 +480,25 @@ def stats_timeline(
 
     # ── Choose granularity ────────────────────────────────────────────────────
     if range_s <= 3 * 3600:
-        trunc_sql  = "minute"
-        bucket_min = 1
-        delta      = timedelta(minutes=1)
-        label_fmt  = "%H:%M"
+        granularity = "minute"
+        trunc_sql   = "minute"
+        bucket_min  = 1
+        delta       = timedelta(minutes=1)
     elif range_s <= 24 * 3600:
-        trunc_sql  = "minute"
-        bucket_min = 10
-        delta      = timedelta(minutes=10)
-        label_fmt  = "%H:%M"
+        granularity = "minute10"
+        trunc_sql   = "minute"
+        bucket_min  = 10
+        delta       = timedelta(minutes=10)
     elif range_s <= 7 * 24 * 3600:
-        trunc_sql  = "hour"
-        bucket_min = 60
-        delta      = timedelta(hours=1)
-        label_fmt  = "%d/%m %Hh"
+        granularity = "hour"
+        trunc_sql   = "hour"
+        bucket_min  = 60
+        delta       = timedelta(hours=1)
     else:
-        trunc_sql  = "day"
-        bucket_min = 0
-        delta      = timedelta(days=1)
-        label_fmt  = "%d/%m"
+        granularity = "day"
+        trunc_sql   = "day"
+        bucket_min  = 0
+        delta       = timedelta(days=1)
 
     # ── Query ─────────────────────────────────────────────────────────────────
     rows = (
@@ -541,14 +541,13 @@ def stats_timeline(
     while current <= end_dt and len(result) < 500:
         entry = by_bucket.get(current, {"count": 0, "revenue": 0.0})
         result.append({
-            "time":    current.strftime(label_fmt),
-            "date":    current.strftime("%d/%m"),
+            "ts":      current.isoformat() + "Z",   # UTC ISO → browser formats in local time
             "count":   entry["count"],
             "revenue": round(entry["revenue"], 2),
         })
         current += delta
 
-    return result
+    return {"granularity": granularity, "data": result}
 
 
 @app.get("/stats/daily")

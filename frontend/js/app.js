@@ -37,6 +37,29 @@ function localToISO(val) {
   return new Date(val).toISOString();
 }
 
+// ── Sidebar collapse ──────────────────────────────────────────────────────────
+(function () {
+  const sidebar = document.querySelector('.sidebar');
+  let collapsed = localStorage.getItem('sidebar-collapsed') === '1';
+
+  function apply(animate) {
+    if (!animate) sidebar.style.transition = 'none';
+    sidebar.classList.toggle('collapsed', collapsed);
+    document.documentElement.style.setProperty('--sidebar-w', collapsed ? '60px' : '248px');
+    const btn = document.getElementById('btnSidebarToggle');
+    if (btn) { btn.textContent = collapsed ? '›' : '‹'; btn.title = collapsed ? 'Expandir' : 'Compactar'; }
+    if (!animate) requestAnimationFrame(() => { sidebar.style.transition = ''; });
+  }
+
+  apply(false); // apply immediately on load (no animation)
+
+  document.getElementById('btnSidebarToggle').addEventListener('click', () => {
+    collapsed = !collapsed;
+    localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0');
+    apply(true);
+  });
+})();
+
 // ── Theme ─────────────────────────────────────────────────────────────────────
 let _theme = localStorage.getItem('theme') || 'dark';
 
@@ -265,6 +288,20 @@ function updateGenUI() {
   }
 }
 
+// Sync min/max inputs → constrain interval value
+$('genMin').addEventListener('change', () => {
+  const v = parseFloat($('genMin').value) || 0.5;
+  $('genInterval').min = v;
+  const cur = parseFloat($('genInterval').value) || 15;
+  if (cur < v) $('genInterval').value = v;
+});
+$('genMax').addEventListener('change', () => {
+  const v = parseFloat($('genMax').value) || 60;
+  $('genInterval').max = v;
+  const cur = parseFloat($('genInterval').value) || 15;
+  if (cur > v) $('genInterval').value = v;
+});
+
 $('btnGenToggle').addEventListener('click', async () => {
   try {
     if (generatorRunning) {
@@ -302,7 +339,7 @@ $('btnReset').addEventListener('click', async () => {
 async function refreshDashboard() {
   try {
     const p = dashTRP.params();
-    const [summary, timeline, products, daily, hourly] = await Promise.all([
+    const [summary, tl, products, daily, hourly] = await Promise.all([
       api.summary(p), api.timeline(p), api.productStats(p),
       api.dailyStats(p), api.hourlyStats(p),
     ]);
@@ -316,8 +353,10 @@ async function refreshDashboard() {
     const np = $('navCountProducts'); if (np) np.textContent = summary.total_products;
     _lastOrderAt = summary.last_order_at ? new Date(summary.last_order_at) : null;
     _updateLastOrderStat();
-    updateTimeline(timeline);
-    updateCumulative(timeline);
+    const tlData = tl.data ?? tl;   // compat: new format {granularity, data} or legacy array
+    const tlGran = tl.granularity ?? 'minute';
+    updateTimeline(tlData, tlGran);
+    updateCumulative(tlData, tlGran);
     syncTimelineAxes();
     updateProductCharts(products);
     updateDailyChart(daily);

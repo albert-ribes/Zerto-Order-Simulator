@@ -3,6 +3,8 @@ services:
     build: ./frontend
     ports:
       - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro   # live reload: canvis immediats sense rebuild
     depends_on:
       - backend
 
@@ -12,6 +14,9 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://zerto:zerto@db:5432/zerto
+    volumes:
+      - ./backend:/app                         # live reload: canvis immediats sense rebuild
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       db:
         condition: service_healthy
