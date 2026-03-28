@@ -308,11 +308,14 @@ async function refreshDashboard() {
     ]);
     $('statOrders').textContent    = summary.total_orders.toLocaleString();
     $('statRevenue').textContent   = '€' + fmt(summary.total_revenue);
-    $('statClients').textContent   = summary.total_clients;
-    $('statProducts').textContent  = summary.total_products;
     $('statAvgOrders').textContent = summary.avg_orders_per_day?.toLocaleString() ?? '–';
     $('statAvgRev').textContent    = summary.avg_revenue_per_day != null
       ? '€' + fmt(summary.avg_revenue_per_day) : '–';
+    const no = $('navCountOrders');   if (no) no.textContent = summary.total_orders;
+    const nc = $('navCountClients');  if (nc) nc.textContent = summary.total_clients;
+    const np = $('navCountProducts'); if (np) np.textContent = summary.total_products;
+    _lastOrderAt = summary.last_order_at ? new Date(summary.last_order_at) : null;
+    _updateLastOrderStat();
     updateTimeline(timeline);
     updateCumulative(timeline);
     syncTimelineAxes();
@@ -321,6 +324,26 @@ async function refreshDashboard() {
     updateHourlyChart(hourly);
   } catch {}
 }
+
+// ── Última ordre: comptador de temps ─────────────────────────────────────────
+let _lastOrderAt = null;
+
+function _timeAgo(date) {
+  const s = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (s <  60)  return `${s}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}min ${s % 60}s`;
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  return `${h}h ${m}min`;
+}
+
+function _updateLastOrderStat() {
+  const el = $('statLastOrder');
+  if (!el) return;
+  el.textContent = _lastOrderAt ? _timeAgo(_lastOrderAt) : '–';
+}
+
+// Actualitza el comptador cada segon
+setInterval(_updateLastOrderStat, 1000);
 
 // ── Boot sequence ─────────────────────────────────────────────────────────────
 (async () => {
@@ -351,7 +374,13 @@ setInterval(async () => {
       const prevChecked = new Set(
         [...$('ordersBody').querySelectorAll('.order-check:checked')].map(cb => +cb.value)
       );
-      renderOrders(result.items, prevChecked);
+      const prevIds = new Set(
+        [...$('ordersBody').querySelectorAll('tr[data-id]')].map(tr => +tr.dataset.id)
+      );
+      const newIds = prevIds.size
+        ? new Set(result.items.filter(o => !prevIds.has(o.id)).map(o => o.id))
+        : new Set();
+      renderOrders(result.items, prevChecked, newIds);
       renderPagination();
       if (result.items.length) lastOrderId = result.items[0].id;
     }
@@ -370,9 +399,9 @@ async function loadOrders() {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-function renderOrders(orders, restoreChecked = new Set()) {
+function renderOrders(orders, restoreChecked = new Set(), newIds = new Set()) {
   $('ordersBody').innerHTML = orders.map(o => `
-    <tr data-id="${o.id}" class="${restoreChecked.has(o.id) ? 'row-selected' : ''}">
+    <tr data-id="${o.id}" class="${restoreChecked.has(o.id) ? 'row-selected' : ''} ${newIds.has(o.id) ? 'row-new' : ''}">
       <td class="col-check"><input type="checkbox" class="order-check" value="${o.id}" ${restoreChecked.has(o.id) ? 'checked' : ''} /></td>
       <td><span class="badge">#${o.id}</span></td>
       <td>${esc(o.client_name  || '–')}</td>

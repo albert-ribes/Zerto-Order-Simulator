@@ -439,6 +439,8 @@ def stats_summary(
         acc += float(o.total_price)
         cumulative.append({"time": o.created_at.strftime("%H:%M:%S"), "value": round(acc, 2)})
 
+    last_order_at = db.query(func.max(models.Order.created_at)).filter(*filters).scalar()
+
     return {
         "total_orders":        total_orders,
         "total_revenue":       round(total_revenue, 2),
@@ -448,6 +450,7 @@ def stats_summary(
         "avg_orders_per_day":  avg_orders_per_day,
         "avg_revenue_per_day": avg_revenue_per_day,
         "cumulative":          cumulative,
+        "last_order_at":       last_order_at.isoformat() if last_order_at else None,
     }
 
 
