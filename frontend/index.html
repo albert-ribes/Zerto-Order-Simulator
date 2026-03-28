@@ -9,6 +9,31 @@
 </head>
 <body>
 
+  <!-- Login overlay -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+      <div class="login-logo">
+        <span style="font-size:2.5rem">⚡</span>
+        <div class="login-app-name">Order Simulator App</div>
+      </div>
+      <form id="loginForm" autocomplete="on">
+        <div class="login-field">
+          <label for="loginUser" data-i18n="login_username">Usuari</label>
+          <input id="loginUser" type="text" autocomplete="username" required />
+        </div>
+        <div class="login-field">
+          <label for="loginPass" data-i18n="login_password">Contrasenya</label>
+          <div class="login-pass-wrap">
+            <input id="loginPass" type="password" autocomplete="current-password" required />
+            <button type="button" class="login-eye" id="btnTogglePass">👁</button>
+          </div>
+        </div>
+        <div id="loginError" class="login-error"></div>
+        <button type="submit" class="btn btn-primary login-submit" data-i18n="login_btn">Entrar</button>
+      </form>
+    </div>
+  </div>
+
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">
@@ -33,12 +58,21 @@
         <span class="nav-icon">🏷️</span><span data-i18n="nav_products">Productes</span>
         <span class="nav-count" id="navCountProducts"></span>
       </button>
+      <button class="nav-item nav-admin-only" data-tab="users" title="Usuaris" id="navUsers">
+        <span class="nav-icon">🔐</span><span data-i18n="nav_users">Usuaris</span>
+        <span class="nav-count" id="navCountUsers"></span>
+      </button>
       <button class="nav-item" data-tab="about" title="Sobre">
         <span class="nav-icon">ℹ️</span><span data-i18n="nav_about">Sobre</span>
       </button>
     </nav>
 
     <div class="sidebar-footer">
+      <!-- Logged in user -->
+      <div class="sidebar-user-info">
+        <span class="sidebar-user-name" id="sidebarUsername">–</span>
+        <button class="btn-logout" id="btnLogout" title="Tancar sessió">⏻</button>
+      </div>
       <!-- Language + Theme controls -->
       <div class="controls-row">
         <div class="lang-selector">
@@ -559,14 +593,60 @@
       </div>
     </section>
 
+    <!-- ── Users ── -->
+    <section id="tab-users" class="tab-content">
+      <h1 class="page-title" data-i18n="users_title">Usuaris</h1>
+      <div class="section-toolbar">
+        <button class="btn btn-primary" id="btnNewUser" data-i18n="users_new">+ Nou usuari</button>
+      </div>
+      <!-- New/Edit user form -->
+      <div id="userForm" class="card user-form" style="display:none">
+        <h3 id="userFormTitle" data-i18n="users_form_add">Nou usuari</h3>
+        <div class="form-row-inline">
+          <div class="form-group">
+            <label data-i18n="login_username">Usuari</label>
+            <input type="text" id="ufUsername" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label data-i18n="login_password">Contrasenya</label>
+            <input type="password" id="ufPassword" autocomplete="new-password" />
+          </div>
+          <div class="form-group form-group--check">
+            <label class="check-label">
+              <input type="checkbox" id="ufIsAdmin" />
+              <span data-i18n="users_admin">Administrador</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btnSaveUser" data-i18n="btn_save">Desar</button>
+          <button class="btn btn-ghost" id="btnCancelUser" data-i18n="btn_cancel">Cancel·lar</button>
+        </div>
+      </div>
+      <!-- Users table -->
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th data-i18n="users_col_user">Usuari</th>
+              <th data-i18n="users_col_role">Rol</th>
+              <th data-i18n="users_col_created">Creat</th>
+              <th data-i18n="col_actions">Accions</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
 
   <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <script src="/js/i18n.js?v=12"></script>
-  <script src="/js/api.js?v=12"></script>
-  <script src="/js/charts.js?v=12"></script>
-  <script src="/js/app.js?v=12"></script>
+  <script src="/js/i18n.js?v=13"></script>
+  <script src="/js/api.js?v=13"></script>
+  <script src="/js/charts.js?v=13"></script>
+  <script src="/js/app.js?v=13"></script>
 </body>
 </html>

@@ -66,6 +66,7 @@ const TRANSLATIONS = {
     col_created:         'Creat',
     btn_save:            'Desar',
     btn_edit:            '✎ Editar',
+    btn_delete:          '✕ Eliminar',
     btn_delete_confirm_client: 'Eliminar aquest client i totes les seves ordres?',
     btn_delete_confirm_product: 'Eliminar aquest producte i totes les seves ordres?',
     btn_delete_confirm_order: 'Eliminar aquesta ordre?',
@@ -94,6 +95,25 @@ const TRANSLATIONS = {
     about_arch_domain:   'Entorn al domini intern <code>tec.bcn</code> · HPE Tech Experience Center (TEC) · Barcelona',
     about_stack_title:   'Stack tecnològic',
     about_flow_title:    'Flux de dades',
+    // Auth
+    login_username:  'Usuari',
+    login_password:  'Contrasenya',
+    login_btn:       'Entrar',
+    login_error:     'Usuari o contrasenya incorrectes',
+    login_loading:   'Entrant...',
+    nav_users:       'Usuaris',
+    users_title:     'Gestió d\'usuaris',
+    users_new:       '+ Nou usuari',
+    users_form_add:  'Nou usuari',
+    users_form_edit: 'Editar usuari',
+    users_admin:     'Administrador',
+    users_col_user:  'Usuari',
+    users_col_role:  'Rol',
+    users_col_created:'Creat',
+    role_admin:      'Admin',
+    role_user:       'Usuari',
+    users_del_confirm:'Eliminar l\'usuari "%s"?',
+    users_pass_hint: '(deixar en blanc per no canviar)',
     // Toast / errors
     toast_saved:         'Desat correctament',
     toast_deleted:       'Eliminat',
@@ -203,6 +223,7 @@ const TRANSLATIONS = {
     col_created:         'Creado',
     btn_save:            'Guardar',
     btn_edit:            '✎ Editar',
+    btn_delete:          '✕ Eliminar',
     btn_delete_confirm_client: '¿Eliminar este cliente y todos sus pedidos?',
     btn_delete_confirm_product: '¿Eliminar este producto y todos sus pedidos?',
     btn_delete_confirm_order: '¿Eliminar este pedido?',
@@ -229,6 +250,25 @@ const TRANSLATIONS = {
     about_arch_domain:   'Entorno en el dominio interno <code>tec.bcn</code> · HPE Tech Experience Center (TEC) · Barcelona',
     about_stack_title:   'Stack tecnológico',
     about_flow_title:    'Flujo de datos',
+    // Auth
+    login_username:  'Usuario',
+    login_password:  'Contraseña',
+    login_btn:       'Entrar',
+    login_error:     'Usuario o contraseña incorrectos',
+    login_loading:   'Entrando...',
+    nav_users:       'Usuarios',
+    users_title:     'Gestión de usuarios',
+    users_new:       '+ Nuevo usuario',
+    users_form_add:  'Nuevo usuario',
+    users_form_edit: 'Editar usuario',
+    users_admin:     'Administrador',
+    users_col_user:  'Usuario',
+    users_col_role:  'Rol',
+    users_col_created:'Creado',
+    role_admin:      'Admin',
+    role_user:       'Usuario',
+    users_del_confirm:'¿Eliminar el usuario "%s"?',
+    users_pass_hint: '(dejar en blanco para no cambiar)',
     toast_saved:         'Guardado correctamente',
     toast_deleted:       'Eliminado',
     toast_order_created: 'Pedido creado',
@@ -337,6 +377,7 @@ const TRANSLATIONS = {
     col_created:         'Created',
     btn_save:            'Save',
     btn_edit:            '✎ Edit',
+    btn_delete:          '✕ Delete',
     btn_delete_confirm_client: 'Delete this client and all their orders?',
     btn_delete_confirm_product: 'Delete this product and all its orders?',
     btn_delete_confirm_order: 'Delete this order?',
@@ -363,6 +404,25 @@ const TRANSLATIONS = {
     about_arch_domain:   'Environment on internal domain <code>tec.bcn</code> · HPE Tech Experience Center (TEC) · Barcelona',
     about_stack_title:   'Tech stack',
     about_flow_title:    'Data flow',
+    // Auth
+    login_username:  'Username',
+    login_password:  'Password',
+    login_btn:       'Sign in',
+    login_error:     'Invalid username or password',
+    login_loading:   'Signing in...',
+    nav_users:       'Users',
+    users_title:     'User management',
+    users_new:       '+ New user',
+    users_form_add:  'New user',
+    users_form_edit: 'Edit user',
+    users_admin:     'Administrator',
+    users_col_user:  'Username',
+    users_col_role:  'Role',
+    users_col_created:'Created',
+    role_admin:      'Admin',
+    role_user:       'User',
+    users_del_confirm:'Delete user "%s"?',
+    users_pass_hint: '(leave blank to keep unchanged)',
     toast_saved:         'Saved successfully',
     toast_deleted:       'Deleted',
     toast_order_created: 'Order created',
@@ -427,7 +487,11 @@ function applyTranslations() {
     const key = el.getAttribute('data-i18n');
     const attr = el.getAttribute('data-i18n-attr');
     if (attr) el.setAttribute(attr, t(key));
-    else el.textContent = t(key);
+    else {
+      const val = t(key);
+      if (/<[a-z][\s\S]*>/i.test(val)) el.innerHTML = val;
+      else el.textContent = val;
+    }
   });
   // Update lang selector active state
   document.querySelectorAll('.lang-btn').forEach(btn => {

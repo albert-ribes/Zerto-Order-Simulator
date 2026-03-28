@@ -906,3 +906,116 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
   color: var(--danger);
   opacity: .85;
 }
+
+/* ── Login overlay ────────────────────────────────────────────────────── */
+.login-overlay {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.2s;
+}
+.login-overlay.hidden { display: none; }
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 40px 44px;
+  width: 100%;
+  max-width: 380px;
+  display: flex; flex-direction: column; gap: 28px;
+}
+.login-logo {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.login-app-name {
+  font-size: 1.15rem; font-weight: 700;
+  color: var(--text); letter-spacing: -0.3px;
+}
+#loginForm { display: flex; flex-direction: column; gap: 16px; }
+.login-field { display: flex; flex-direction: column; gap: 6px; }
+.login-field label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); }
+.login-field input {
+  padding: 9px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.9rem;
+  width: 100%;
+}
+.login-field input:focus { outline: none; border-color: var(--accent); }
+.login-pass-wrap { position: relative; }
+.login-pass-wrap input { padding-right: 40px; }
+.login-eye {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; font-size: 1rem;
+  color: var(--text-muted); padding: 2px 4px;
+}
+.login-error {
+  font-size: 0.82rem; color: var(--danger);
+  min-height: 18px;
+}
+.login-submit { width: 100%; padding: 10px; font-size: 0.95rem; }
+
+/* ── Sidebar user info ────────────────────────────────────────────────── */
+.sidebar-user-info {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+.sidebar-user-name {
+  flex: 1;
+  font-size: 0.8rem; font-weight: 600;
+  color: var(--text-muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.btn-logout {
+  background: none; border: none;
+  color: var(--text-muted); cursor: pointer;
+  font-size: 1.1rem; padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+  line-height: 1;
+}
+.btn-logout:hover { color: var(--danger); background: rgba(239,68,68,.1); }
+.sidebar.collapsed .sidebar-user-info { justify-content: center; padding: 8px 4px 4px; }
+.sidebar.collapsed .sidebar-user-name { display: none; }
+
+/* ── User management ──────────────────────────────────────────────────── */
+.user-form {
+  margin-bottom: 20px;
+  padding: 20px 24px;
+}
+.user-form h3 { margin-bottom: 16px; font-size: 1rem; }
+.form-row-inline {
+  display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.form-group { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+.form-group label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); }
+.form-group input[type="text"],
+.form-group input[type="password"] {
+  padding: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text); font-size: 0.9rem;
+}
+.form-group input:focus { outline: none; border-color: var(--accent); }
+.form-group--check { justify-content: flex-end; }
+.check-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.87rem; color: var(--text); cursor: pointer;
+}
+.check-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
+.form-actions { display: flex; gap: 10px; }
+.role-badge {
+  display: inline-block;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 10px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.role-badge--admin { background: rgba(99,102,241,.2); color: #818cf8; }
+.role-badge--user  { background: var(--surface2);     color: var(--text-muted); }

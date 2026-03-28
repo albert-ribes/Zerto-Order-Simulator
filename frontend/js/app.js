@@ -1,3 +1,89 @@
+// ── Auth ─────────────────────────────────────────────────────────────────
+let _currentUser = null;
+
+function showLoginOverlay() {
+  const el = document.getElementById('loginOverlay');
+  if (el) el.classList.remove('hidden');
+}
+function hideLoginOverlay() {
+  const el = document.getElementById('loginOverlay');
+  if (el) el.classList.add('hidden');
+}
+
+async function initAuth() {
+  const token = getToken();
+  if (!token) { showLoginOverlay(); return; }
+  try {
+    _currentUser = await api.me();
+    onAuthSuccess();
+  } catch {
+    showLoginOverlay();
+  }
+}
+
+function onAuthSuccess() {
+  hideLoginOverlay();
+  const el = document.getElementById('sidebarUsername');
+  if (el) el.textContent = _currentUser.username;
+  // Show/hide admin-only elements
+  document.querySelectorAll('.nav-admin-only').forEach(el => {
+    el.style.display = _currentUser.is_admin ? '' : 'none';
+  });
+}
+
+// Login form
+document.addEventListener('DOMContentLoaded', () => {
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = loginForm.querySelector('[type="submit"]');
+      const errEl = document.getElementById('loginError');
+      const username = document.getElementById('loginUser').value.trim();
+      const password = document.getElementById('loginPass').value;
+      btn.disabled = true;
+      btn.textContent = t('login_loading');
+      errEl.textContent = '';
+      try {
+        const data = await api.login(username, password);
+        setToken(data.access_token);
+        _currentUser = await api.me();
+        onAuthSuccess();
+        initApp();
+      } catch (err) {
+        errEl.textContent = err.message === '401' || err.message.includes('Credencial') || err.message.includes('Login')
+          ? t('login_error') : err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = t('login_btn');
+      }
+    });
+  }
+
+  // Show/hide password toggle
+  const eye = document.getElementById('btnTogglePass');
+  if (eye) eye.addEventListener('click', () => {
+    const inp = document.getElementById('loginPass');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
+
+  // Logout
+  const logoutBtn = document.getElementById('btnLogout');
+  if (logoutBtn) logoutBtn.addEventListener('click', () => {
+    setToken('');
+    _currentUser = null;
+    showLoginOverlay();
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+  });
+
+  // Auth logout event (triggered by 401)
+  window.addEventListener('auth:logout', () => {
+    _currentUser = null;
+    showLoginOverlay();
+  });
+});
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const fmt     = n => Number(n).toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -95,6 +181,7 @@ document.querySelectorAll('.nav-item').forEach(btn => {
     if (btn.dataset.tab === 'clients')  loadClients();
     if (btn.dataset.tab === 'products') loadProducts();
     if (btn.dataset.tab === 'orders')   loadOrders();
+    if (btn.dataset.tab === 'users')    loadUsers();
   });
 });
 
@@ -385,13 +472,21 @@ function _updateLastOrderStat() {
 setInterval(_updateLastOrderStat, 1000);
 
 // ── Boot sequence ─────────────────────────────────────────────────────────────
-(async () => {
+function initApp() {
   initFilter();
   refreshDashboard();
   startRefreshTimer();
   syncGeneratorStatus();
   setInterval(syncGeneratorStatus, 5000);
-})();
+  setupUserForm();
+}
+
+// Start the app only after auth check
+window.addEventListener('DOMContentLoaded', () => {
+  initAuth().then(() => {
+    if (_currentUser) initApp();
+  });
+});
 
 // ── Orders ────────────────────────────────────────────────────────────────────
 let lastOrderId   = 0;
@@ -777,3 +872,102 @@ window.deleteProduct = async (id) => {
     await api.deleteProduct(id); toast(t('toast_deleted'), 'success'); loadProducts();
   } catch (e) { toast(e.message, 'error'); }
 };
+
+// ── Users ─────────────────────────────────────────────────────────────────
+let _editingUserId = null;
+
+async function loadUsers() {
+  try {
+    const users = await api.getUsers();
+    const nc = $('navCountUsers');
+    if (nc) nc.textContent = users.length;
+    const tbody = $('usersBody');
+    if (!tbody) return;
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td><strong>${u.username}</strong></td>
+        <td><span class="role-badge ${u.is_admin ? 'role-badge--admin' : 'role-badge--user'}">${u.is_admin ? t('role_admin') : t('role_user')}</span></td>
+        <td>${new Date(u.created_at).toLocaleDateString()}</td>
+        <td class="actions-cell">
+          <button class="btn btn-sm btn-ghost" onclick="openUserForm(${u.id})">${t('btn_edit')}</button>
+          ${u.id !== (_currentUser && _currentUser.id) ? `<button class="btn btn-sm btn-danger" onclick="deleteUserById(${u.id}, '${u.username}')">${t('btn_delete')}</button>` : ''}
+        </td>
+      </tr>`).join('');
+  } catch (e) { console.error(e); }
+}
+
+function openUserForm(userId = null) {
+  _editingUserId = userId;
+  const form = $('userForm');
+  const title = $('userFormTitle');
+  const ufUsername = $('ufUsername');
+  const ufPassword = $('ufPassword');
+  const ufIsAdmin = $('ufIsAdmin');
+  if (!form) return;
+
+  if (userId) {
+    title.textContent = t('users_form_edit');
+    // find user from table — just clear fields
+    ufUsername.disabled = true;
+    ufPassword.placeholder = t('users_pass_hint');
+    ufPassword.value = '';
+    // get username from row
+    const rows = document.querySelectorAll('#usersBody tr');
+    rows.forEach(row => {
+      // try to match by edit button onclick
+      const btn = row.querySelector(`button[onclick="openUserForm(${userId})"]`);
+      if (btn) {
+        ufUsername.value = row.cells[0].querySelector('strong').textContent;
+        ufIsAdmin.checked = row.cells[1].querySelector('.role-badge').classList.contains('role-badge--admin');
+      }
+    });
+  } else {
+    title.textContent = t('users_form_add');
+    ufUsername.disabled = false;
+    ufUsername.value = '';
+    ufPassword.value = '';
+    ufPassword.placeholder = '';
+    ufIsAdmin.checked = false;
+  }
+  form.style.display = '';
+  ufUsername.focus();
+}
+
+async function deleteUserById(id, username) {
+  if (!confirm(t('users_del_confirm').replace('%s', username))) return;
+  try {
+    await api.deleteUser(id);
+    loadUsers();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// Wire up user form buttons in DOMContentLoaded or after DOM is ready:
+function setupUserForm() {
+  const btnNew = $('btnNewUser');
+  if (btnNew) btnNew.addEventListener('click', () => openUserForm(null));
+
+  const btnSave = $('btnSaveUser');
+  if (btnSave) btnSave.addEventListener('click', async () => {
+    const username = $('ufUsername').value.trim();
+    const password = $('ufPassword').value;
+    const is_admin = $('ufIsAdmin').checked;
+    try {
+      if (_editingUserId) {
+        const upd = { is_admin };
+        if (password) upd.password = password;
+        await api.updateUser(_editingUserId, upd);
+      } else {
+        if (!username || !password) { toast('Usuari i contrasenya obligatoris', 'error'); return; }
+        await api.createUser({ username, password, is_admin });
+      }
+      $('userForm').style.display = 'none';
+      loadUsers();
+    } catch (e) { toast(e.message, 'error'); }
+  });
+
+  const btnCancel = $('btnCancelUser');
+  if (btnCancel) btnCancel.addEventListener('click', () => { $('userForm').style.display = 'none'; });
+}
+
+window.openUserForm = openUserForm;
+window.deleteUserById = deleteUserById;

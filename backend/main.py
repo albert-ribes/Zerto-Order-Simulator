@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Request
+from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordRequestForm
 import csv
 import io
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,10 +16,20 @@ from datetime import datetime, timedelta
 import models
 import schemas
 from database import engine, get_db, SessionLocal, Base
-
-Base.metadata.create_all(bind=engine)
+import auth
+from auth import get_current_user, require_admin
 
 app = FastAPI(title="Zerto Orders API")
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    if request.url.path in ("/auth/login",):
+        return await call_next(request)
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header[7:].strip() if auth_header.startswith("Bearer ") else ""
+    if not token or not auth.decode_token(token):
+        return JSONResponse({"detail": "Not authenticated"}, status_code=401)
+    return await call_next(request)
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,6 +37,78 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        auth.ensure_default_admin(db)
+    finally:
+        db.close()
+    _seed()
+
+# ── Auth ──────────────────────────────────────────────────────────────────
+@app.post("/auth/login", response_model=schemas.Token)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == form_data.username).first()
+    if not user or not auth.verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Credencials incorrectes")
+    token = auth.create_access_token({"sub": user.username})
+    return {"access_token": token, "token_type": "bearer",
+            "username": user.username, "is_admin": user.is_admin}
+
+
+@app.get("/auth/me", response_model=schemas.UserOut)
+def get_me(current_user=Depends(get_current_user)):
+    return current_user
+
+
+@app.get("/auth/users", response_model=List[schemas.UserOut])
+def list_users(current_user=Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(models.User).order_by(models.User.id).all()
+
+
+@app.post("/auth/users", response_model=schemas.UserOut, status_code=201)
+def create_user(data: schemas.UserCreate, current_user=Depends(require_admin), db: Session = Depends(get_db)):
+    if db.query(models.User).filter(models.User.username == data.username).first():
+        raise HTTPException(400, "Nom d'usuari ja existeix")
+    user = models.User(
+        username=data.username,
+        hashed_password=auth.hash_password(data.password),
+        is_admin=data.is_admin,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@app.put("/auth/users/{user_id}", response_model=schemas.UserOut)
+def update_user(user_id: int, data: schemas.UserUpdate, current_user=Depends(require_admin), db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "Usuari no trobat")
+    if current_user.id == user_id and data.is_admin is False:
+        raise HTTPException(400, "No pots treure't els permisos d'administrador")
+    if data.password:
+        user.hashed_password = auth.hash_password(data.password)
+    if data.is_admin is not None:
+        user.is_admin = data.is_admin
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@app.delete("/auth/users/{user_id}", status_code=204)
+def delete_user(user_id: int, current_user=Depends(require_admin), db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "Usuari no trobat")
+    if current_user.id == user_id:
+        raise HTTPException(400, "No pots eliminar el teu propi compte")
+    db.delete(user)
+    db.commit()
 
 # ── Auto-generator state ──────────────────────────────────────────────────────
 _generator = {"running": False, "interval": 2.0, "thread": None}
@@ -54,9 +138,6 @@ def _seed():
             db.commit()
     finally:
         db.close()
-
-
-_seed()
 
 
 # ── Time-of-day modelling ─────────────────────────────────────────────────────

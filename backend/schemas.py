@@ -104,3 +104,28 @@ class GeneratorConfig(BaseModel):
 
 class BatchDeleteRequest(BaseModel):
     ids: List[int]
+
+
+# --- Auth ---
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    username: str
+    is_admin: bool
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    is_admin: bool = False
+
+class UserUpdate(BaseModel):
+    password: Optional[str] = None
+    is_admin: Optional[bool] = None
+
+class UserOut(BaseModel):
+    id: int
+    username: str
+    is_admin: bool
+    created_at: datetime
+    class Config:
+        from_attributes = True
