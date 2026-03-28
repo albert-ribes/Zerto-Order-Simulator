@@ -20,11 +20,15 @@ const api = {
   createClient:   (d)       => req('POST',   '/clients', d),
   updateClient:   (id, d)   => req('PUT',    `/clients/${id}`, d),
   deleteClient:   (id)      => req('DELETE', `/clients/${id}`),
+  importClients:  (file)    => { const fd = new FormData(); fd.append('file', file);
+                                 return fetch(BASE + '/clients/import', { method: 'POST', body: fd }).then(r => r.json()); },
 
   getProducts:    ()        => req('GET',    '/products'),
   createProduct:  (d)       => req('POST',   '/products', d),
   updateProduct:  (id, d)   => req('PUT',    `/products/${id}`, d),
   deleteProduct:  (id)      => req('DELETE', `/products/${id}`),
+  importProducts: (file)    => { const fd = new FormData(); fd.append('file', file);
+                                 return fetch(BASE + '/products/import', { method: 'POST', body: fd }).then(r => r.json()); },
 
   getOrders:    (p)    => req('GET',    '/orders'        + _qs(p)),
   getOrderIds:  (p)    => req('GET',    '/orders/ids'    + _qs(p)),

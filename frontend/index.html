@@ -287,7 +287,21 @@
     <section id="tab-clients" class="tab-content">
       <div class="page-header">
         <h1 class="page-title" data-i18n="page_clients">Clients</h1>
-        <button class="btn btn-primary" id="btnNewClient" data-i18n="btn_new_client">+ Nou client</button>
+        <div class="page-header-actions">
+          <button class="btn btn-ghost" id="btnImportClients">📥 Importar CSV</button>
+          <input type="file" id="fileClients" accept=".csv" style="display:none">
+          <button class="btn btn-primary" id="btnNewClient" data-i18n="btn_new_client">+ Nou client</button>
+        </div>
+      </div>
+      <div class="csv-dropzone" id="dropClients">
+        <div class="csv-dropzone-body">
+          <span class="csv-dropzone-icon">📄</span>
+          <div class="csv-dropzone-text">
+            <strong>Arrossega el fitxer CSV aquí</strong> o fes clic a <em>Importar CSV</em>
+            <span class="csv-dropzone-hint">Columnes requerides: <code>name</code>, <code>email</code></span>
+          </div>
+        </div>
+        <div class="csv-result" id="csvResultClients" style="display:none"></div>
       </div>
       <div class="card form-card" id="clientForm" style="display:none">
         <h3 id="clientFormTitle" data-i18n="form_client_new">Nou client</h3>
@@ -327,7 +341,21 @@
     <section id="tab-products" class="tab-content">
       <div class="page-header">
         <h1 class="page-title" data-i18n="page_products">Productes</h1>
-        <button class="btn btn-primary" id="btnNewProduct" data-i18n="btn_new_product">+ Nou producte</button>
+        <div class="page-header-actions">
+          <button class="btn btn-ghost" id="btnImportProducts">📥 Importar CSV</button>
+          <input type="file" id="fileProducts" accept=".csv" style="display:none">
+          <button class="btn btn-primary" id="btnNewProduct" data-i18n="btn_new_product">+ Nou producte</button>
+        </div>
+      </div>
+      <div class="csv-dropzone" id="dropProducts">
+        <div class="csv-dropzone-body">
+          <span class="csv-dropzone-icon">📄</span>
+          <div class="csv-dropzone-text">
+            <strong>Arrossega el fitxer CSV aquí</strong> o fes clic a <em>Importar CSV</em>
+            <span class="csv-dropzone-hint">Columnes requerides: <code>name</code>, <code>price</code></span>
+          </div>
+        </div>
+        <div class="csv-result" id="csvResultProducts" style="display:none"></div>
       </div>
       <div class="card form-card" id="productForm" style="display:none">
         <h3 id="productFormTitle" data-i18n="form_product_new">Nou producte</h3>
@@ -506,9 +534,9 @@
   <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <script src="/js/i18n.js?v=8"></script>
-  <script src="/js/api.js?v=8"></script>
-  <script src="/js/charts.js?v=8"></script>
-  <script src="/js/app.js?v=8"></script>
+  <script src="/js/i18n.js?v=9"></script>
+  <script src="/js/api.js?v=9"></script>
+  <script src="/js/charts.js?v=9"></script>
+  <script src="/js/app.js?v=9"></script>
 </body>
 </html>

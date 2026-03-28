@@ -680,3 +680,83 @@ body {
   .form-row   { grid-template-columns: 1fr; }
   .stat-value { font-size: 1.5rem; }
 }
+
+/* ── CSV Import drop zone ────────────────────────────────────────────────────── */
+.csv-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 18px;
+  background: var(--surface);
+  transition: border-color .2s, background .2s;
+  cursor: default;
+}
+.csv-dropzone--over {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+.csv-dropzone--loading {
+  opacity: .6;
+  pointer-events: none;
+}
+.csv-dropzone-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.csv-dropzone-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.csv-dropzone-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: .9rem;
+}
+.csv-dropzone-text strong { color: var(--text); }
+.csv-dropzone-text em     { color: var(--accent); font-style: normal; }
+.csv-dropzone-hint {
+  font-size: .78rem;
+  color: var(--text-muted);
+}
+.csv-dropzone-hint code {
+  background: var(--surface2);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: .78rem;
+  color: var(--accent);
+}
+
+/* Results row */
+.csv-result {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.csv-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .82rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.csv-stat--ok   { background: color-mix(in srgb,var(--success) 15%,transparent); color: var(--success); }
+.csv-stat--skip { background: color-mix(in srgb,var(--warning) 15%,transparent); color: var(--warning); }
+.csv-stat--err  { background: color-mix(in srgb,var(--danger)  15%,transparent); color: var(--danger);  }
+.csv-errors {
+  width: 100%;
+  margin: 4px 0 0 0;
+  padding-left: 18px;
+  font-size: .78rem;
+  color: var(--danger);
+  opacity: .85;
+}

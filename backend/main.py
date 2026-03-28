@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
+import csv
+import io
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
@@ -173,6 +175,28 @@ def delete_client(client_id: int, db: Session = Depends(get_db)):
     db.delete(obj); db.commit()
 
 
+@app.post("/clients/import")
+async def import_clients(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    content = await file.read()
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = content.decode("latin-1")
+    reader = csv.DictReader(io.StringIO(text))
+    inserted = skipped = 0
+    errors = []
+    for i, row in enumerate(reader, 1):
+        name  = (row.get("name")  or "").strip()
+        email = (row.get("email") or "").strip().lower()
+        if not name or not email:
+            errors.append(f"Fila {i}: nom o email buits"); continue
+        if db.query(models.Client).filter(models.Client.email == email).first():
+            skipped += 1; continue
+        db.add(models.Client(name=name, email=email)); inserted += 1
+    db.commit()
+    return {"inserted": inserted, "skipped": skipped, "errors": errors}
+
+
 # ── Products ──────────────────────────────────────────────────────────────────
 @app.get("/products", response_model=List[schemas.ProductOut])
 def list_products(db: Session = Depends(get_db)):
@@ -203,6 +227,32 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     if not obj:
         raise HTTPException(404, "Product not found")
     db.delete(obj); db.commit()
+
+
+@app.post("/products/import")
+async def import_products(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    content = await file.read()
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = content.decode("latin-1")
+    reader = csv.DictReader(io.StringIO(text))
+    inserted = skipped = 0
+    errors = []
+    for i, row in enumerate(reader, 1):
+        name = (row.get("name") or "").strip()
+        if not name:
+            errors.append(f"Fila {i}: nom buit"); continue
+        try:
+            price = float(str(row.get("price") or "").strip().replace(",", "."))
+            if price <= 0: raise ValueError()
+        except (ValueError, TypeError):
+            errors.append(f"Fila {i}: preu invàlid"); continue
+        if db.query(models.Product).filter(models.Product.name == name).first():
+            skipped += 1; continue
+        db.add(models.Product(name=name, price=price)); inserted += 1
+    db.commit()
+    return {"inserted": inserted, "skipped": skipped, "errors": errors}
 
 
 # ── Orders ────────────────────────────────────────────────────────────────────

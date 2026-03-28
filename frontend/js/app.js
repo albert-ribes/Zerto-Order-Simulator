@@ -545,6 +545,49 @@ $('btnOrderSubmit').addEventListener('click', async () => {
   } catch (e) { toast(e.message, 'error'); }
 });
 
+// ── CSV Import helper ─────────────────────────────────────────────────────────
+function setupCsvImport({ btnId, fileId, dropId, resultId, apiFn, reloadFn }) {
+  const btn    = $(btnId);
+  const input  = $(fileId);
+  const drop   = $(dropId);
+  const result = $(resultId);
+
+  const doImport = async (file) => {
+    if (!file || !file.name.endsWith('.csv')) return toast('Cal seleccionar un fitxer .csv', 'error');
+    drop.classList.add('csv-dropzone--loading');
+    result.style.display = 'none';
+    try {
+      const res = await apiFn(file);
+      const errHtml = res.errors?.length
+        ? `<ul class="csv-errors">${res.errors.map(e => `<li>${esc(e)}</li>`).join('')}</ul>` : '';
+      result.innerHTML = `
+        <span class="csv-stat csv-stat--ok">✓ ${res.inserted} inserits</span>
+        <span class="csv-stat csv-stat--skip">⤼ ${res.skipped} ja existents</span>
+        ${res.errors?.length ? `<span class="csv-stat csv-stat--err">✗ ${res.errors.length} errors</span>` : ''}
+        ${errHtml}`;
+      result.style.display = 'flex';
+      if (res.inserted > 0) { reloadFn(); toast(`${res.inserted} registres importats`, 'success'); }
+      else toast('Cap registre nou importat', 'info');
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      drop.classList.remove('csv-dropzone--loading');
+      input.value = '';
+    }
+  };
+
+  btn.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => doImport(input.files[0]));
+
+  drop.addEventListener('dragover',  e => { e.preventDefault(); drop.classList.add('csv-dropzone--over'); });
+  drop.addEventListener('dragleave', ()  => drop.classList.remove('csv-dropzone--over'));
+  drop.addEventListener('drop',      e => {
+    e.preventDefault();
+    drop.classList.remove('csv-dropzone--over');
+    doImport(e.dataTransfer.files[0]);
+  });
+}
+
 // ── Clients ───────────────────────────────────────────────────────────────────
 async function loadClients() {
   try {
@@ -563,6 +606,13 @@ async function loadClients() {
     ).join('');
   } catch (e) { toast(e.message, 'error'); }
 }
+
+setupCsvImport({
+  btnId: 'btnImportClients', fileId: 'fileClients',
+  dropId: 'dropClients',     resultId: 'csvResultClients',
+  apiFn: f => api.importClients(f),
+  reloadFn: loadClients,
+});
 
 $('btnNewClient').addEventListener('click', () => {
   $('clientFormTitle').textContent = t('form_client_new');
@@ -617,6 +667,13 @@ async function loadProducts() {
     ).join('');
   } catch (e) { toast(e.message, 'error'); }
 }
+
+setupCsvImport({
+  btnId: 'btnImportProducts', fileId: 'fileProducts',
+  dropId: 'dropProducts',     resultId: 'csvResultProducts',
+  apiFn: f => api.importProducts(f),
+  reloadFn: loadProducts,
+});
 
 $('btnNewProduct').addEventListener('click', () => {
   $('productFormTitle').textContent = t('form_product_new');
