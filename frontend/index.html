@@ -413,6 +413,10 @@
         <div class="card about-card">
           <h2 class="about-section-title" data-i18n="about_desc_title">Què és Zerto?</h2>
           <p class="about-text" data-i18n="about_desc">Zerto és un simulador d'ordres...</p>
+          <div class="about-location">
+            <span class="about-location-icon">📍</span>
+            <span data-i18n="about_location">Desplegat al <strong>Tech Experience Center (TEC)</strong> de les oficines de <strong>HPE Barcelona</strong>. Totes les màquines virtuals formen part del domini intern <code>tec.bcn</code>.</span>
+          </div>
           <h3 class="about-section-subtitle" data-i18n="about_features_title">Funcionalitats</h3>
           <ul class="about-list">
             <li data-i18n="about_f1">Generació automàtica d'ordres aleatoris</li>
@@ -458,7 +462,6 @@
               <div class="tech-items">
                 <span class="tech-badge infra-badge">Ubuntu 24.04 LTS</span>
                 <span class="tech-badge infra-badge">VMware vSphere</span>
-                <span class="tech-badge infra-badge">systemd</span>
               </div>
             </div>
           </div>
@@ -467,22 +470,25 @@
         <!-- Architecture diagram -->
         <div class="card about-card about-card-wide">
           <h2 class="about-section-title" data-i18n="about_arch_title">Arquitectura</h2>
+          <p class="about-arch-domain" data-i18n="about_arch_domain">Entorn al domini intern <code>tec.bcn</code> · HPE Tech Experience Center (TEC) · Barcelona</p>
           <div class="arch-diagram">
-            <div class="arch-browser">
-              <div class="arch-icon">🌐</div>
-              <div class="arch-name">Browser</div>
-              <div class="arch-sub">HTTP :80</div>
-            </div>
-            <div class="arch-arrow-v">↕</div>
             <div class="arch-vms">
-              <div class="arch-vm arch-vm--frontend">
-                <div class="arch-vm-label">VM Frontend · frontend.tec.bcn</div>
-                <div class="arch-service arch-frontend">
-                  <div class="arch-service-icon">🖥</div>
-                  <div class="arch-service-name">Frontend</div>
-                  <div class="arch-service-tech">nginx</div>
-                  <div class="arch-service-sub">HTML · CSS · JS</div>
-                  <div class="arch-port">:80</div>
+              <div class="arch-vm-col">
+                <div class="arch-browser">
+                  <div class="arch-icon">🌐</div>
+                  <div class="arch-name">Browser</div>
+                  <div class="arch-sub">HTTP :80</div>
+                </div>
+                <div class="arch-arrow-v">↕</div>
+                <div class="arch-vm arch-vm--frontend">
+                  <div class="arch-vm-label">VM Frontend · frontend.tec.bcn</div>
+                  <div class="arch-service arch-frontend">
+                    <div class="arch-service-icon">🖥</div>
+                    <div class="arch-service-name">Frontend</div>
+                    <div class="arch-service-tech">nginx</div>
+                    <div class="arch-service-sub">HTML · CSS · JS</div>
+                    <div class="arch-port">:80</div>
+                  </div>
                 </div>
               </div>
               <div class="arch-connector">
@@ -558,9 +564,9 @@
   <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <script src="/js/i18n.js?v=11"></script>
-  <script src="/js/api.js?v=11"></script>
-  <script src="/js/charts.js?v=11"></script>
-  <script src="/js/app.js?v=11"></script>
+  <script src="/js/i18n.js?v=12"></script>
+  <script src="/js/api.js?v=12"></script>
+  <script src="/js/charts.js?v=12"></script>
+  <script src="/js/app.js?v=12"></script>
 </body>
 </html>

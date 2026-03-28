@@ -530,6 +530,43 @@ body {
   line-height: 1.7;
   color: var(--text-muted);
 }
+.about-location {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 4px;
+  padding: 10px 14px;
+  background: rgba(99,102,241,.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.about-location-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.about-location strong { color: var(--text); }
+.about-location code {
+  font-family: monospace;
+  font-size: 0.82rem;
+  background: var(--surface2);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--accent);
+}
+.about-arch-domain {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin: -4px 0 12px;
+}
+.about-arch-domain code {
+  font-family: monospace;
+  background: var(--surface2);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 0.78rem;
+}
 .about-list {
   list-style: none;
   display: flex;
@@ -753,7 +790,8 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
 .stat-card--last .stat-value { color: var(--warning); }
 
 /* ── Architecture VM wrappers ────────────────────────────────────────────────── */
-.arch-vms { display: flex; align-items: center; gap: 0; }
+.arch-vms { display: flex; align-items: flex-end; gap: 0; }
+.arch-vm-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .arch-vm {
   display: flex;
   flex-direction: column;
@@ -771,6 +809,8 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
 .arch-vm--frontend .arch-vm-label { background: rgba(99,102,241,.18); color: #818cf8; }
 .arch-vm--backend  .arch-vm-label { background: rgba(16,185,129,.18); color: #34d399; }
 .arch-vm--db       .arch-vm-label { background: rgba(245,158,11,.18); color: #fbbf24; }
+[data-theme="light"] .arch-vm--db .arch-vm-label,
+[data-theme="light"] .flow-layer--db { color: #92400e; }
 
 /* ── Data flow layer badges ──────────────────────────────────────────────────── */
 .flow-layer {
