@@ -61,13 +61,12 @@ def count_table(conn, table):
     return conn.execute(text(f"SELECT COUNT(*) FROM {table}")).scalar()
 
 # ── Seed ──────────────────────────────────────────────────────────────────────
-with Session() as session:
-    conn = session.connection()
+with engine.connect() as conn:
 
     if args.clear:
         print("\nBuidant taules (--clear)...")
         conn.execute(text("TRUNCATE orders, clients, products RESTART IDENTITY CASCADE"))
-        session.commit()
+        conn.commit()
         print("  ✓ Taules buidades")
 
     # ── Clients ───────────────────────────────────────────────────────────────
@@ -92,8 +91,8 @@ with Session() as session:
                 {"n": name, "e": email},
             )
             inserted_c += 1
-    session.commit()
-    total_c = count_table(conn, "clients")
+    conn.commit()
+    total_c = conn.execute(text("SELECT COUNT(*) FROM clients")).scalar()
     print(f"  ✓ Inserits: {inserted_c}  |  Ja existents: {skipped_c}  |  Total: {total_c}")
 
     # ── Products ──────────────────────────────────────────────────────────────
@@ -124,8 +123,8 @@ with Session() as session:
                 {"n": name, "p": price},
             )
             inserted_p += 1
-    session.commit()
-    total_p = count_table(conn, "products")
+    conn.commit()
+    total_p = conn.execute(text("SELECT COUNT(*) FROM products")).scalar()
     print(f"  ✓ Inserits: {inserted_p}  |  Ja existents: {skipped_p}  |  Errors: {errors_p}  |  Total: {total_p}")
 
 print("\n✅ Seed completat correctament!\n")
