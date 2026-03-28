@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ca" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zerto – Order Simulator</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">Zerto</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="dashboard">
+        <span class="nav-icon">📊</span><span data-i18n="nav_dashboard">Dashboard</span>
+      </button>
+      <button class="nav-item" data-tab="orders">
+        <span class="nav-icon">📦</span><span data-i18n="nav_orders">Ordres</span>
+      </button>
+      <button class="nav-item" data-tab="clients">
+        <span class="nav-icon">👥</span><span data-i18n="nav_clients">Clients</span>
+      </button>
+      <button class="nav-item" data-tab="products">
+        <span class="nav-icon">🏷️</span><span data-i18n="nav_products">Productes</span>
+      </button>
+      <button class="nav-item" data-tab="about">
+        <span class="nav-icon">ℹ️</span><span data-i18n="nav_about">Sobre</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <!-- Language + Theme controls -->
+      <div class="controls-row">
+        <div class="lang-selector">
+          <button class="lang-btn active" data-lang="ca">CA</button>
+          <button class="lang-btn" data-lang="es">ES</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+        <button class="theme-toggle" id="btnTheme" title="Toggle theme">🌙</button>
+      </div>
+
+      <!-- Generator card -->
+      <div class="generator-card">
+        <div class="generator-title" data-i18n="gen_title">Auto-generador</div>
+        <div class="generator-controls">
+          <label class="interval-label">
+            <span data-i18n="gen_interval">Interval (s)</span>
+            <input type="number" id="genInterval" value="15" min="1" max="60" step="0.5" />
+          </label>
+          <button id="btnGenToggle" class="btn btn-success btn-sm" data-i18n="gen_start">▶ Iniciar</button>
+          <button id="btnReset" class="btn btn-reset btn-sm" data-i18n="gen_reset">↺ Reiniciar</button>
+        </div>
+        <div id="genStatus" class="gen-status stopped" data-i18n="gen_stopped">● Aturat</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── Dashboard ── -->
+    <section id="tab-dashboard" class="tab-content active">
+      <h1 class="page-title" data-i18n="nav_dashboard">Dashboard</h1>
+
+      <!-- Filter bar (Grafana-style) -->
+      <div class="filter-bar">
+        <!-- Time range picker -->
+        <div class="trp-wrapper" id="trpWrapper">
+          <button class="trp-btn" id="btnTimeRange">
+            <span class="trp-icon">🕐</span>
+            <span id="timeRangeLabel">Últimes 24h</span>
+            <span class="trp-chevron">▾</span>
+          </button>
+          <div class="trp-panel" id="trpPanel" style="display:none">
+            <!-- Quick presets -->
+            <div class="trp-quick">
+              <div class="trp-section-title" data-i18n="filter_last_section">Últim</div>
+              <div id="trpPresets" class="trp-presets-list"></div>
+              <div class="trp-all-sep"></div>
+              <button class="trp-preset-btn trp-all-btn" id="btnRangeAll" data-i18n="qr_all">Tot el rang</button>
+            </div>
+            <!-- Custom range -->
+            <div class="trp-custom">
+              <div class="trp-section-title" data-i18n="filter_custom_range">Rang personalitzat</div>
+              <div class="trp-custom-row">
+                <label data-i18n="filter_from">Des de</label>
+                <input type="datetime-local" id="filterStart" />
+              </div>
+              <div class="trp-custom-row">
+                <label data-i18n="filter_to">Fins a</label>
+                <input type="datetime-local" id="filterEnd" />
+              </div>
+              <p class="trp-live-hint" id="trpLiveHint" data-i18n="filter_live_ph">Ara (en viu)</p>
+              <div class="trp-custom-actions">
+                <button class="btn btn-primary btn-sm" id="btnApplyFilter" data-i18n="filter_apply">Aplicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Live badge -->
+        <span class="live-badge" id="liveBadge" data-i18n="filter_live">● En viu</span>
+        <div class="filter-sep"></div>
+        <!-- Refresh selector -->
+        <div class="filter-group">
+          <label data-i18n="filter_refresh">Refresc</label>
+          <select id="selectRefresh">
+            <option value="3000">3s</option>
+            <option value="5000" selected>5s</option>
+            <option value="10000">10s</option>
+            <option value="30000">30s</option>
+            <option value="60000">60s</option>
+          </select>
+        </div>
+      </div>
+      <div class="cards-grid">
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_total_orders">Total ordres</div>
+          <div class="stat-value" id="statOrders">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_total_revenue">Ingressos totals</div>
+          <div class="stat-value" id="statRevenue">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_clients">Clients</div>
+          <div class="stat-value" id="statClients">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_products">Productes</div>
+          <div class="stat-value" id="statProducts">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_avg_orders_day">Mitja ordres/dia</div>
+          <div class="stat-value" id="statAvgOrders">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_avg_rev_day">Mitja facturació/dia</div>
+          <div class="stat-value" id="statAvgRev">–</div>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <div class="card chart-card chart-wide">
+          <div class="chart-header"><h3 data-i18n="chart_timeline">Ordres per minut (timeline)</h3></div>
+          <div class="chart-wrap"><canvas id="chartTimeline"></canvas></div>
+        </div>
+        <div class="card chart-card chart-wide">
+          <div class="chart-header"><h3 data-i18n="chart_cumulative">Ingressos acumulats</h3></div>
+          <div class="chart-wrap"><canvas id="chartCumulative"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-header"><h3 data-i18n="chart_qty">Unitats per producte</h3></div>
+          <div class="chart-wrap"><canvas id="chartProductQty"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-header"><h3 data-i18n="chart_rev">Ingressos per producte</h3></div>
+          <div class="chart-wrap"><canvas id="chartProductRev"></canvas></div>
+        </div>
+        <div class="card chart-card chart-wide">
+          <div class="chart-header"><h3 data-i18n="chart_daily">Historial diari</h3></div>
+          <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
+        </div>
+        <div class="card chart-card chart-wide">
+          <div class="chart-header"><h3 data-i18n="chart_hourly">Distribució horària</h3></div>
+          <div class="chart-wrap"><canvas id="chartHourly"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Orders ── -->
+    <section id="tab-orders" class="tab-content">
+      <div class="page-header">
+        <h1 class="page-title" data-i18n="page_orders">Ordres</h1>
+        <div class="page-header-actions">
+          <button class="btn btn-danger btn-sm" id="btnDeleteSelected" style="display:none" data-i18n="btn_delete_selected">Eliminar seleccionades</button>
+          <button class="btn btn-primary" id="btnNewOrder" data-i18n="btn_new_order">+ Nova ordre</button>
+        </div>
+      </div>
+
+      <!-- Orders filter bar -->
+      <div class="filter-bar">
+        <div class="trp-wrapper" id="ordTrpWrapper">
+          <button class="trp-btn" id="ordBtnTimeRange">
+            <span class="trp-icon">🕐</span>
+            <span id="ordTimeRangeLabel">Últimes 24h</span>
+            <span class="trp-chevron">▾</span>
+          </button>
+          <div class="trp-panel" id="ordTrpPanel" style="display:none">
+            <div class="trp-quick">
+              <div class="trp-section-title" data-i18n="filter_last_section">Últim</div>
+              <div id="ordTrpPresets" class="trp-presets-list"></div>
+              <div class="trp-all-sep"></div>
+              <button class="trp-preset-btn trp-all-btn" id="ordBtnRangeAll" data-i18n="qr_all">Tot el rang</button>
+            </div>
+            <div class="trp-custom">
+              <div class="trp-section-title" data-i18n="filter_custom_range">Rang personalitzat</div>
+              <div class="trp-custom-row">
+                <label data-i18n="filter_from">Des de</label>
+                <input type="datetime-local" id="ordFilterStart" />
+              </div>
+              <div class="trp-custom-row">
+                <label data-i18n="filter_to">Fins a</label>
+                <input type="datetime-local" id="ordFilterEnd" />
+              </div>
+              <p class="trp-live-hint" id="ordTrpLiveHint" data-i18n="filter_live_ph">Ara (en viu)</p>
+              <div class="trp-custom-actions">
+                <button class="btn btn-primary btn-sm" id="ordBtnApplyFilter" data-i18n="filter_apply">Aplicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="live-badge" id="ordLiveBadge" data-i18n="filter_live">● En viu</span>
+        <div class="filter-sep"></div>
+        <div class="filter-group">
+          <label data-i18n="orders_page_size">Per pàgina</label>
+          <select id="ordPageSize">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="250">250</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Selection banner -->
+      <div class="sel-banner" id="selBanner" style="display:none">
+        <span id="selBannerText"></span>
+        <button class="btn btn-primary btn-sm" id="btnSelectAllFiltered" style="display:none"></button>
+        <button class="btn btn-ghost btn-sm" id="btnClearSelection" data-i18n="sel_clear">Netejar selecció</button>
+      </div>
+
+      <div class="card form-card" id="orderForm" style="display:none">
+        <h3 data-i18n="form_order_title">Nova ordre manual</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label data-i18n="order_client">Client</label>
+            <select id="orderClient"></select>
+          </div>
+          <div class="form-group">
+            <label data-i18n="order_product">Producte</label>
+            <select id="orderProduct"></select>
+          </div>
+          <div class="form-group">
+            <label data-i18n="order_qty">Quantitat</label>
+            <input type="number" id="orderQty" value="1" min="1" max="999" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btnOrderSubmit" data-i18n="btn_create">Crear ordre</button>
+          <button class="btn btn-ghost" id="btnOrderCancel" data-i18n="btn_cancel">Cancel·lar</button>
+        </div>
+      </div>
+      <div class="card table-card">
+        <table class="table" id="ordersTable">
+          <thead>
+            <tr>
+              <th class="col-check"><input type="checkbox" id="checkAllOrders" /></th>
+              <th data-i18n="col_id">#</th>
+              <th data-i18n="col_client">Client</th>
+              <th data-i18n="col_product">Producte</th>
+              <th data-i18n="col_qty">Qty</th>
+              <th data-i18n="col_unit_price">Preu unit.</th>
+              <th data-i18n="col_total">Total</th>
+              <th data-i18n="col_date">Data</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+        <div class="pagination-bar" id="paginationBar">
+          <span class="pagination-info" id="paginationInfo"></span>
+          <div class="pagination-controls">
+            <button class="btn btn-ghost btn-sm" id="btnPrevPage">←</button>
+            <span class="page-indicator" id="pageIndicator"></span>
+            <button class="btn btn-ghost btn-sm" id="btnNextPage">→</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Clients ── -->
+    <section id="tab-clients" class="tab-content">
+      <div class="page-header">
+        <h1 class="page-title" data-i18n="page_clients">Clients</h1>
+        <button class="btn btn-primary" id="btnNewClient" data-i18n="btn_new_client">+ Nou client</button>
+      </div>
+      <div class="card form-card" id="clientForm" style="display:none">
+        <h3 id="clientFormTitle" data-i18n="form_client_new">Nou client</h3>
+        <input type="hidden" id="clientId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label data-i18n="client_name">Nom</label>
+            <input type="text" id="clientName" data-i18n="client_name_ph" data-i18n-attr="placeholder" />
+          </div>
+          <div class="form-group">
+            <label data-i18n="client_email">Email</label>
+            <input type="email" id="clientEmail" data-i18n="client_email_ph" data-i18n-attr="placeholder" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btnClientSubmit" data-i18n="btn_save">Desar</button>
+          <button class="btn btn-ghost" id="btnClientCancel" data-i18n="btn_cancel">Cancel·lar</button>
+        </div>
+      </div>
+      <div class="card table-card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th data-i18n="col_id">#</th>
+              <th data-i18n="client_name">Nom</th>
+              <th data-i18n="client_email">Email</th>
+              <th data-i18n="col_created">Creat</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="clientsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Products ── -->
+    <section id="tab-products" class="tab-content">
+      <div class="page-header">
+        <h1 class="page-title" data-i18n="page_products">Productes</h1>
+        <button class="btn btn-primary" id="btnNewProduct" data-i18n="btn_new_product">+ Nou producte</button>
+      </div>
+      <div class="card form-card" id="productForm" style="display:none">
+        <h3 id="productFormTitle" data-i18n="form_product_new">Nou producte</h3>
+        <input type="hidden" id="productId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label data-i18n="product_name">Nom</label>
+            <input type="text" id="productName" data-i18n="product_name_ph" data-i18n-attr="placeholder" />
+          </div>
+          <div class="form-group">
+            <label data-i18n="product_price">Preu (€)</label>
+            <input type="number" id="productPrice" data-i18n="product_price_ph" data-i18n-attr="placeholder" min="0" step="0.01" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btnProductSubmit" data-i18n="btn_save">Desar</button>
+          <button class="btn btn-ghost" id="btnProductCancel" data-i18n="btn_cancel">Cancel·lar</button>
+        </div>
+      </div>
+      <div class="card table-card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th data-i18n="col_id">#</th>
+              <th data-i18n="product_name">Nom</th>
+              <th data-i18n="product_price">Preu</th>
+              <th data-i18n="col_created">Creat</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="productsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── About ── -->
+    <section id="tab-about" class="tab-content">
+      <h1 class="page-title" data-i18n="page_about">Sobre l'aplicació</h1>
+
+      <div class="about-grid">
+        <!-- Description -->
+        <div class="card about-card">
+          <h2 class="about-section-title" data-i18n="about_desc_title">Què és Zerto?</h2>
+          <p class="about-text" data-i18n="about_desc">Zerto és un simulador d'ordres...</p>
+          <h3 class="about-section-subtitle" data-i18n="about_features_title">Funcionalitats</h3>
+          <ul class="about-list">
+            <li data-i18n="about_f1">Generació automàtica d'ordres aleatoris</li>
+            <li data-i18n="about_f2">Creació manual d'ordres</li>
+            <li data-i18n="about_f3">Gestió CRUD de clients i productes</li>
+            <li data-i18n="about_f4">Dashboard amb 4 gràfiques en temps real</li>
+            <li data-i18n="about_f5">Reinici de la simulació amb un sol clic</li>
+          </ul>
+        </div>
+
+        <!-- Tech stack -->
+        <div class="card about-card">
+          <h2 class="about-section-title" data-i18n="about_stack_title">Stack tecnològic</h2>
+          <div class="tech-stack">
+            <div class="tech-group">
+              <div class="tech-label">Frontend</div>
+              <div class="tech-items">
+                <span class="tech-badge frontend-badge">nginx</span>
+                <span class="tech-badge frontend-badge">HTML5</span>
+                <span class="tech-badge frontend-badge">CSS3</span>
+                <span class="tech-badge frontend-badge">JavaScript</span>
+                <span class="tech-badge frontend-badge">Chart.js</span>
+              </div>
+            </div>
+            <div class="tech-group">
+              <div class="tech-label">Backend</div>
+              <div class="tech-items">
+                <span class="tech-badge backend-badge">Python 3.12</span>
+                <span class="tech-badge backend-badge">FastAPI</span>
+                <span class="tech-badge backend-badge">Gunicorn</span>
+                <span class="tech-badge backend-badge">SQLAlchemy</span>
+              </div>
+            </div>
+            <div class="tech-group">
+              <div class="tech-label">Database</div>
+              <div class="tech-items">
+                <span class="tech-badge db-badge">PostgreSQL 16</span>
+                <span class="tech-badge db-badge">psycopg2</span>
+              </div>
+            </div>
+            <div class="tech-group">
+              <div class="tech-label">Infraestructura</div>
+              <div class="tech-items">
+                <span class="tech-badge infra-badge">Docker</span>
+                <span class="tech-badge infra-badge">Docker Compose</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Architecture diagram -->
+        <div class="card about-card about-card-wide">
+          <h2 class="about-section-title" data-i18n="about_arch_title">Arquitectura</h2>
+          <div class="arch-diagram">
+            <div class="arch-browser">
+              <div class="arch-icon">🌐</div>
+              <div class="arch-name">Browser</div>
+              <div class="arch-sub">HTTP :3000</div>
+            </div>
+            <div class="arch-arrow-v">↕</div>
+            <div class="arch-compose">
+              <div class="arch-compose-label">Docker Compose</div>
+              <div class="arch-services">
+                <div class="arch-service arch-frontend">
+                  <div class="arch-service-icon">🖥</div>
+                  <div class="arch-service-name">Frontend</div>
+                  <div class="arch-service-tech">nginx</div>
+                  <div class="arch-service-sub">HTML · CSS · JS</div>
+                  <div class="arch-port">:3000</div>
+                </div>
+                <div class="arch-connector">
+                  <div class="arch-arrow-line"></div>
+                  <div class="arch-arrow-label">/api/ proxy</div>
+                </div>
+                <div class="arch-service arch-backend">
+                  <div class="arch-service-icon">⚙️</div>
+                  <div class="arch-service-name">Backend</div>
+                  <div class="arch-service-tech">FastAPI</div>
+                  <div class="arch-service-sub">Gunicorn · Python</div>
+                  <div class="arch-port">:8000</div>
+                </div>
+                <div class="arch-connector">
+                  <div class="arch-arrow-line"></div>
+                  <div class="arch-arrow-label">SQL</div>
+                </div>
+                <div class="arch-service arch-db">
+                  <div class="arch-service-icon">🗄</div>
+                  <div class="arch-service-name">Database</div>
+                  <div class="arch-service-tech">PostgreSQL 16</div>
+                  <div class="arch-service-sub">pgdata volume</div>
+                  <div class="arch-port">:5432</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data flow diagram -->
+        <div class="card about-card about-card-wide">
+          <h2 class="about-section-title" data-i18n="about_flow_title">Flux de dades</h2>
+          <div class="flow-diagram">
+            <div class="flow-step flow-gen">
+              <div class="flow-icon">🎲</div>
+              <div class="flow-name">Generador</div>
+              <div class="flow-desc">Thread Python genera ordres aleatòries cada N segons</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step flow-api">
+              <div class="flow-icon">⚡</div>
+              <div class="flow-name">API REST</div>
+              <div class="flow-desc">FastAPI valida i processa les peticions HTTP</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step flow-db">
+              <div class="flow-icon">🗄</div>
+              <div class="flow-name">PostgreSQL</div>
+              <div class="flow-desc">Persisteix clients, productes i ordres</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step flow-ui">
+              <div class="flow-icon">📊</div>
+              <div class="flow-name">Dashboard</div>
+              <div class="flow-desc">Polling cada 3s · Chart.js actualitza les gràfiques</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="/js/i18n.js?v=8"></script>
+  <script src="/js/api.js?v=8"></script>
+  <script src="/js/charts.js?v=8"></script>
+  <script src="/js/app.js?v=8"></script>
+</body>
+</html>
