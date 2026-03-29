@@ -465,11 +465,85 @@ function _timeAgo(date) {
 function _updateLastOrderStat() {
   const el = $('statLastOrder');
   if (!el) return;
-  el.textContent = _lastOrderAt ? _timeAgo(_lastOrderAt) : '–';
+  if (!_lastOrderAt) { el.textContent = '–'; el.style.color = ''; return; }
+  const s = Math.floor((Date.now() - _lastOrderAt.getTime()) / 1000);
+  const genMaxSec = parseFloat($('genMax').value) || 60;
+  el.textContent = _timeAgo(_lastOrderAt);
+  if (s < genMaxSec)          el.style.color = 'var(--success)';
+  else if (s < genMaxSec * 4) el.style.color = 'var(--warning)';
+  else                         el.style.color = 'var(--danger)';
 }
 
 // Actualitza el comptador cada segon
 setInterval(_updateLastOrderStat, 1000);
+
+// ── Infra status ──────────────────────────────────────────────────────────────
+function _setBadge(id, state, text) {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = text;
+  el.className = `infra-test-badge infra-test-badge--${state}`;
+}
+function _setDot(id, state) {
+  const el = $(id);
+  if (el) el.className = `infra-dot infra-dot--${state}`;
+}
+
+async function checkInfraStatus() {
+  const upd = $('infraUpdated');
+  if (upd) upd.textContent = t('status_checked') + ' ' + new Date().toLocaleTimeString();
+
+  // ── Frontend ──
+  let feDot = 'ok';
+  const t0 = performance.now();
+  try {
+    const r = await fetch('/css/style.css', { method: 'HEAD', cache: 'no-store' });
+    _setBadge('tFe0', r.ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now() - t0)}ms`);
+    if (!r.ok) feDot = 'warn';
+  } catch {
+    _setBadge('tFe0', 'err', t('status_error')); feDot = 'err';
+  }
+  const t1 = performance.now();
+  try {
+    const r = await fetch('/', { cache: 'no-store' });
+    const ok = r.ok && (r.headers.get('content-type') || '').includes('html');
+    _setBadge('tFe1', ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now() - t1)}ms`);
+    if (!ok && feDot === 'ok') feDot = 'warn';
+  } catch {
+    _setBadge('tFe1', 'err', t('status_error')); feDot = 'err';
+  }
+  _setDot('dotFrontend', feDot);
+
+  // ── Backend ──
+  let beDot = 'ok', health = null;
+  const t2 = performance.now();
+  try {
+    health = await api.health();
+    _setBadge('tBe0', 'ok', `HTTP 200 · ${Math.round(performance.now() - t2)}ms`);
+  } catch {
+    _setBadge('tBe0', 'err', t('status_error')); beDot = 'err';
+    _setBadge('tDb0', 'warn', t('status_unknown'));
+    _setBadge('tDb1', 'warn', t('status_unknown'));
+    _setDot('dotBackend', beDot); _setDot('dotDatabase', 'warn');
+    return;
+  }
+  const t3 = performance.now();
+  try {
+    await api.genStatus();
+    _setBadge('tBe1', 'ok', `HTTP 200 · ${Math.round(performance.now() - t3)}ms`);
+  } catch {
+    _setBadge('tBe1', 'warn', t('status_error')); if (beDot === 'ok') beDot = 'warn';
+  }
+  _setDot('dotBackend', beDot);
+
+  // ── Database (via health response) ──
+  const dbOk = health?.database === 'ok';
+  const dbMs = health?.db_latency_ms;
+  const dbMsStr = dbMs != null ? ` · ${dbMs}ms` : '';
+  _setBadge('tDb0', dbOk ? 'ok' : 'err', dbOk ? `${t('status_online')}${dbMsStr}` : t('status_unreachable'));
+  _setBadge('tDb1', dbOk ? 'ok' : 'err', dbOk ? `ok${dbMsStr}` : t('status_error'));
+  _setDot('dotDatabase', dbOk ? 'ok' : 'err');
+}
 
 // ── Boot sequence ─────────────────────────────────────────────────────────────
 function initApp() {
@@ -478,6 +552,8 @@ function initApp() {
   startRefreshTimer();
   syncGeneratorStatus();
   setInterval(syncGeneratorStatus, 5000);
+  checkInfraStatus();
+  setInterval(checkInfraStatus, 30000);
   setupUserForm();
 }
 
@@ -709,11 +785,12 @@ $('btnOrderSubmit').addEventListener('click', async () => {
 });
 
 // ── CSV Import helper ─────────────────────────────────────────────────────────
-function setupCsvImport({ btnId, fileId, dropId, resultId, apiFn, reloadFn }) {
+function setupCsvImport({ btnId, fileId, dropId, resultId, selectBtnId, apiFn, reloadFn }) {
   const btn    = $(btnId);
   const input  = $(fileId);
   const drop   = $(dropId);
   const result = $(resultId);
+  const selectBtn = selectBtnId ? $(selectBtnId) : null;
 
   const doImport = async (file) => {
     if (!file || !file.name.endsWith('.csv')) return toast('Cal seleccionar un fitxer .csv', 'error');
@@ -739,10 +816,14 @@ function setupCsvImport({ btnId, fileId, dropId, resultId, apiFn, reloadFn }) {
     }
   };
 
-  btn.addEventListener('click', () => input.click());
+  btn.addEventListener('click', () => {
+    const visible = drop.style.display !== 'none';
+    drop.style.display = visible ? 'none' : '';
+  });
+  if (selectBtn) selectBtn.addEventListener('click', () => input.click());
   input.addEventListener('change', () => doImport(input.files[0]));
 
-  drop.addEventListener('dragover',  e => { e.preventDefault(); drop.classList.add('csv-dropzone--over'); });
+  drop.addEventListener('dragover',  e => { e.preventDefault(); drop.style.display = ''; drop.classList.add('csv-dropzone--over'); });
   drop.addEventListener('dragleave', ()  => drop.classList.remove('csv-dropzone--over'));
   drop.addEventListener('drop',      e => {
     e.preventDefault();
@@ -752,11 +833,45 @@ function setupCsvImport({ btnId, fileId, dropId, resultId, apiFn, reloadFn }) {
 }
 
 // ── Clients ───────────────────────────────────────────────────────────────────
+function _updateClientSelection() {
+  const all     = $('clientsBody').querySelectorAll('.client-check');
+  const checked = $('clientsBody').querySelectorAll('.client-check:checked');
+  const n = checked.length;
+  $('checkAllClients').checked       = n > 0 && n === all.length;
+  $('checkAllClients').indeterminate = n > 0 && n < all.length;
+  const btn = $('btnDeleteSelectedClients');
+  btn.style.display = n > 0 ? '' : 'none';
+  if (n > 0) btn.textContent = `${t('btn_delete_selected')} (${n})`;
+}
+
+$('checkAllClients').addEventListener('change', e => {
+  $('clientsBody').querySelectorAll('.client-check').forEach(cb => {
+    cb.checked = e.target.checked;
+    cb.closest('tr').classList.toggle('row-selected', e.target.checked);
+  });
+  _updateClientSelection();
+});
+
+$('btnDeleteSelectedClients').addEventListener('click', async () => {
+  const ids = [...$('clientsBody').querySelectorAll('.client-check:checked')].map(cb => +cb.value);
+  if (!ids.length) return;
+  if (!confirm(t('delete_clients_confirm'))) return;
+  try {
+    await api.deleteClients(ids);
+    toast(t('toast_deleted'), 'success');
+    loadClients();
+  } catch (e) { toast(e.message, 'error'); }
+});
+
 async function loadClients() {
   try {
     const clients = await api.getClients();
+    $('checkAllClients').checked = false;
+    $('checkAllClients').indeterminate = false;
+    $('btnDeleteSelectedClients').style.display = 'none';
     $('clientsBody').innerHTML = clients.map(c => `
       <tr>
+        <td class="col-check"><input type="checkbox" class="client-check" value="${c.id}" /></td>
         <td><span class="badge">#${c.id}</span></td>
         <td>${esc(c.name)}</td>
         <td>${esc(c.email)}</td>
@@ -767,12 +882,19 @@ async function loadClients() {
         </div></td>
       </tr>`
     ).join('');
+    $('clientsBody').querySelectorAll('.client-check').forEach(cb => {
+      cb.addEventListener('change', () => {
+        cb.closest('tr').classList.toggle('row-selected', cb.checked);
+        _updateClientSelection();
+      });
+    });
   } catch (e) { toast(e.message, 'error'); }
 }
 
 setupCsvImport({
   btnId: 'btnImportClients', fileId: 'fileClients',
   dropId: 'dropClients',     resultId: 'csvResultClients',
+  selectBtnId: 'btnSelectFileClients',
   apiFn: f => api.importClients(f),
   reloadFn: loadClients,
 });
@@ -813,11 +935,45 @@ window.deleteClient = async (id) => {
 };
 
 // ── Products ──────────────────────────────────────────────────────────────────
+function _updateProductSelection() {
+  const all     = $('productsBody').querySelectorAll('.product-check');
+  const checked = $('productsBody').querySelectorAll('.product-check:checked');
+  const n = checked.length;
+  $('checkAllProducts').checked       = n > 0 && n === all.length;
+  $('checkAllProducts').indeterminate = n > 0 && n < all.length;
+  const btn = $('btnDeleteSelectedProducts');
+  btn.style.display = n > 0 ? '' : 'none';
+  if (n > 0) btn.textContent = `${t('btn_delete_selected')} (${n})`;
+}
+
+$('checkAllProducts').addEventListener('change', e => {
+  $('productsBody').querySelectorAll('.product-check').forEach(cb => {
+    cb.checked = e.target.checked;
+    cb.closest('tr').classList.toggle('row-selected', e.target.checked);
+  });
+  _updateProductSelection();
+});
+
+$('btnDeleteSelectedProducts').addEventListener('click', async () => {
+  const ids = [...$('productsBody').querySelectorAll('.product-check:checked')].map(cb => +cb.value);
+  if (!ids.length) return;
+  if (!confirm(t('delete_products_confirm'))) return;
+  try {
+    await api.deleteProducts(ids);
+    toast(t('toast_deleted'), 'success');
+    loadProducts();
+  } catch (e) { toast(e.message, 'error'); }
+});
+
 async function loadProducts() {
   try {
     const products = await api.getProducts();
+    $('checkAllProducts').checked = false;
+    $('checkAllProducts').indeterminate = false;
+    $('btnDeleteSelectedProducts').style.display = 'none';
     $('productsBody').innerHTML = products.map(p => `
       <tr>
+        <td class="col-check"><input type="checkbox" class="product-check" value="${p.id}" /></td>
         <td><span class="badge">#${p.id}</span></td>
         <td>${esc(p.name)}</td>
         <td><strong>€${fmt(parseFloat(p.price))}</strong></td>
@@ -828,12 +984,19 @@ async function loadProducts() {
         </div></td>
       </tr>`
     ).join('');
+    $('productsBody').querySelectorAll('.product-check').forEach(cb => {
+      cb.addEventListener('change', () => {
+        cb.closest('tr').classList.toggle('row-selected', cb.checked);
+        _updateProductSelection();
+      });
+    });
   } catch (e) { toast(e.message, 'error'); }
 }
 
 setupCsvImport({
   btnId: 'btnImportProducts', fileId: 'fileProducts',
   dropId: 'dropProducts',     resultId: 'csvResultProducts',
+  selectBtnId: 'btnSelectFileProducts',
   apiFn: f => api.importProducts(f),
   reloadFn: loadProducts,
 });
@@ -888,10 +1051,10 @@ async function loadUsers() {
         <td><strong>${u.username}</strong></td>
         <td><span class="role-badge ${u.is_admin ? 'role-badge--admin' : 'role-badge--user'}">${u.is_admin ? t('role_admin') : t('role_user')}</span></td>
         <td>${new Date(u.created_at).toLocaleDateString()}</td>
-        <td class="actions-cell">
-          <button class="btn btn-sm btn-ghost" onclick="openUserForm(${u.id})">${t('btn_edit')}</button>
-          ${u.id !== (_currentUser && _currentUser.id) ? `<button class="btn btn-sm btn-danger" onclick="deleteUserById(${u.id}, '${u.username}')">${t('btn_delete')}</button>` : ''}
-        </td>
+        <td><div class="td-actions">
+          <button class="btn btn-edit btn-sm" onclick="openUserForm(${u.id})">${t('btn_edit')}</button>
+          ${u.id !== (_currentUser && _currentUser.id) ? `<button class="btn btn-danger btn-sm" onclick="deleteUserById(${u.id}, '${u.username}')">${t('btn_delete')}</button>` : ''}
+        </div></td>
       </tr>`).join('');
   } catch (e) { console.error(e); }
 }

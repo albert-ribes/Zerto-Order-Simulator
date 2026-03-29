@@ -65,6 +65,7 @@ const api = {
   createClient:   (d)       => req('POST',   '/clients', d),
   updateClient:   (id, d)   => req('PUT',    `/clients/${id}`, d),
   deleteClient:   (id)      => req('DELETE', `/clients/${id}`),
+  deleteClients:  (ids)     => req('DELETE', '/clients/batch', { ids }),
   importClients:  (file)    => reqForm('/clients/import', file),
 
   // Products
@@ -72,6 +73,7 @@ const api = {
   createProduct:  (d)       => req('POST',   '/products', d),
   updateProduct:  (id, d)   => req('PUT',    `/products/${id}`, d),
   deleteProduct:  (id)      => req('DELETE', `/products/${id}`),
+  deleteProducts: (ids)     => req('DELETE', '/products/batch', { ids }),
   importProducts: (file)    => reqForm('/products/import', file),
 
   // Orders
@@ -81,6 +83,9 @@ const api = {
   createOrder:  (d)    => req('POST',   '/orders', d),
   deleteOrder:  (id)   => req('DELETE', `/orders/${id}`),
   resetOrders:  ()     => req('DELETE', '/orders'),
+
+  // Health
+  health: () => req('GET', '/health'),
 
   // Generator
   startGenerator: (interval) => req('POST', '/generator/start', { interval }),

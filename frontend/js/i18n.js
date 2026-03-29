@@ -144,9 +144,22 @@ const TRANSLATIONS = {
     qr_15d:  'Últims 15 dies',
     qr_30d:  'Últims 30 dies',
     qr_all:  'Tot el rang',
-    // Multi-select orders
-    btn_delete_selected:     'Eliminar seleccionades',
-    delete_selected_confirm: 'Eliminar les ordres seleccionades?',
+    // Infra status
+    status_checked:     'Actualitzat a les',
+    status_online:      'accessible',
+    status_unreachable: 'inaccessible',
+    status_unknown:     'desconegut',
+    status_error:       'error',
+    // CSV import
+    btn_import_clients:   '📥 Importar clients',
+    btn_import_products:  '📥 Importar productes',
+    csv_drag_here:        'Arrossega el fitxer CSV aquí',
+    csv_select_file:      'Seleccionar fitxer',
+    // Multi-select
+    btn_delete_selected:          'Eliminar seleccionades',
+    delete_selected_confirm:      'Eliminar les ordres seleccionades?',
+    delete_clients_confirm:       'Eliminar els clients seleccionats i totes les seves ordres?',
+    delete_products_confirm:      'Eliminar els productes seleccionats i totes les seves ordres?',
     // Orders filter/pagination/selection
     orders_page_size: 'Per pàgina',
     orders_showing:   'Mostrant',
@@ -298,9 +311,22 @@ const TRANSLATIONS = {
     qr_15d:  'Últimos 15 días',
     qr_30d:  'Últimos 30 días',
     qr_all:  'Todo el rango',
-    // Multi-select orders
-    btn_delete_selected:     'Eliminar seleccionados',
-    delete_selected_confirm: '¿Eliminar los pedidos seleccionados?',
+    // Infra status
+    status_checked:     'Actualizado a las',
+    status_online:      'accesible',
+    status_unreachable: 'inaccesible',
+    status_unknown:     'desconocido',
+    status_error:       'error',
+    // CSV import
+    btn_import_clients:   '📥 Importar clientes',
+    btn_import_products:  '📥 Importar productos',
+    csv_drag_here:        'Arrastra el fichero CSV aquí',
+    csv_select_file:      'Seleccionar fichero',
+    // Multi-select
+    btn_delete_selected:          'Eliminar seleccionados',
+    delete_selected_confirm:      '¿Eliminar los pedidos seleccionados?',
+    delete_clients_confirm:       '¿Eliminar los clientes seleccionados y todos sus pedidos?',
+    delete_products_confirm:      '¿Eliminar los productos seleccionados y todos sus pedidos?',
     // Orders filter/pagination/selection
     orders_page_size: 'Por página',
     orders_showing:   'Mostrando',
@@ -452,9 +478,22 @@ const TRANSLATIONS = {
     qr_15d:  'Last 15 days',
     qr_30d:  'Last 30 days',
     qr_all:  'All data',
-    // Multi-select orders
-    btn_delete_selected:     'Delete selected',
-    delete_selected_confirm: 'Delete selected orders?',
+    // Infra status
+    status_checked:     'Updated at',
+    status_online:      'reachable',
+    status_unreachable: 'unreachable',
+    status_unknown:     'unknown',
+    status_error:       'error',
+    // CSV import
+    btn_import_clients:   '📥 Import clients',
+    btn_import_products:  '📥 Import products',
+    csv_drag_here:        'Drag CSV file here',
+    csv_select_file:      'Select file',
+    // Multi-select
+    btn_delete_selected:          'Delete selected',
+    delete_selected_confirm:      'Delete selected orders?',
+    delete_clients_confirm:       'Delete selected clients and all their orders?',
+    delete_products_confirm:      'Delete selected products and all their orders?',
     // Orders filter/pagination/selection
     orders_page_size: 'Per page',
     orders_showing:   'Showing',

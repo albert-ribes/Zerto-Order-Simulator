@@ -128,6 +128,64 @@
     <section id="tab-dashboard" class="tab-content active">
       <h1 class="page-title" data-i18n="nav_dashboard">Dashboard</h1>
 
+      <!-- Infrastructure Status -->
+      <div class="card infra-status" id="infraStatus">
+        <div class="infra-header">
+          <span class="infra-title">Infrastructure Status</span>
+          <span class="infra-updated" id="infraUpdated"></span>
+        </div>
+        <div class="infra-items">
+          <div class="infra-item">
+            <div class="infra-item-head">
+              <span class="infra-dot" id="dotFrontend"></span>
+              <span class="infra-name">Frontend · nginx</span>
+            </div>
+            <div class="infra-tests">
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">HEAD /css/style.css</code>
+                <span class="infra-test-badge" id="tFe0">–</span>
+              </div>
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">GET / → HTML</code>
+                <span class="infra-test-badge" id="tFe1">–</span>
+              </div>
+            </div>
+          </div>
+          <div class="infra-item">
+            <div class="infra-item-head">
+              <span class="infra-dot" id="dotBackend"></span>
+              <span class="infra-name">Backend · FastAPI</span>
+            </div>
+            <div class="infra-tests">
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">GET /api/health</code>
+                <span class="infra-test-badge" id="tBe0">–</span>
+              </div>
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">GET /api/generator/status</code>
+                <span class="infra-test-badge" id="tBe1">–</span>
+              </div>
+            </div>
+          </div>
+          <div class="infra-item">
+            <div class="infra-item-head">
+              <span class="infra-dot" id="dotDatabase"></span>
+              <span class="infra-name">Database · PostgreSQL</span>
+            </div>
+            <div class="infra-tests">
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">TCP postgresql:5432</code>
+                <span class="infra-test-badge" id="tDb0">–</span>
+              </div>
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">SQL SELECT 1</code>
+                <span class="infra-test-badge" id="tDb1">–</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Filter bar (Grafana-style) -->
       <div class="filter-bar">
         <!-- Time range picker -->
@@ -344,18 +402,20 @@
       <div class="page-header">
         <h1 class="page-title" data-i18n="page_clients">Clients</h1>
         <div class="page-header-actions">
-          <button class="btn btn-ghost" id="btnImportClients">📥 Importar CSV</button>
+          <button class="btn btn-danger btn-sm" id="btnDeleteSelectedClients" style="display:none" data-i18n="btn_delete_selected">Eliminar seleccionats</button>
+          <button class="btn btn-ghost" id="btnImportClients" data-i18n="btn_import_clients">📥 Importar clients</button>
           <input type="file" id="fileClients" accept=".csv" style="display:none">
           <button class="btn btn-primary" id="btnNewClient" data-i18n="btn_new_client">+ Nou client</button>
         </div>
       </div>
-      <div class="csv-dropzone" id="dropClients">
+      <div class="csv-dropzone" id="dropClients" style="display:none">
         <div class="csv-dropzone-body">
           <span class="csv-dropzone-icon">📄</span>
           <div class="csv-dropzone-text">
-            <strong>Arrossega el fitxer CSV aquí</strong> o fes clic a <em>Importar CSV</em>
+            <strong data-i18n="csv_drag_here">Arrossega el fitxer CSV aquí</strong>
             <span class="csv-dropzone-hint">Columnes requerides: <code>name</code>, <code>email</code></span>
           </div>
+          <button class="btn btn-primary btn-sm" id="btnSelectFileClients" data-i18n="csv_select_file">Seleccionar fitxer</button>
         </div>
         <div class="csv-result" id="csvResultClients" style="display:none"></div>
       </div>
@@ -381,6 +441,7 @@
         <table class="table">
           <thead>
             <tr>
+              <th class="col-check"><input type="checkbox" id="checkAllClients" /></th>
               <th data-i18n="col_id">#</th>
               <th data-i18n="client_name">Nom</th>
               <th data-i18n="client_email">Email</th>
@@ -398,18 +459,20 @@
       <div class="page-header">
         <h1 class="page-title" data-i18n="page_products">Productes</h1>
         <div class="page-header-actions">
-          <button class="btn btn-ghost" id="btnImportProducts">📥 Importar CSV</button>
+          <button class="btn btn-danger btn-sm" id="btnDeleteSelectedProducts" style="display:none" data-i18n="btn_delete_selected">Eliminar seleccionats</button>
+          <button class="btn btn-ghost" id="btnImportProducts" data-i18n="btn_import_products">📥 Importar productes</button>
           <input type="file" id="fileProducts" accept=".csv" style="display:none">
           <button class="btn btn-primary" id="btnNewProduct" data-i18n="btn_new_product">+ Nou producte</button>
         </div>
       </div>
-      <div class="csv-dropzone" id="dropProducts">
+      <div class="csv-dropzone" id="dropProducts" style="display:none">
         <div class="csv-dropzone-body">
           <span class="csv-dropzone-icon">📄</span>
           <div class="csv-dropzone-text">
-            <strong>Arrossega el fitxer CSV aquí</strong> o fes clic a <em>Importar CSV</em>
+            <strong data-i18n="csv_drag_here">Arrossega el fitxer CSV aquí</strong>
             <span class="csv-dropzone-hint">Columnes requerides: <code>name</code>, <code>price</code></span>
           </div>
+          <button class="btn btn-primary btn-sm" id="btnSelectFileProducts" data-i18n="csv_select_file">Seleccionar fitxer</button>
         </div>
         <div class="csv-result" id="csvResultProducts" style="display:none"></div>
       </div>
@@ -435,6 +498,7 @@
         <table class="table">
           <thead>
             <tr>
+              <th class="col-check"><input type="checkbox" id="checkAllProducts" /></th>
               <th data-i18n="col_id">#</th>
               <th data-i18n="product_name">Nom</th>
               <th data-i18n="product_price">Preu</th>
@@ -633,14 +697,14 @@
         </div>
       </div>
       <!-- Users table -->
-      <div class="card">
-        <table class="data-table">
+      <div class="card table-card">
+        <table class="table">
           <thead>
             <tr>
               <th data-i18n="users_col_user">Usuari</th>
               <th data-i18n="users_col_role">Rol</th>
               <th data-i18n="users_col_created">Creat</th>
-              <th data-i18n="col_actions">Accions</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="usersBody"></tbody>
@@ -653,9 +717,9 @@
   <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <script src="/js/i18n.js?v=14"></script>
-  <script src="/js/api.js?v=14"></script>
-  <script src="/js/charts.js?v=14"></script>
-  <script src="/js/app.js?v=14"></script>
+  <script src="/js/i18n.js?v=17"></script>
+  <script src="/js/api.js?v=17"></script>
+  <script src="/js/charts.js?v=17"></script>
+  <script src="/js/app.js?v=17"></script>
 </body>
 </html>

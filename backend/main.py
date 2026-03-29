@@ -256,6 +256,19 @@ def delete_client(client_id: int, db: Session = Depends(get_db)):
     db.delete(obj); db.commit()
 
 
+@app.delete("/clients/batch", status_code=200)
+def delete_clients_batch(data: schemas.BatchDeleteRequest, db: Session = Depends(get_db)):
+    if not data.ids:
+        return {"deleted": 0}
+    deleted = (
+        db.query(models.Client)
+        .filter(models.Client.id.in_(data.ids))
+        .delete(synchronize_session=False)
+    )
+    db.commit()
+    return {"deleted": deleted}
+
+
 @app.post("/clients/import")
 async def import_clients(file: UploadFile = File(...), db: Session = Depends(get_db)):
     content = await file.read()
@@ -308,6 +321,19 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     if not obj:
         raise HTTPException(404, "Product not found")
     db.delete(obj); db.commit()
+
+
+@app.delete("/products/batch", status_code=200)
+def delete_products_batch(data: schemas.BatchDeleteRequest, db: Session = Depends(get_db)):
+    if not data.ids:
+        return {"deleted": 0}
+    deleted = (
+        db.query(models.Product)
+        .filter(models.Product.id.in_(data.ids))
+        .delete(synchronize_session=False)
+    )
+    db.commit()
+    return {"deleted": deleted}
 
 
 @app.post("/products/import")
@@ -758,9 +784,14 @@ def stats_products(
 
 @app.get("/health")
 def health(db: Session = Depends(get_db)):
+    import time as _time
+    db_status = "unreachable"
+    db_latency_ms = None
     try:
+        t0 = _time.monotonic()
         db.execute(text("SELECT 1"))
+        db_latency_ms = round((_time.monotonic() - t0) * 1000)
         db_status = "ok"
     except Exception:
-        db_status = "unreachable"
-    return {"status": "ok", "database": db_status}
+        pass
+    return {"status": "ok", "database": db_status, "db_latency_ms": db_latency_ms}
