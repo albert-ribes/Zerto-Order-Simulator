@@ -231,9 +231,15 @@ const chartCumulative = new Chart(ctxCumul, {
   }]},
   options: {
     responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { display: false },
       midnightLines: {},
+      tooltip: {
+        callbacks: {
+          label: (item) => ` €${item.raw.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        },
+      },
     },
     scales: {
       x: { grid: { color: '#2a2a5044' }, ticks: { maxTicksLimit: 10 } },
@@ -245,6 +251,107 @@ const chartCumulative = new Chart(ctxCumul, {
   },
   plugins: [midnightPlugin],
 });
+
+// ── Cumulative delta picker ───────────────────────────────────────────────────
+(function () {
+  const canvas = document.getElementById('chartCumulative');
+  const box    = document.getElementById('cumulDelta');
+  if (!canvas || !box) return;
+
+  let _picks = [];
+
+  function _closeDelta() {
+    _picks = [];
+    _refreshPoints();
+    box.style.display = 'none';
+    box.innerHTML = '';
+  }
+
+  function _refreshPoints() {
+    const ds = chartCumulative.data.datasets[0];
+    const n  = ds.data.length;
+    if (!n) return;
+    const radii = Array(n).fill(0);
+    const bgs   = Array(n).fill('transparent');
+    const bds   = Array(n).fill('transparent');
+    _picks.forEach(p => {
+      if (p.index < n) { radii[p.index] = 6; bgs[p.index] = '#f59e0b'; bds[p.index] = '#fff'; }
+    });
+    ds.pointRadius = radii; ds.pointBackgroundColor = bgs;
+    ds.pointBorderColor = bds; ds.pointBorderWidth = 2;
+    chartCumulative.update('none');
+  }
+
+  function _renderDelta() {
+    if (_picks.length < 2) { box.style.display = 'none'; box.innerHTML = ''; return; }
+
+    const [a, b] = _picks[0].index < _picks[1].index ? [_picks[0], _picks[1]] : [_picks[1], _picks[0]];
+    const diff = b.value - a.value;
+    const sign = diff >= 0 ? '+' : '';
+    const cls  = diff >= 0 ? 'delta-positive' : 'delta-negative';
+    const fmtV = v => v.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    box.innerHTML = `
+      <div><span class="delta-label">Punt A</span>&nbsp;<strong>${a.label}</strong></div>
+      <div style="padding-left:2px"><span class="delta-label">Acumulat</span> <span style="color:var(--warning);font-weight:600">€${fmtV(a.value)}</span></div>
+      <div style="margin-top:6px"><span class="delta-label">Punt B</span>&nbsp;<strong>${b.label}</strong></div>
+      <div style="padding-left:2px"><span class="delta-label">Acumulat</span> <span style="color:var(--warning);font-weight:600">€${fmtV(b.value)}</span></div>
+      <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border)">
+        <span class="delta-label">Δ Revenue A→B</span><br>
+        <span class="delta-value ${cls}">${sign}€${fmtV(diff)}</span>
+      </div>
+      <button class="delta-close" id="cumulDeltaClose" title="Tancar">✕</button>`;
+
+    box.style.display = 'block';
+
+    document.getElementById('cumulDeltaClose').onclick = (e) => {
+      e.stopPropagation();
+      _closeDelta();
+    };
+  }
+
+  canvas.addEventListener('click', (e) => {
+    const pts = chartCumulative.getElementsAtEventForMode(e, 'index', { intersect: false }, false);
+    if (!pts.length) return;
+    const idx   = pts[0].index;
+    const ds    = chartCumulative.data.datasets[0];
+    const label = chartCumulative.data.labels[idx] ?? idx;
+    const value = ds.data[idx] ?? 0;
+
+    // Never remove a pick by clicking — always add/replace.
+    // Replace the oldest when already at 2, skip if same index.
+    if (_picks.some(p => p.index === idx)) return;
+    if (_picks.length >= 2) _picks.shift();
+    _picks.push({ index: idx, value, label });
+
+    _refreshPoints();
+    // Only show delta once 2 picks exist; never hide from here.
+    if (_picks.length === 2) _renderDelta();
+  });
+
+  canvas.style.cursor = 'crosshair';
+
+  const _origUpdateCumul = window.updateCumulative;
+  if (typeof _origUpdateCumul === 'function') {
+    window.updateCumulative = function (...args) {
+      _origUpdateCumul.apply(this, args);
+      // After data update: refresh pick values from new dataset.
+      // Close only if an index is now out of bounds.
+      if (_picks.length === 0) return;
+      const ds = chartCumulative.data.datasets[0];
+      const newPicks = _picks.map(p => {
+        if (p.index >= ds.data.length) return null;
+        return { ...p, value: ds.data[p.index], label: chartCumulative.data.labels[p.index] ?? p.label };
+      });
+      if (newPicks.some(p => p === null)) {
+        _picks = []; box.style.display = 'none'; box.innerHTML = '';
+      } else {
+        _picks = newPicks;
+        if (_picks.length === 2) _renderDelta();
+      }
+    };
+  }
+})();
 
 // ── Product quantity (doughnut) ───────────────────────────────────────────────
 const chartProductQty = new Chart(

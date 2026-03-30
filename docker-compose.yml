@@ -8,6 +8,26 @@ services:
     depends_on:
       - backend
 
+  db-probe:
+    build: ./observability/db-probe
+    environment:
+      DATABASE_URL: postgresql://zerto:zerto@db:5432/zerto
+
+  observability:
+    build:
+      context: .
+      dockerfile: observability/Dockerfile
+    ports:
+      - "3001:80"
+    volumes:
+      # live reload: shared CSS/JS from frontend + observability-specific files
+      - ./frontend/css:/usr/share/nginx/html/css:ro
+      - ./frontend/js/i18n.js:/usr/share/nginx/html/js/i18n.js:ro
+      - ./frontend/js/api.js:/usr/share/nginx/html/js/api.js:ro
+      - ./frontend/js/charts.js:/usr/share/nginx/html/js/charts.js:ro
+      - ./observability/index.html:/usr/share/nginx/html/index.html:ro
+      - ./observability/js/app.js:/usr/share/nginx/html/js/app.js:ro
+
   backend:
     build: ./backend
     ports:

@@ -1,3 +1,17 @@
+// ── Chart.js globals ──────────────────────────────────────────────────────────
+const PALETTE = [
+  '#6366f1','#10b981','#f59e0b','#ef4444',
+  '#3b82f6','#8b5cf6','#ec4899','#14b8a6',
+];
+let _ordChartQty = null;
+let _ordChartRev = null;
+{
+  const _t = localStorage.getItem('theme') || 'dark';
+  Chart.defaults.color       = _t === 'dark' ? '#8892a4' : '#64748b';
+  Chart.defaults.borderColor = _t === 'dark' ? '#2a2a5044' : '#d1d9e688';
+  Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+}
+
 // ── Auth ─────────────────────────────────────────────────────────────────
 let _currentUser = null;
 
@@ -154,12 +168,9 @@ function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   $('btnTheme').textContent = theme === 'dark' ? '☀️' : '🌙';
   localStorage.setItem('theme', theme);
-  const textColor = theme === 'dark' ? '#8892a4' : '#64748b';
-  const gridColor = theme === 'dark' ? '#2a2a5044' : '#d1d9e688';
-  Chart.defaults.color = textColor;
-  Chart.defaults.borderColor = gridColor;
-  [chartTimeline, chartCumulative, chartProductQty, chartProductRev,
-   chartDaily, chartHourly].forEach(c => c.update());
+  Chart.defaults.color       = theme === 'dark' ? '#8892a4' : '#64748b';
+  Chart.defaults.borderColor = theme === 'dark' ? '#2a2a5044' : '#d1d9e688';
+  [_ordChartQty, _ordChartRev].forEach(c => c?.update());
 }
 
 applyTheme(_theme);
@@ -292,21 +303,7 @@ function makeTRP(ids, onChange) {
   return { params, isLive, init, syncLabel, renderPresets };
 }
 
-// Create the two TRP instances
-const dashTRP = makeTRP({
-  wrapper:     'trpWrapper',
-  panel:       'trpPanel',
-  triggerBtn:  'btnTimeRange',
-  label:       'timeRangeLabel',
-  presets:     'trpPresets',
-  startInput:  'filterStart',
-  endInput:    'filterEnd',
-  applyBtn:    'btnApplyFilter',
-  allBtn:      'btnRangeAll',
-  badge:       'liveBadge',
-  liveHint:    'trpLiveHint',
-}, () => refreshDashboard());
-
+// Create the orders TRP instance
 const ordTRP = makeTRP({
   wrapper:     'ordTrpWrapper',
   panel:       'ordTrpPanel',
@@ -323,7 +320,6 @@ const ordTRP = makeTRP({
 
 // Hook called by i18n.js applyTranslations() on every language change
 function onLangChanged() {
-  dashTRP.renderPresets();
   ordTRP.renderPresets();
 }
 
@@ -332,23 +328,8 @@ applyTranslations();
 
 // ── Filter init ───────────────────────────────────────────────────────────────
 function initFilter() {
-  dashTRP.init();
   ordTRP.init();
 }
-
-// ── Refresh rate ──────────────────────────────────────────────────────────────
-let _refreshMs    = 5000;
-let _refreshTimer = null;
-
-function startRefreshTimer() {
-  if (_refreshTimer) clearInterval(_refreshTimer);
-  _refreshTimer = setInterval(refreshDashboard, _refreshMs);
-}
-
-$('selectRefresh').addEventListener('change', () => {
-  _refreshMs = parseInt($('selectRefresh').value, 10);
-  startRefreshTimer();
-});
 
 // ── Generator ─────────────────────────────────────────────────────────────────
 let generatorRunning = false;
@@ -415,145 +396,31 @@ $('btnReset').addEventListener('click', async () => {
     generatorRunning = wasRunning; updateGenUI();
     lastOrderId = 0;
     initFilter();
-    refreshDashboard();
     toast(t('toast_reset_done'), 'success');
-    const activeTab = document.querySelector('.nav-item.active')?.dataset.tab;
-    if (activeTab === 'orders') loadOrders();
+    loadOrders();
   } catch (e) { toast(e.message, 'error'); }
 });
 
-// ── Dashboard polling ─────────────────────────────────────────────────────────
-async function refreshDashboard() {
+// ── Nav counts ────────────────────────────────────────────────────────────────
+async function _syncNavCounts() {
   try {
-    const p = dashTRP.params();
-    const [summary, tl, products, daily, hourly] = await Promise.all([
-      api.summary(p), api.timeline(p), api.productStats(p),
-      api.dailyStats(p), api.hourlyStats(p),
+    const [clients, products, users] = await Promise.all([
+      api.getClients(), api.getProducts(), api.getUsers(),
     ]);
-    $('statOrders').textContent    = summary.total_orders.toLocaleString();
-    $('statRevenue').textContent   = '€' + fmt(summary.total_revenue);
-    $('statAvgOrders').textContent = summary.avg_orders_per_day?.toLocaleString() ?? '–';
-    $('statAvgRev').textContent    = summary.avg_revenue_per_day != null
-      ? '€' + fmt(summary.avg_revenue_per_day) : '–';
-    const no = $('navCountOrders');   if (no) no.textContent = summary.total_orders;
-    const nc = $('navCountClients');  if (nc) nc.textContent = summary.total_clients;
-    const np = $('navCountProducts'); if (np) np.textContent = summary.total_products;
-    _lastOrderAt = summary.last_order_at ? new Date(summary.last_order_at) : null;
-    _updateLastOrderStat();
-    const tlData = tl.data ?? tl;   // compat: new format {granularity, data} or legacy array
-    const tlGran = tl.granularity ?? 'minute';
-    updateTimeline(tlData, tlGran);
-    updateCumulative(tlData, tlGran);
-    syncTimelineAxes();
-    updateProductCharts(products);
-    updateDailyChart(daily);
-    updateHourlyChart(hourly);
+    const ncc = $('navCountClients'); if (ncc) ncc.textContent = clients.length;
+    const ncp = $('navCountProducts'); if (ncp) ncp.textContent = products.length;
+    const ncu = $('navCountUsers');    if (ncu) ncu.textContent = users.length;
   } catch {}
-}
-
-// ── Última ordre: comptador de temps ─────────────────────────────────────────
-let _lastOrderAt = null;
-
-function _timeAgo(date) {
-  const s = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (s <  60)  return `${s}s`;
-  if (s < 3600) return `${Math.floor(s / 60)}min ${s % 60}s`;
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
-  return `${h}h ${m}min`;
-}
-
-function _updateLastOrderStat() {
-  const el = $('statLastOrder');
-  if (!el) return;
-  if (!_lastOrderAt) { el.textContent = '–'; el.style.color = ''; return; }
-  const s = Math.floor((Date.now() - _lastOrderAt.getTime()) / 1000);
-  const genMaxSec = parseFloat($('genMax').value) || 60;
-  el.textContent = _timeAgo(_lastOrderAt);
-  if (s < genMaxSec)          el.style.color = 'var(--success)';
-  else if (s < genMaxSec * 4) el.style.color = 'var(--warning)';
-  else                         el.style.color = 'var(--danger)';
-}
-
-// Actualitza el comptador cada segon
-setInterval(_updateLastOrderStat, 1000);
-
-// ── Infra status ──────────────────────────────────────────────────────────────
-function _setBadge(id, state, text) {
-  const el = $(id);
-  if (!el) return;
-  el.textContent = text;
-  el.className = `infra-test-badge infra-test-badge--${state}`;
-}
-function _setDot(id, state) {
-  const el = $(id);
-  if (el) el.className = `infra-dot infra-dot--${state}`;
-}
-
-async function checkInfraStatus() {
-  const upd = $('infraUpdated');
-  if (upd) upd.textContent = t('status_checked') + ' ' + new Date().toLocaleTimeString();
-
-  // ── Frontend ──
-  let feDot = 'ok';
-  const t0 = performance.now();
-  try {
-    const r = await fetch('/css/style.css', { method: 'HEAD', cache: 'no-store' });
-    _setBadge('tFe0', r.ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now() - t0)}ms`);
-    if (!r.ok) feDot = 'warn';
-  } catch {
-    _setBadge('tFe0', 'err', t('status_error')); feDot = 'err';
-  }
-  const t1 = performance.now();
-  try {
-    const r = await fetch('/', { cache: 'no-store' });
-    const ok = r.ok && (r.headers.get('content-type') || '').includes('html');
-    _setBadge('tFe1', ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now() - t1)}ms`);
-    if (!ok && feDot === 'ok') feDot = 'warn';
-  } catch {
-    _setBadge('tFe1', 'err', t('status_error')); feDot = 'err';
-  }
-  _setDot('dotFrontend', feDot);
-
-  // ── Backend ──
-  let beDot = 'ok', health = null;
-  const t2 = performance.now();
-  try {
-    health = await api.health();
-    _setBadge('tBe0', 'ok', `HTTP 200 · ${Math.round(performance.now() - t2)}ms`);
-  } catch {
-    _setBadge('tBe0', 'err', t('status_error')); beDot = 'err';
-    _setBadge('tDb0', 'warn', t('status_unknown'));
-    _setBadge('tDb1', 'warn', t('status_unknown'));
-    _setDot('dotBackend', beDot); _setDot('dotDatabase', 'warn');
-    return;
-  }
-  const t3 = performance.now();
-  try {
-    await api.genStatus();
-    _setBadge('tBe1', 'ok', `HTTP 200 · ${Math.round(performance.now() - t3)}ms`);
-  } catch {
-    _setBadge('tBe1', 'warn', t('status_error')); if (beDot === 'ok') beDot = 'warn';
-  }
-  _setDot('dotBackend', beDot);
-
-  // ── Database (via health response) ──
-  const dbOk = health?.database === 'ok';
-  const dbMs = health?.db_latency_ms;
-  const dbMsStr = dbMs != null ? ` · ${dbMs}ms` : '';
-  _setBadge('tDb0', dbOk ? 'ok' : 'err', dbOk ? `${t('status_online')}${dbMsStr}` : t('status_unreachable'));
-  _setBadge('tDb1', dbOk ? 'ok' : 'err', dbOk ? `ok${dbMsStr}` : t('status_error'));
-  _setDot('dotDatabase', dbOk ? 'ok' : 'err');
 }
 
 // ── Boot sequence ─────────────────────────────────────────────────────────────
 function initApp() {
   initFilter();
-  refreshDashboard();
-  startRefreshTimer();
+  loadOrders();
   syncGeneratorStatus();
   setInterval(syncGeneratorStatus, 5000);
-  checkInfraStatus();
-  setInterval(checkInfraStatus, 30000);
+  _syncNavCounts();
+  setInterval(_syncNavCounts, 30000);
   setupUserForm();
 }
 
@@ -581,6 +448,7 @@ setInterval(async () => {
     const result = await api.getOrders(p);
     if (result.total !== _ordTotal || result.items[0]?.id !== lastOrderId) {
       _ordTotal = result.total;
+      const nco = $('navCountOrders'); if (nco) nco.textContent = _ordTotal;
       const prevChecked = new Set(
         [...$('ordersBody').querySelectorAll('.order-check:checked')].map(cb => +cb.value)
       );
@@ -597,15 +465,86 @@ setInterval(async () => {
   } catch {}
 }, 5000);
 
+// ── Orders summary charts ─────────────────────────────────────────────────────
+_ordChartQty = new Chart(
+  $('ordChartProductQty').getContext('2d'), {
+    type: 'doughnut',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: PALETTE,
+      borderColor: '#0d0d1a', borderWidth: 3, hoverOffset: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { boxWidth: 10, padding: 10,
+            generateLabels(chart) {
+              const labels = chart.data.labels || [];
+              const vals   = chart.data.datasets[0]?.data || [];
+              const colors = chart.data.datasets[0]?.backgroundColor || [];
+              return labels.map((name, i) => ({
+                text: `${name}: ${(vals[i] ?? 0).toLocaleString()}`,
+                fillStyle: colors[i % colors.length], strokeStyle: colors[i % colors.length],
+                lineWidth: 0, hidden: false, index: i,
+              }));
+            },
+          },
+        },
+      },
+      cutout: '60%',
+    },
+  }
+);
+
+_ordChartRev = new Chart(
+  $('ordChartProductRev').getContext('2d'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ label: 'Ingressos (€)', data: [],
+      backgroundColor: PALETTE, borderRadius: 4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#2a2a5044' },
+             ticks: { callback: v => '€' + v.toLocaleString() } },
+        y: { grid: { color: '#2a2a5044' } },
+      },
+    },
+  }
+);
+
+async function _refreshOrdersSummary() {
+  try {
+    const p = ordTRP.params();
+    const [summary, products] = await Promise.all([
+      api.summary(p), api.productStats(p),
+    ]);
+    const ordEl = $('ordStatOrders');
+    const revEl = $('ordStatRevenue');
+    if (ordEl) { ordEl.textContent = summary.total_orders.toLocaleString(); ordEl.style.color = ''; }
+    if (revEl) { revEl.textContent = '€' + fmt(summary.total_revenue); revEl.style.color = ''; }
+
+    _ordChartQty.data.labels               = products.map(p => p.name);
+    _ordChartQty.data.datasets[0].data     = products.map(p => p.total_quantity);
+    _ordChartQty.update('none');
+
+    _ordChartRev.data.labels               = products.map(p => p.name);
+    _ordChartRev.data.datasets[0].data     = products.map(p => p.total_revenue);
+    _ordChartRev.update('none');
+  } catch {}
+}
+
 async function loadOrders() {
   try {
     const p = { ...ordTRP.params(), limit: _ordPageSize, offset: (_ordPage - 1) * _ordPageSize };
     const result = await api.getOrders(p);
     _ordTotal = result.total;
+    const nco = $('navCountOrders'); if (nco) nco.textContent = _ordTotal;
     renderOrders(result.items);
     renderPagination();
     if (result.items.length) lastOrderId = result.items[0].id;
     _clearSelection();
+    _refreshOrdersSummary();
   } catch (e) { toast(e.message, 'error'); }
 }
 
@@ -866,6 +805,7 @@ $('btnDeleteSelectedClients').addEventListener('click', async () => {
 async function loadClients() {
   try {
     const clients = await api.getClients();
+    const ncc = $('navCountClients'); if (ncc) ncc.textContent = clients.length;
     $('checkAllClients').checked = false;
     $('checkAllClients').indeterminate = false;
     $('btnDeleteSelectedClients').style.display = 'none';
@@ -968,6 +908,7 @@ $('btnDeleteSelectedProducts').addEventListener('click', async () => {
 async function loadProducts() {
   try {
     const products = await api.getProducts();
+    const ncp = $('navCountProducts'); if (ncp) ncp.textContent = products.length;
     $('checkAllProducts').checked = false;
     $('checkAllProducts').indeterminate = false;
     $('btnDeleteSelectedProducts').style.display = 'none';

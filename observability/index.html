@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ca" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Observability · Order Simulator</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">📡</span>
+      <span class="logo-text">Observability</span>
+      <button class="sidebar-toggle" id="btnSidebarToggle" title="Compactar">‹</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="dashboard" title="Dashboard">
+        <span class="nav-icon">📊</span><span data-i18n="nav_dashboard">Dashboard</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <!-- Language + Theme controls -->
+      <div class="controls-row">
+        <div class="lang-selector">
+          <button class="lang-btn active" data-lang="ca">CA</button>
+          <button class="lang-btn" data-lang="es">ES</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+        <button class="theme-toggle" id="btnTheme" title="Toggle theme">🌙</button>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── Dashboard ── -->
+    <section id="tab-dashboard" class="tab-content active">
+      <div class="page-header-obs">
+        <h1 class="page-title" data-i18n="nav_dashboard">Dashboard</h1>
+        <div class="digital-clock" id="digitalClock"></div>
+      </div>
+
+      <!-- Infrastructure Status -->
+      <div class="card infra-status" id="infraStatus">
+        <div class="infra-header">
+          <span class="infra-title">Infrastructure Status</span>
+          <span class="infra-header-right">
+            <span class="infra-refresh-badge" id="infraRefreshBadge"></span>
+            <span class="infra-updated" id="infraUpdated"></span>
+          </span>
+        </div>
+        <div class="infra-items">
+          <div class="infra-item">
+            <div class="infra-item-head">
+              <span class="infra-dot" id="dotFrontend"></span>
+              <span class="infra-name">Frontend · nginx</span>
+            </div>
+            <div class="infra-tests">
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">PING HEAD /</code>
+                <span class="infra-test-badge" id="tFePing">–</span>
+              </div>
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">HEAD /css/style.css</code>
+                <span class="infra-test-badge" id="tFe0">–</span>
+              </div>
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">GET / → HTML</code>
+                <span class="infra-test-badge" id="tFe1">–</span>
+              </div>
+            </div>
+          </div>
+          <div class="infra-item">
+            <div class="infra-item-head">
+              <span class="infra-dot" id="dotBackend"></span>
+              <span class="infra-name">Backend · FastAPI</span>
+            </div>
+            <div class="infra-tests">
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">PING GET /api/ping</code>
+                <span class="infra-test-badge" id="tBePing">–</span>
+              </div>
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">GET /api/ping → pong</code>
+                <span class="infra-test-badge" id="tBe0">–</span>
+              </div>
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">GET /api/generator/status</code>
+                <span class="infra-test-badge" id="tBe1">–</span>
+              </div>
+            </div>
+          </div>
+          <div class="infra-item">
+            <div class="infra-item-head">
+              <span class="infra-dot" id="dotDatabase"></span>
+              <span class="infra-name">Database · PostgreSQL</span>
+            </div>
+            <div class="infra-tests">
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">PING GET /api/db/ping</code>
+                <span class="infra-test-badge" id="tDbPing">–</span>
+              </div>
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">TCP connect</code>
+                <span class="infra-test-badge" id="tDb0">–</span>
+              </div>
+              <div class="infra-test-row">
+                <code class="infra-test-lbl">SQL SELECT 1</code>
+                <span class="infra-test-badge" id="tDb1">–</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter bar (Grafana-style) -->
+      <div class="filter-bar">
+        <!-- Time range picker -->
+        <div class="trp-wrapper" id="trpWrapper">
+          <button class="trp-btn" id="btnTimeRange">
+            <span class="trp-icon">🕐</span>
+            <span id="timeRangeLabel">Últimes 24h</span>
+            <span class="trp-chevron">▾</span>
+          </button>
+          <div class="trp-panel" id="trpPanel" style="display:none">
+            <!-- Quick presets -->
+            <div class="trp-quick">
+              <div class="trp-section-title" data-i18n="filter_last_section">Últim</div>
+              <div id="trpPresets" class="trp-presets-list"></div>
+              <div class="trp-all-sep"></div>
+              <button class="trp-preset-btn trp-all-btn" id="btnRangeAll" data-i18n="qr_all">Tot el rang</button>
+            </div>
+            <!-- Custom range -->
+            <div class="trp-custom">
+              <div class="trp-section-title" data-i18n="filter_custom_range">Rang personalitzat</div>
+              <div class="trp-custom-row">
+                <label data-i18n="filter_from">Des de</label>
+                <input type="datetime-local" id="filterStart" />
+              </div>
+              <div class="trp-custom-row">
+                <label data-i18n="filter_to">Fins a</label>
+                <input type="datetime-local" id="filterEnd" />
+              </div>
+              <p class="trp-live-hint" id="trpLiveHint" data-i18n="filter_live_ph">Ara (en viu)</p>
+              <div class="trp-custom-actions">
+                <button class="btn btn-primary btn-sm" id="btnApplyFilter" data-i18n="filter_apply">Aplicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Live badge -->
+        <span class="live-badge" id="liveBadge" data-i18n="filter_live">● En viu</span>
+        <span class="cache-badge hidden" id="cacheBadge" title="">📦 cached</span>
+        <div class="filter-sep"></div>
+        <!-- Refresh selector -->
+        <div class="filter-group">
+          <label data-i18n="filter_refresh">Refresc</label>
+          <select id="selectRefresh">
+            <option value="3000">3s</option>
+            <option value="5000" selected>5s</option>
+            <option value="10000">10s</option>
+            <option value="30000">30s</option>
+            <option value="60000">60s</option>
+          </select>
+        </div>
+      </div>
+      <div class="cards-grid">
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_total_orders">Total ordres</div>
+          <div class="stat-value" id="statOrders">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_total_revenue">Ingressos totals</div>
+          <div class="stat-value" id="statRevenue">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_avg_orders_day">Mitja ordres/dia</div>
+          <div class="stat-value" id="statAvgOrders">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_avg_rev_day">Mitja facturació/dia</div>
+          <div class="stat-value" id="statAvgRev">–</div>
+        </div>
+        <div class="card stat-card stat-card--last">
+          <div class="stat-label" data-i18n="stat_last_order">Última ordre</div>
+          <div class="stat-value stat-value--sm" id="statLastOrder">–</div>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <div class="card chart-card chart-wide">
+          <div class="chart-header"><h3 data-i18n="chart_timeline">Ordres per minut (timeline)</h3></div>
+          <div class="chart-wrap"><canvas id="chartTimeline"></canvas></div>
+        </div>
+        <div class="card chart-card chart-wide">
+          <div class="chart-header">
+            <h3 data-i18n="chart_cumulative">Ingressos acumulats</h3>
+            <span class="cumul-hint" id="cumulHint">Clica 2 punts per veure la diferència</span>
+          </div>
+          <div class="chart-wrap" style="position:relative">
+            <canvas id="chartCumulative"></canvas>
+            <div class="cumul-delta" id="cumulDelta"></div>
+          </div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-header"><h3 data-i18n="chart_qty">Unitats per producte</h3></div>
+          <div class="chart-wrap"><canvas id="chartProductQty"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-header"><h3 data-i18n="chart_rev">Ingressos per producte</h3></div>
+          <div class="chart-wrap"><canvas id="chartProductRev"></canvas></div>
+        </div>
+        <div class="card chart-card chart-wide">
+          <div class="chart-header"><h3 data-i18n="chart_daily">Historial diari</h3></div>
+          <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
+        </div>
+        <div class="card chart-card chart-wide">
+          <div class="chart-header"><h3 data-i18n="chart_hourly">Distribució horària</h3></div>
+          <div class="chart-wrap"><canvas id="chartHourly"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="/js/i18n.js?v=17"></script>
+  <script src="/js/api.js?v=17"></script>
+  <script src="/js/charts.js?v=17"></script>
+  <script src="/js/app.js?v=17"></script>
+</body>
+</html>

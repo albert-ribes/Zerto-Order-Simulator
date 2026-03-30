@@ -13,17 +13,40 @@ import time
 import threading
 from datetime import datetime, timedelta
 
+import json
+import os
+
 import models
 import schemas
 from database import engine, get_db, SessionLocal, Base
 import auth
 from auth import get_current_user, require_admin
 
+_GEN_STATE_FILE = "/app/generator_state.json"
+
+def _load_gen_state():
+    try:
+        with open(_GEN_STATE_FILE) as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+def _save_gen_state():
+    try:
+        with open(_GEN_STATE_FILE, "w") as f:
+            json.dump({"running": _generator["running"], "interval": _generator["interval"]}, f)
+    except Exception:
+        pass
+
 app = FastAPI(title="Zerto Orders API")
+
+_PUBLIC_PATHS = {"/auth/login", "/health", "/ping", "/db/ping"}
+_PUBLIC_PREFIXES = ("/stats/", "/generator/status")
 
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
-    if request.url.path in ("/auth/login",):
+    path = request.url.path
+    if path in _PUBLIC_PATHS or path.startswith(_PUBLIC_PREFIXES):
         return await call_next(request)
     auth_header = request.headers.get("Authorization", "")
     token = auth_header[7:].strip() if auth_header.startswith("Bearer ") else ""
@@ -47,6 +70,14 @@ def startup():
     finally:
         db.close()
     _seed()
+    # Restore generator state from previous run
+    saved = _load_gen_state()
+    if saved and saved.get("running"):
+        _generator["interval"] = max(0.5, saved.get("interval", 2.0))
+        _generator["running"]  = True
+        t = threading.Thread(target=_generator_loop, daemon=True)
+        _generator["thread"] = t
+        t.start()
 
 # ── Auth ──────────────────────────────────────────────────────────────────
 @app.post("/auth/login", response_model=schemas.Token)
@@ -193,6 +224,10 @@ def _make_random_order():
 
 def _generator_loop():
     while _generator["running"]:
+        h = datetime.now().hour
+        if h < 6 or h >= 22:
+            time.sleep(60)
+            continue
         weight = _time_of_day_weight()
         n = _poisson_sample(weight * 2.0)
         for _ in range(n):
@@ -472,12 +507,14 @@ def start_generator(cfg: schemas.GeneratorConfig = schemas.GeneratorConfig()):
     t = threading.Thread(target=_generator_loop, daemon=True)
     _generator["thread"] = t
     t.start()
+    _save_gen_state()
     return {"status": "started", "interval": _generator["interval"]}
 
 
 @app.post("/generator/stop")
 def stop_generator():
     _generator["running"] = False
+    _save_gen_state()
     return {"status": "stopped"}
 
 
@@ -780,6 +817,25 @@ def stats_products(
         }
         for r in rows
     ]
+
+
+@app.get("/ping")
+def ping():
+    """Backend-exclusive health check — no DB involved."""
+    return {"pong": True}
+
+
+@app.get("/db/ping")
+def db_ping(db: Session = Depends(get_db)):
+    """Database-exclusive health check — only tests DB connectivity."""
+    import time as _time
+    try:
+        t0 = _time.monotonic()
+        db.execute(text("SELECT 1"))
+        latency_ms = round((_time.monotonic() - t0) * 1000)
+        return {"status": "ok", "latency_ms": latency_ms}
+    except Exception as e:
+        return JSONResponse({"status": "error", "detail": str(e)}, status_code=503)
 
 
 @app.get("/health")
