@@ -1,0 +1,16 @@
+[Unit]
+Description=Zerto DB Probe (PostgreSQL health check)
+After=network.target
+
+[Service]
+User=adminhpe
+WorkingDirectory=/opt/zerto/observability/db-probe
+EnvironmentFile=/opt/zerto/observability/db-probe/.env
+ExecStart=/opt/zerto/.venv/bin/python main.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
