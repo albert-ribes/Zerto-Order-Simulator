@@ -193,6 +193,11 @@
           <div class="stat-label" data-i18n="stat_last_order">Última ordre</div>
           <div class="stat-value stat-value--sm" id="statLastOrder">–</div>
         </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_last_order_detail">Detall última ordre</div>
+          <div class="last-order-id" id="statLastOrderId">–</div>
+          <div class="last-order-ts" id="statLastOrderTs"></div>
+        </div>
       </div>
       <div class="charts-grid">
         <div class="card chart-card chart-wide">
@@ -208,14 +213,6 @@
             <canvas id="chartCumulative"></canvas>
             <div class="cumul-delta" id="cumulDelta"></div>
           </div>
-        </div>
-        <div class="card chart-card">
-          <div class="chart-header"><h3 data-i18n="chart_qty">Unitats per producte</h3></div>
-          <div class="chart-wrap"><canvas id="chartProductQty"></canvas></div>
-        </div>
-        <div class="card chart-card">
-          <div class="chart-header"><h3 data-i18n="chart_rev">Ingressos per producte</h3></div>
-          <div class="chart-wrap"><canvas id="chartProductRev"></canvas></div>
         </div>
         <div class="card chart-card chart-wide">
           <div class="chart-header"><h3 data-i18n="chart_daily">Historial diari</h3></div>

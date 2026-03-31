@@ -262,7 +262,7 @@ body {
 /* Stat cards */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  grid-template-columns: minmax(110px, 1fr) minmax(140px, 1.4fr) minmax(110px, 1fr) minmax(140px, 1.4fr) minmax(130px, 1.2fr) minmax(160px, 1.6fr);
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -819,6 +819,14 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
 /* ── Last order stat card ────────────────────────────────────────────────────── */
 .stat-value--sm { font-size: 1.4rem; }
 .stat-card--last .stat-value { transition: color 0.5s; }
+.last-order-id {
+  font-size: 1.3rem; font-weight: 700; color: var(--accent);
+  font-variant-numeric: tabular-nums; margin-top: 4px;
+}
+.last-order-ts {
+  font-size: 0.82rem; font-weight: 500; color: var(--text-muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap; margin-top: 4px;
+}
 
 /* ── Section toolbar (Users, etc.) ──────────────────────────────────────────── */
 .section-toolbar { margin-bottom: 16px; }

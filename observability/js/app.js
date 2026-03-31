@@ -59,7 +59,7 @@ function applyTheme(theme) {
   Chart.defaults.color = textColor;
   Chart.defaults.borderColor = gridColor;
   [chartTimeline, chartCumulative, chartProductQty, chartProductRev,
-   chartDaily, chartHourly].forEach(c => c.update());
+   chartDaily, chartHourly].forEach(c => c?.update());
 }
 
 applyTheme(_theme);
@@ -262,6 +262,7 @@ function _renderDashboardData(summary, tl, products, daily, hourly) {
   $('statAvgRev').textContent    = summary.avg_revenue_per_day != null
     ? '€' + fmt(summary.avg_revenue_per_day) : '–';
   _lastOrderAt = summary.last_order_at ? new Date(summary.last_order_at) : null;
+  _lastOrderId = summary.last_order_id ?? null;
   _updateLastOrderStat();
   const tlData = tl.data ?? tl;
   const tlGran = tl.granularity ?? 'minute';
@@ -276,6 +277,7 @@ function _renderDashboardData(summary, tl, products, daily, hourly) {
 function _renderNoData() {
   _noData = true;
   _lastOrderAt = null;
+  _lastOrderId = null;
   ['statOrders', 'statRevenue', 'statAvgOrders', 'statAvgRev', 'statLastOrder'].forEach(id => {
     const el = $(id);
     if (el) { el.textContent = 'No data'; el.style.color = 'var(--text-muted)'; }
@@ -314,6 +316,7 @@ async function refreshDashboard(opts = {}) {
 
 // ── Última ordre ──────────────────────────────────────────────────────────────
 let _lastOrderAt = null;
+let _lastOrderId = null;
 
 function _timeAgo(date) {
   const s = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -324,17 +327,37 @@ function _timeAgo(date) {
 }
 
 function _updateLastOrderStat() {
-  const el = $('statLastOrder');
+  const el   = $('statLastOrder');
+  const elId = $('statLastOrderId');
+  const elTs = $('statLastOrderTs');
   if (!el) return;
-  if (_noData)       { el.textContent = 'No data'; el.style.color = 'var(--text-muted)'; return; }
-  if (!_lastOrderAt) { el.textContent = '–'; el.style.color = ''; return; }
-  // Use a fixed genMax reference of 60s since we don't have the control here
+
+  if (_noData) {
+    el.textContent = 'No data'; el.style.color = 'var(--text-muted)';
+    if (elId) elId.textContent = '–';
+    if (elTs) elTs.textContent = '';
+    return;
+  }
+  if (!_lastOrderAt) {
+    el.textContent = '–'; el.style.color = '';
+    if (elId) elId.textContent = '–';
+    if (elTs) elTs.textContent = '';
+    return;
+  }
+
   const s = Math.floor((Date.now() - _lastOrderAt.getTime()) / 1000);
   const genMaxSec = 60;
   el.textContent = _timeAgo(_lastOrderAt);
   if (s < genMaxSec)          el.style.color = 'var(--success)';
   else if (s < genMaxSec * 4) el.style.color = 'var(--warning)';
   else                         el.style.color = 'var(--danger)';
+
+  if (elId) elId.textContent = _lastOrderId ? `#${_lastOrderId}` : '';
+  if (elTs) {
+    const p = n => String(n).padStart(2, '0');
+    const d = _lastOrderAt;
+    elTs.textContent = `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  }
 }
 
 setInterval(_updateLastOrderStat, 1000);

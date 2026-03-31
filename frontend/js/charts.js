@@ -354,64 +354,54 @@ const chartCumulative = new Chart(ctxCumul, {
 })();
 
 // ── Product quantity (doughnut) ───────────────────────────────────────────────
-const chartProductQty = new Chart(
-  document.getElementById('chartProductQty').getContext('2d'), {
-    type: 'doughnut',
-    data: { labels: [], datasets: [{ data: [], backgroundColor: PALETTE,
-      borderColor: '#0d0d1a', borderWidth: 3, hoverOffset: 6 }]},
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: {
-            boxWidth: 12,
-            padding: 14,
-            generateLabels(chart) {
-              const labels  = chart.data.labels   || [];
-              const values  = chart.data.datasets[0]?.data || [];
-              const colors  = chart.data.datasets[0]?.backgroundColor || [];
-              return labels.map((name, i) => ({
-                text:        `${name}: ${(values[i] ?? 0).toLocaleString()}`,
-                fillStyle:   colors[i % colors.length],
-                strokeStyle: colors[i % colors.length],
-                lineWidth:   0,
-                hidden:      false,
-                index:       i,
-              }));
+const chartProductQty = document.getElementById('chartProductQty')
+  ? new Chart(document.getElementById('chartProductQty').getContext('2d'), {
+      type: 'doughnut',
+      data: { labels: [], datasets: [{ data: [], backgroundColor: PALETTE,
+        borderColor: '#0d0d1a', borderWidth: 3, hoverOffset: 6 }]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 12, padding: 14,
+              generateLabels(chart) {
+                const labels = chart.data.labels   || [];
+                const values = chart.data.datasets[0]?.data || [];
+                const colors = chart.data.datasets[0]?.backgroundColor || [];
+                return labels.map((name, i) => ({
+                  text: `${name}: ${(values[i] ?? 0).toLocaleString()}`,
+                  fillStyle: colors[i % colors.length], strokeStyle: colors[i % colors.length],
+                  lineWidth: 0, hidden: false, index: i,
+                }));
+              },
             },
           },
         },
+        cutout: '60%',
       },
-      cutout: '60%',
-    },
-  }
-);
+    })
+  : null;
 
 // ── Revenue per product (horizontal bar) ─────────────────────────────────────
-const chartProductRev = new Chart(
-  document.getElementById('chartProductRev').getContext('2d'), {
-    type: 'bar',
-    data: { labels: [], datasets: [{
-      label: 'Ingressos (€)',
-      data: [],
-      backgroundColor: PALETTE,
-      borderRadius: 4,
-    }]},
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      indexAxis: 'y',
-      plugins: { legend: { display: false } },
-      scales: {
-        x: {
-          grid: { color: '#2a2a5044' },
-          ticks: { callback: v => '€' + v.toLocaleString() },
+const chartProductRev = document.getElementById('chartProductRev')
+  ? new Chart(document.getElementById('chartProductRev').getContext('2d'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{
+        label: 'Ingressos (€)', data: [], backgroundColor: PALETTE, borderRadius: 4,
+      }]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#2a2a5044' }, ticks: { callback: v => '€' + v.toLocaleString() } },
+          y: { grid: { color: '#2a2a5044' } },
         },
-        y: { grid: { color: '#2a2a5044' } },
       },
-    },
-  }
-);
+    })
+  : null;
 
 // ── Daily history (orders bar + revenue line, dual axis) ─────────────────────
 const chartDaily = new Chart(
@@ -565,13 +555,16 @@ function updateCumulative(data, gran) {
 }
 
 function updateProductCharts(data) {
-  chartProductQty.data.labels               = data.map(d => d.name);
-  chartProductQty.data.datasets[0].data     = data.map(d => d.total_quantity);
-  chartProductQty.update('none');
-
-  chartProductRev.data.labels               = data.map(d => d.name);
-  chartProductRev.data.datasets[0].data     = data.map(d => d.total_revenue);
-  chartProductRev.update('none');
+  if (chartProductQty) {
+    chartProductQty.data.labels           = data.map(d => d.name);
+    chartProductQty.data.datasets[0].data = data.map(d => d.total_quantity);
+    chartProductQty.update('none');
+  }
+  if (chartProductRev) {
+    chartProductRev.data.labels           = data.map(d => d.name);
+    chartProductRev.data.datasets[0].data = data.map(d => d.total_revenue);
+    chartProductRev.update('none');
+  }
 }
 
 function updateDailyChart(data) {
