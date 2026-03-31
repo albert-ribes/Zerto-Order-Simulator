@@ -54,7 +54,7 @@ if [ ! -f "$ENV_FILE" ]; then
   sudo bash -c "cat > $ENV_FILE" <<'EOF'
 # Cadena de connexió a PostgreSQL de producció
 # Edita amb les credencials correctes abans d'arrancar el servei
-DATABASE_URL=postgresql://zerto:zerto@db.tec.bcn:5432/zerto
+DATABASE_URL=postgresql://zerto:zerto@postgresql.tec.bcn:5432/zerto
 EOF
   echo "  ⚠️  Edita $ENV_FILE amb les credencials reals de la BD"
 else
