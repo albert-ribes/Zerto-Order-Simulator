@@ -291,10 +291,6 @@ body {
 .chart-header h3 { font-size: 0.95rem; font-weight: 600; color: var(--text-muted); }
 .chart-wrap { position: relative; height: 220px; }
 
-/* Orders summary */
-.orders-summary-row {
-  margin-bottom: 20px;
-}
 
 /* Tables scroll inside their container, not the whole page */
 .table-card { overflow-x: auto; }

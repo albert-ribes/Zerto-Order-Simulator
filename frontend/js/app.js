@@ -462,13 +462,6 @@ setInterval(async () => {
   } catch {}
 }, 5000);
 
-async function _refreshOrdersSummary() {
-  try {
-    const summary = await api.summary(ordTRP.params());
-    const ordEl = $('ordStatOrders');
-    if (ordEl) { ordEl.textContent = summary.total_orders.toLocaleString(); ordEl.style.color = ''; }
-  } catch {}
-}
 
 async function loadOrders() {
   try {
@@ -480,7 +473,6 @@ async function loadOrders() {
     renderPagination();
     if (result.items.length) lastOrderId = result.items[0].id;
     _clearSelection();
-    _refreshOrdersSummary();
   } catch (e) { toast(e.message, 'error'); }
 }
 
