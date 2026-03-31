@@ -468,29 +468,18 @@ setInterval(async () => {
 // ── Orders summary charts ─────────────────────────────────────────────────────
 _ordChartQty = new Chart(
   $('ordChartProductQty').getContext('2d'), {
-    type: 'doughnut',
-    data: { labels: [], datasets: [{ data: [], backgroundColor: PALETTE,
-      borderColor: '#0d0d1a', borderWidth: 3, hoverOffset: 6 }] },
+    type: 'bar',
+    data: { labels: [], datasets: [{ label: 'Unitats', data: [],
+      backgroundColor: PALETTE, borderRadius: 4 }] },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: { boxWidth: 10, padding: 10,
-            generateLabels(chart) {
-              const labels = chart.data.labels || [];
-              const vals   = chart.data.datasets[0]?.data || [];
-              const colors = chart.data.datasets[0]?.backgroundColor || [];
-              return labels.map((name, i) => ({
-                text: `${name}: ${(vals[i] ?? 0).toLocaleString()}`,
-                fillStyle: colors[i % colors.length], strokeStyle: colors[i % colors.length],
-                lineWidth: 0, hidden: false, index: i,
-              }));
-            },
-          },
-        },
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#2a2a5044' },
+             ticks: { callback: v => v.toLocaleString() } },
+        y: { grid: { color: '#2a2a5044' } },
       },
-      cutout: '60%',
     },
   }
 );
@@ -523,6 +512,13 @@ async function _refreshOrdersSummary() {
     const revEl = $('ordStatRevenue');
     if (ordEl) { ordEl.textContent = summary.total_orders.toLocaleString(); ordEl.style.color = ''; }
     if (revEl) { revEl.textContent = '€' + fmt(summary.total_revenue); revEl.style.color = ''; }
+
+    // Altura dinàmica: 28px per producte + marges, mínim 200px
+    const h = Math.max(200, products.length * 28 + 48);
+    const qtyWrap = document.getElementById('ordChartProductQty')?.parentElement;
+    const revWrap = document.getElementById('ordChartProductRev')?.parentElement;
+    if (qtyWrap) qtyWrap.style.height = h + 'px';
+    if (revWrap) revWrap.style.height = h + 'px';
 
     _ordChartQty.data.labels               = products.map(p => p.name);
     _ordChartQty.data.datasets[0].data     = products.map(p => p.total_quantity);
