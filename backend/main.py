@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 
 import json
 import os
+import psutil
 
 import models
 import schemas
@@ -40,7 +41,7 @@ def _save_gen_state():
 
 app = FastAPI(title="Zerto Orders API")
 
-_PUBLIC_PATHS = {"/auth/login", "/health", "/ping", "/db/ping"}
+_PUBLIC_PATHS = {"/auth/login", "/health", "/ping", "/db/ping", "/system/metrics"}
 _PUBLIC_PREFIXES = ("/stats/", "/generator/status")
 
 @app.middleware("http")
@@ -823,6 +824,25 @@ def stats_products(
         }
         for r in rows
     ]
+
+
+@app.get("/system/metrics")
+def system_metrics():
+    import time as _time
+    cpu  = psutil.cpu_percent(interval=0.2)
+    mem  = psutil.virtual_memory()
+    disk = psutil.disk_usage('/')
+    uptime_s = int(_time.time() - psutil.boot_time())
+    return {
+        "cpu_percent":   round(cpu, 1),
+        "mem_total_mb":  round(mem.total  / 1024**2),
+        "mem_used_mb":   round(mem.used   / 1024**2),
+        "mem_percent":   round(mem.percent, 1),
+        "disk_total_gb": round(disk.total / 1024**3, 1),
+        "disk_used_gb":  round(disk.used  / 1024**3, 1),
+        "disk_percent":  round(disk.percent, 1),
+        "uptime_s":      uptime_s,
+    }
 
 
 @app.get("/ping")

@@ -9,7 +9,6 @@
 </head>
 <body>
 
-
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">
@@ -19,13 +18,15 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item active" data-tab="dashboard" title="Dashboard">
-        <span class="nav-icon">📊</span><span data-i18n="nav_dashboard">Dashboard</span>
+      <button class="nav-item active" data-tab="orders" title="Orders">
+        <span class="nav-icon">📊</span><span data-i18n="nav_orders">Orders</span>
+      </button>
+      <button class="nav-item" data-tab="systems" title="Systems">
+        <span class="nav-icon">🖥️</span><span data-i18n="nav_systems">Systems</span>
       </button>
     </nav>
 
     <div class="sidebar-footer">
-      <!-- Language + Theme controls -->
       <div class="controls-row">
         <div class="lang-selector">
           <button class="lang-btn active" data-lang="ca">CA</button>
@@ -34,18 +35,132 @@
         </div>
         <button class="theme-toggle" id="btnTheme" title="Toggle theme">🌙</button>
       </div>
-
     </div>
   </aside>
 
   <!-- Main -->
   <main class="main">
 
-    <!-- ── Dashboard ── -->
-    <section id="tab-dashboard" class="tab-content active">
+    <!-- ── Orders ── -->
+    <section id="tab-orders" class="tab-content active">
       <div class="page-header-obs">
-        <h1 class="page-title" data-i18n="nav_dashboard">Dashboard</h1>
+        <h1 class="page-title" data-i18n="nav_orders">Orders</h1>
         <div class="digital-clock" id="digitalClock"></div>
+      </div>
+
+      <!-- Filter bar (Grafana-style) -->
+      <div class="filter-bar">
+        <div class="trp-wrapper" id="trpWrapper">
+          <button class="trp-btn" id="btnTimeRange">
+            <span class="trp-icon">🕐</span>
+            <span id="timeRangeLabel">Últimes 24h</span>
+            <span class="trp-chevron">▾</span>
+          </button>
+          <div class="trp-panel" id="trpPanel" style="display:none">
+            <div class="trp-quick">
+              <div class="trp-section-title" data-i18n="filter_last_section">Últim</div>
+              <div id="trpPresets" class="trp-presets-list"></div>
+              <div class="trp-all-sep"></div>
+              <button class="trp-preset-btn trp-all-btn" id="btnRangeAll" data-i18n="qr_all">Tot el rang</button>
+            </div>
+            <div class="trp-custom">
+              <div class="trp-section-title" data-i18n="filter_custom_range">Rang personalitzat</div>
+              <div class="trp-custom-row">
+                <label data-i18n="filter_from">Des de</label>
+                <input type="datetime-local" id="filterStart" />
+              </div>
+              <div class="trp-custom-row">
+                <label data-i18n="filter_to">Fins a</label>
+                <input type="datetime-local" id="filterEnd" />
+              </div>
+              <p class="trp-live-hint" id="trpLiveHint" data-i18n="filter_live_ph">Ara (en viu)</p>
+              <div class="trp-custom-actions">
+                <button class="btn btn-primary btn-sm" id="btnApplyFilter" data-i18n="filter_apply">Aplicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="live-badge" id="liveBadge" data-i18n="filter_live">● En viu</span>
+        <span class="cache-badge hidden" id="cacheBadge" title="">📦 cached</span>
+        <div class="filter-sep"></div>
+        <div class="filter-group">
+          <label data-i18n="filter_refresh">Refresc</label>
+          <select id="selectRefresh">
+            <option value="3000">3s</option>
+            <option value="5000" selected>5s</option>
+            <option value="10000">10s</option>
+            <option value="30000">30s</option>
+            <option value="60000">60s</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_total_orders">Total ordres</div>
+          <div class="stat-value" id="statOrders">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_total_revenue">Ingressos totals</div>
+          <div class="stat-value" id="statRevenue">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_avg_orders_day">Mitja ordres/dia</div>
+          <div class="stat-value" id="statAvgOrders">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_avg_rev_day">Mitja facturació/dia</div>
+          <div class="stat-value" id="statAvgRev">–</div>
+        </div>
+        <div class="card stat-card stat-card--last">
+          <div class="stat-label" data-i18n="stat_last_order">Última ordre fa</div>
+          <div class="stat-value stat-value--sm" id="statLastOrder">–</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_last_order_detail">Detall última ordre</div>
+          <div class="last-order-id" id="statLastOrderId">–</div>
+          <div class="last-order-ts" id="statLastOrderTs"></div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="card chart-card chart-wide">
+          <div class="chart-header"><h3 data-i18n="chart_timeline">Ordres per minut (timeline)</h3></div>
+          <div class="chart-wrap"><canvas id="chartTimeline"></canvas></div>
+        </div>
+        <div class="card chart-card chart-wide">
+          <div class="chart-header">
+            <h3 data-i18n="chart_cumulative">Ingressos acumulats</h3>
+            <span class="cumul-hint" id="cumulHint">Clica 2 punts per veure la diferència</span>
+          </div>
+          <div class="chart-wrap" style="position:relative">
+            <canvas id="chartCumulative"></canvas>
+            <div class="cumul-delta" id="cumulDelta"></div>
+          </div>
+        </div>
+        <div class="card chart-card chart-half">
+          <div class="chart-header"><h3 data-i18n="chart_daily">Historial diari</h3></div>
+          <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
+        </div>
+        <div class="card chart-card chart-half">
+          <div class="chart-header"><h3 data-i18n="chart_hourly">Distribució horària</h3></div>
+          <div class="chart-wrap"><canvas id="chartHourly"></canvas></div>
+        </div>
+        <div class="card chart-card chart-half">
+          <div class="chart-header"><h3 data-i18n="chart_qty">Unitats per producte</h3></div>
+          <div class="chart-wrap" id="chartWrapProductQty"><canvas id="chartProductQty"></canvas></div>
+        </div>
+        <div class="card chart-card chart-half">
+          <div class="chart-header"><h3 data-i18n="chart_rev">Ingressos per producte</h3></div>
+          <div class="chart-wrap" id="chartWrapProductRev"><canvas id="chartProductRev"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Systems ── -->
+    <section id="tab-systems" class="tab-content">
+      <div class="page-header-obs">
+        <h1 class="page-title" data-i18n="nav_systems">Systems</h1>
       </div>
 
       <!-- Infrastructure Status -->
@@ -121,115 +236,103 @@
         </div>
       </div>
 
-      <!-- Filter bar (Grafana-style) -->
-      <div class="filter-bar">
-        <!-- Time range picker -->
-        <div class="trp-wrapper" id="trpWrapper">
-          <button class="trp-btn" id="btnTimeRange">
-            <span class="trp-icon">🕐</span>
-            <span id="timeRangeLabel">Últimes 24h</span>
-            <span class="trp-chevron">▾</span>
-          </button>
-          <div class="trp-panel" id="trpPanel" style="display:none">
-            <!-- Quick presets -->
-            <div class="trp-quick">
-              <div class="trp-section-title" data-i18n="filter_last_section">Últim</div>
-              <div id="trpPresets" class="trp-presets-list"></div>
-              <div class="trp-all-sep"></div>
-              <button class="trp-preset-btn trp-all-btn" id="btnRangeAll" data-i18n="qr_all">Tot el rang</button>
-            </div>
-            <!-- Custom range -->
-            <div class="trp-custom">
-              <div class="trp-section-title" data-i18n="filter_custom_range">Rang personalitzat</div>
-              <div class="trp-custom-row">
-                <label data-i18n="filter_from">Des de</label>
-                <input type="datetime-local" id="filterStart" />
-              </div>
-              <div class="trp-custom-row">
-                <label data-i18n="filter_to">Fins a</label>
-                <input type="datetime-local" id="filterEnd" />
-              </div>
-              <p class="trp-live-hint" id="trpLiveHint" data-i18n="filter_live_ph">Ara (en viu)</p>
-              <div class="trp-custom-actions">
-                <button class="btn btn-primary btn-sm" id="btnApplyFilter" data-i18n="filter_apply">Aplicar</button>
-              </div>
+      <!-- System Metrics -->
+      <div class="sys-metrics-grid">
+
+        <!-- Frontend -->
+        <div class="card sys-metric-card">
+          <div class="sys-metric-header">
+            <span class="infra-dot infra-dot--ok" id="sysDotFrontend"></span>
+            <div>
+              <div class="sys-metric-name">Frontend</div>
+              <div class="sys-metric-sub">nginx · frontend.tec.bcn</div>
             </div>
           </div>
-        </div>
-        <!-- Live badge -->
-        <span class="live-badge" id="liveBadge" data-i18n="filter_live">● En viu</span>
-        <span class="cache-badge hidden" id="cacheBadge" title="">📦 cached</span>
-        <div class="filter-sep"></div>
-        <!-- Refresh selector -->
-        <div class="filter-group">
-          <label data-i18n="filter_refresh">Refresc</label>
-          <select id="selectRefresh">
-            <option value="3000">3s</option>
-            <option value="5000" selected>5s</option>
-            <option value="10000">10s</option>
-            <option value="30000">30s</option>
-            <option value="60000">60s</option>
-          </select>
-        </div>
-      </div>
-      <div class="cards-grid">
-        <div class="card stat-card">
-          <div class="stat-label" data-i18n="stat_total_orders">Total ordres</div>
-          <div class="stat-value" id="statOrders">–</div>
-        </div>
-        <div class="card stat-card">
-          <div class="stat-label" data-i18n="stat_total_revenue">Ingressos totals</div>
-          <div class="stat-value" id="statRevenue">–</div>
-        </div>
-        <div class="card stat-card">
-          <div class="stat-label" data-i18n="stat_avg_orders_day">Mitja ordres/dia</div>
-          <div class="stat-value" id="statAvgOrders">–</div>
-        </div>
-        <div class="card stat-card">
-          <div class="stat-label" data-i18n="stat_avg_rev_day">Mitja facturació/dia</div>
-          <div class="stat-value" id="statAvgRev">–</div>
-        </div>
-        <div class="card stat-card stat-card--last">
-          <div class="stat-label" data-i18n="stat_last_order">Última ordre</div>
-          <div class="stat-value stat-value--sm" id="statLastOrder">–</div>
-        </div>
-        <div class="card stat-card">
-          <div class="stat-label" data-i18n="stat_last_order_detail">Detall última ordre</div>
-          <div class="last-order-id" id="statLastOrderId">–</div>
-          <div class="last-order-ts" id="statLastOrderTs"></div>
-        </div>
-      </div>
-      <div class="charts-grid">
-        <div class="card chart-card chart-wide">
-          <div class="chart-header"><h3 data-i18n="chart_timeline">Ordres per minut (timeline)</h3></div>
-          <div class="chart-wrap"><canvas id="chartTimeline"></canvas></div>
-        </div>
-        <div class="card chart-card chart-wide">
-          <div class="chart-header">
-            <h3 data-i18n="chart_cumulative">Ingressos acumulats</h3>
-            <span class="cumul-hint" id="cumulHint">Clica 2 punts per veure la diferència</span>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_ping">Ping</span>
+            <span></span>
+            <span class="sys-metric-val" id="sysFePing">–</span>
           </div>
-          <div class="chart-wrap" style="position:relative">
-            <canvas id="chartCumulative"></canvas>
-            <div class="cumul-delta" id="cumulDelta"></div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_http">HTTP</span>
+            <span></span>
+            <span class="sys-metric-val" id="sysFeHttp">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_assets">Assets</span>
+            <span></span>
+            <span class="sys-metric-val" id="sysFeAssets">–</span>
+          </div>
+          <div class="sys-metric-note" data-i18n="sys_no_agent">Agent no desplegat</div>
+        </div>
+
+        <!-- Backend -->
+        <div class="card sys-metric-card">
+          <div class="sys-metric-header">
+            <span class="infra-dot" id="sysDotBackend"></span>
+            <div>
+              <div class="sys-metric-name">Backend</div>
+              <div class="sys-metric-sub">FastAPI · backend.tec.bcn</div>
+            </div>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_cpu">CPU</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysBeBarCpu"></div></div>
+            <span class="sys-metric-val" id="sysBeCpu">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_ram">RAM</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysBeBarMem"></div></div>
+            <span class="sys-metric-val" id="sysBeMem">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_disk">Disc</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysBeBarDisk"></div></div>
+            <span class="sys-metric-val" id="sysBeDisk">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_uptime">Uptime</span>
+            <span></span>
+            <span class="sys-metric-val" id="sysBeUptime">–</span>
           </div>
         </div>
-        <div class="card chart-card chart-half">
-          <div class="chart-header"><h3 data-i18n="chart_daily">Historial diari</h3></div>
-          <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
+
+        <!-- Database -->
+        <div class="card sys-metric-card">
+          <div class="sys-metric-header">
+            <span class="infra-dot" id="sysDotDb"></span>
+            <div>
+              <div class="sys-metric-name">Database</div>
+              <div class="sys-metric-sub">PostgreSQL · postgresql.tec.bcn</div>
+            </div>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_connections">Connexions</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysDbBarConn"></div></div>
+            <span class="sys-metric-val" id="sysDbConn">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_active">Actives</span>
+            <span></span>
+            <span class="sys-metric-val" id="sysDbActive">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_db_size">Mida BD</span>
+            <span></span>
+            <span class="sys-metric-val" id="sysDbSize">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_cache_hit">Cache hit</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysDbBarCache"></div></div>
+            <span class="sys-metric-val" id="sysDbCache">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_transactions">Transaccions</span>
+            <span></span>
+            <span class="sys-metric-val" id="sysDbTx">–</span>
+          </div>
         </div>
-        <div class="card chart-card chart-half">
-          <div class="chart-header"><h3 data-i18n="chart_hourly">Distribució horària</h3></div>
-          <div class="chart-wrap"><canvas id="chartHourly"></canvas></div>
-        </div>
-        <div class="card chart-card chart-half" id="wrapProductQty">
-          <div class="chart-header"><h3 data-i18n="chart_qty">Unitats per producte</h3></div>
-          <div class="chart-wrap" id="chartWrapProductQty"><canvas id="chartProductQty"></canvas></div>
-        </div>
-        <div class="card chart-card chart-half" id="wrapProductRev">
-          <div class="chart-header"><h3 data-i18n="chart_rev">Ingressos per producte</h3></div>
-          <div class="chart-wrap" id="chartWrapProductRev"><canvas id="chartProductRev"></canvas></div>
-        </div>
+
       </div>
     </section>
 
@@ -238,9 +341,9 @@
   <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <script src="/js/i18n.js?v=17"></script>
-  <script src="/js/api.js?v=17"></script>
-  <script src="/js/charts.js?v=17"></script>
-  <script src="/js/app.js?v=17"></script>
+  <script src="/js/i18n.js?v=18"></script>
+  <script src="/js/api.js?v=18"></script>
+  <script src="/js/charts.js?v=18"></script>
+  <script src="/js/app.js?v=18"></script>
 </body>
 </html>

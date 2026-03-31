@@ -1141,3 +1141,75 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
 }
 .role-badge--admin { background: rgba(99,102,241,.2); color: #818cf8; }
 .role-badge--user  { background: var(--surface2);     color: var(--text-muted); }
+
+/* ── System metrics (observability Systems tab) ───────────────────────────── */
+.sys-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+.sys-metric-card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sys-metric-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.sys-metric-header .infra-dot { flex-shrink: 0; }
+.sys-metric-name { flex: 1; color: var(--text); }
+.sys-metric-sub  { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
+.sys-metric-row {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+}
+.sys-metric-row--nobar {
+  grid-template-columns: 90px 1fr;
+}
+.sys-metric-lbl {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.sys-metric-val {
+  font-size: 0.82rem;
+  color: var(--text);
+  text-align: right;
+  white-space: nowrap;
+}
+.sys-metric-bar-wrap {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.sys-metric-bar {
+  height: 100%;
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.4s ease, background-color 0.4s ease;
+}
+.sys-metric-bar.bar--good { background: var(--success); }
+.sys-metric-bar.bar--warn { background: var(--warning); }
+.sys-metric-bar.bar--bad  { background: var(--danger);  }
+.sys-metric-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 4px;
+}
+@media (max-width: 900px) {
+  .sys-metrics-grid { grid-template-columns: 1fr; }
+}

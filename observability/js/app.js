@@ -23,6 +23,18 @@ function localToISO(val) {
   return new Date(val).toISOString();
 }
 
+// ── Tab navigation ────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    const section = document.getElementById('tab-' + tab);
+    if (section) section.classList.add('active');
+  });
+});
+
 // ── Sidebar collapse ──────────────────────────────────────────────────────────
 (function () {
   const sidebar = document.querySelector('.sidebar');
@@ -189,12 +201,10 @@ const dashTRP = makeTRP({
   liveHint:    'trpLiveHint',
 }, () => refreshDashboard({ skipCache: true }));
 
-// Hook called by i18n.js on every language change
 function onLangChanged() {
   dashTRP.renderPresets();
 }
 
-// Apply static HTML translations
 applyTranslations();
 
 // ── Filter + refresh ──────────────────────────────────────────────────────────
@@ -215,21 +225,16 @@ $('selectRefresh').addEventListener('change', () => {
 
 // ── Dashboard cache ───────────────────────────────────────────────────────────
 const CACHE_KEY = 'obs_dashboard_cache';
-let _cacheTs    = null;   // timestamp of last known good data (live or cached)
-let _fromCache  = false;  // true when currently showing stale data
-let _noData     = false;  // true when there is no data at all (no cache, no live)
+let _cacheTs    = null;
+let _fromCache  = false;
+let _noData     = false;
 
 function _saveCache(data) {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
-  } catch {}
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); } catch {}
 }
 
 function _loadCache() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+  try { const raw = localStorage.getItem(CACHE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
 }
 
 function _elapsed(ms) {
@@ -239,7 +244,6 @@ function _elapsed(ms) {
   return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`;
 }
 
-// Called every second — keeps the "cached · Xs ago" text ticking
 function _updateCacheBadge() {
   const el = $('cacheBadge');
   if (!el) return;
@@ -284,9 +288,6 @@ function _renderNoData() {
   });
 }
 
-// ── Dashboard polling ─────────────────────────────────────────────────────────
-// opts.skipCache = true → on failure show "No data" instead of stale cache
-//   (used when the user explicitly changes the time range)
 async function refreshDashboard(opts = {}) {
   try {
     const p = dashTRP.params();
@@ -374,7 +375,6 @@ function _setDot(id, state) {
   if (el) el.className = `infra-dot infra-dot--${state}`;
 }
 
-// fetch amb timeout curt per detectar serveis caiguts ràpidament
 function _fetchT(url, opts = {}, timeoutMs = 3000) {
   const ctrl = new AbortController();
   const tid  = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -386,49 +386,59 @@ async function checkInfraStatus() {
   const upd = $('infraUpdated');
   if (upd) upd.textContent = t('status_checked') + ' ' + new Date().toLocaleTimeString();
 
-  // ── Els tres serveis es comproven en paral·lel ────────────────────────────
   await Promise.all([
 
-    // ── Frontend ─────────────────────────────────────────────────────────────
     (async () => {
       let feDot = 'ok';
       await Promise.all([
-        // Ping HEAD
         (async () => {
           const t0 = performance.now();
           try {
             const r = await _fetchT('/check/frontend/', { method: 'HEAD' });
-            _setBadge('tFePing', r.ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now()-t0)}ms`);
+            const ms = Math.round(performance.now()-t0);
+            _setBadge('tFePing', r.ok ? 'ok' : 'warn', `HTTP ${r.status} · ${ms}ms`);
+            if ($('sysFePing')) $('sysFePing').textContent = `${ms}ms`;
             if (!r.ok) feDot = 'warn';
-          } catch { _setBadge('tFePing', 'err', t('status_error')); feDot = 'err'; }
+          } catch {
+            _setBadge('tFePing', 'err', t('status_error'));
+            if ($('sysFePing')) $('sysFePing').textContent = t('status_error');
+            feDot = 'err';
+          }
         })(),
-        // Static asset
         (async () => {
           const t0 = performance.now();
           try {
             const r = await _fetchT('/check/frontend/css/style.css', { method: 'HEAD' });
             _setBadge('tFe0', r.ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now()-t0)}ms`);
+            if ($('sysFeAssets')) $('sysFeAssets').textContent = `HTTP ${r.status}`;
             if (!r.ok && feDot === 'ok') feDot = 'warn';
-          } catch { _setBadge('tFe0', 'err', t('status_error')); feDot = 'err'; }
+          } catch {
+            _setBadge('tFe0', 'err', t('status_error'));
+            if ($('sysFeAssets')) $('sysFeAssets').textContent = t('status_error');
+            feDot = 'err';
+          }
         })(),
-        // HTML
         (async () => {
           const t0 = performance.now();
           try {
             const r = await _fetchT('/check/frontend/');
             const ok = r.ok && (r.headers.get('content-type') || '').includes('html');
             _setBadge('tFe1', ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now()-t0)}ms`);
+            if ($('sysFeHttp')) $('sysFeHttp').textContent = `HTTP ${r.status}`;
             if (!ok && feDot === 'ok') feDot = 'warn';
-          } catch { _setBadge('tFe1', 'err', t('status_error')); feDot = 'err'; }
+          } catch {
+            _setBadge('tFe1', 'err', t('status_error'));
+            if ($('sysFeHttp')) $('sysFeHttp').textContent = t('status_error');
+            feDot = 'err';
+          }
         })(),
       ]);
       _setDot('dotFrontend', feDot);
+      _setDot('sysDotFrontend', feDot);
     })(),
 
-    // ── Backend ───────────────────────────────────────────────────────────────
     (async () => {
       let beDot = 'ok';
-      // Ping i genStatus en paral·lel; pong depèn del ping
       const [pingResult, genResult] = await Promise.all([
         (async () => {
           const t0 = performance.now();
@@ -450,7 +460,6 @@ async function checkInfraStatus() {
           } catch { _setBadge('tBe1', 'warn', t('status_error')); return false; }
         })(),
       ]);
-      // Functional pong (sincròn, usa el resultat del ping)
       if (pingResult !== null) {
         const ok = pingResult?.pong === true;
         _setBadge('tBe0', ok ? 'ok' : 'warn', ok ? `pong ✓` : t('status_error'));
@@ -462,7 +471,6 @@ async function checkInfraStatus() {
       _setDot('dotBackend', beDot);
     })(),
 
-    // ── Database ──────────────────────────────────────────────────────────────
     (async () => {
       let dbDot = 'ok';
       const t0 = performance.now();
@@ -486,6 +494,78 @@ async function checkInfraStatus() {
     })(),
 
   ]);
+}
+
+// ── System metrics ────────────────────────────────────────────────────────────
+function _fmtUptime(s) {
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h ${m}m`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+function _setBar(id, pct, invert = false) {
+  const el = $(id);
+  if (!el) return;
+  const p = Math.min(100, Math.max(0, pct));
+  el.style.width = p + '%';
+  const isHigh = p > 80, isMid = p > 60;
+  el.className = 'sys-metric-bar ' + (
+    invert
+      ? (isHigh ? 'bar--good' : isMid ? 'bar--warn' : 'bar--bad')
+      : (isHigh ? 'bar--bad'  : isMid ? 'bar--warn' : 'bar--good')
+  );
+}
+
+async function checkSystemMetrics() {
+  // Backend metrics
+  try {
+    const r = await _fetchT('/api/system/metrics', {}, 5000);
+    if (r.ok) {
+      const d = await r.json();
+      _setBar('sysBeBarCpu', d.cpu_percent);
+      if ($('sysBeCpu'))   $('sysBeCpu').textContent   = d.cpu_percent + '%';
+      _setBar('sysBeBarMem', d.mem_percent);
+      if ($('sysBeMem'))   $('sysBeMem').textContent   = `${d.mem_used_mb.toLocaleString()} / ${d.mem_total_mb.toLocaleString()} MB (${d.mem_percent}%)`;
+      _setBar('sysBeBarDisk', d.disk_percent);
+      if ($('sysBeDisk'))  $('sysBeDisk').textContent  = `${d.disk_used_gb} / ${d.disk_total_gb} GB (${d.disk_percent}%)`;
+      if ($('sysBeUptime')) $('sysBeUptime').textContent = _fmtUptime(d.uptime_s);
+      _setDot('sysDotBackend', d.cpu_percent > 90 || d.mem_percent > 90 || d.disk_percent > 90 ? 'warn' : 'ok');
+    } else {
+      _setDot('sysDotBackend', 'err');
+    }
+  } catch {
+    _setDot('sysDotBackend', 'err');
+  }
+
+  // Database metrics
+  try {
+    const r = await _fetchT('/check/db/db/metrics', {}, 5000);
+    if (r.ok) {
+      const d = await r.json();
+      if (d.status === 'ok') {
+        _setBar('sysDbBarConn', d.connections_percent);
+        if ($('sysDbConn'))   $('sysDbConn').textContent   = `${d.total_connections} / ${d.max_connections} (${d.connections_percent}%)`;
+        if ($('sysDbActive')) $('sysDbActive').textContent = d.active_connections;
+        if ($('sysDbSize'))   $('sysDbSize').textContent   = `${d.db_size_mb} MB`;
+        if (d.cache_hit_ratio !== null) {
+          _setBar('sysDbBarCache', d.cache_hit_ratio, true);
+          if ($('sysDbCache')) $('sysDbCache').textContent = d.cache_hit_ratio + '%';
+        }
+        if ($('sysDbTx') && d.transactions !== null)
+          $('sysDbTx').textContent = d.transactions.toLocaleString();
+        _setDot('sysDotDb', d.connections_percent > 80 ? 'warn' : 'ok');
+      } else {
+        _setDot('sysDotDb', 'err');
+      }
+    } else {
+      _setDot('sysDotDb', 'err');
+    }
+  } catch {
+    _setDot('sysDotDb', 'err');
+  }
 }
 
 // ── Digital clock ─────────────────────────────────────────────────────────────
@@ -512,5 +592,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const badge = $('infraRefreshBadge');
   if (badge) badge.textContent = `↻ ${INFRA_INTERVAL_MS / 1000}s`;
   checkInfraStatus();
-  setInterval(checkInfraStatus, INFRA_INTERVAL_MS);
+  checkSystemMetrics();
+  setInterval(checkInfraStatus,    INFRA_INTERVAL_MS);
+  setInterval(checkSystemMetrics,  INFRA_INTERVAL_MS);
 });
