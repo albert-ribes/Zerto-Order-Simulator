@@ -397,11 +397,9 @@ async function checkInfraStatus() {
             const r = await _fetchT('/check/frontend/', { method: 'HEAD' });
             const ms = Math.round(performance.now()-t0);
             _setBadge('tFePing', r.ok ? 'ok' : 'warn', `HTTP ${r.status} · ${ms}ms`);
-            if ($('sysFePing')) $('sysFePing').textContent = `${ms}ms`;
             if (!r.ok) feDot = 'warn';
           } catch {
             _setBadge('tFePing', 'err', t('status_error'));
-            if ($('sysFePing')) $('sysFePing').textContent = t('status_error');
             feDot = 'err';
           }
         })(),
@@ -410,11 +408,9 @@ async function checkInfraStatus() {
           try {
             const r = await _fetchT('/check/frontend/css/style.css', { method: 'HEAD' });
             _setBadge('tFe0', r.ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now()-t0)}ms`);
-            if ($('sysFeAssets')) $('sysFeAssets').textContent = `HTTP ${r.status}`;
             if (!r.ok && feDot === 'ok') feDot = 'warn';
           } catch {
             _setBadge('tFe0', 'err', t('status_error'));
-            if ($('sysFeAssets')) $('sysFeAssets').textContent = t('status_error');
             feDot = 'err';
           }
         })(),
@@ -424,17 +420,14 @@ async function checkInfraStatus() {
             const r = await _fetchT('/check/frontend/');
             const ok = r.ok && (r.headers.get('content-type') || '').includes('html');
             _setBadge('tFe1', ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now()-t0)}ms`);
-            if ($('sysFeHttp')) $('sysFeHttp').textContent = `HTTP ${r.status}`;
             if (!ok && feDot === 'ok') feDot = 'warn';
           } catch {
             _setBadge('tFe1', 'err', t('status_error'));
-            if ($('sysFeHttp')) $('sysFeHttp').textContent = t('status_error');
             feDot = 'err';
           }
         })(),
       ]);
       _setDot('dotFrontend', feDot);
-      _setDot('sysDotFrontend', feDot);
     })(),
 
     (async () => {
@@ -520,52 +513,105 @@ function _setBar(id, pct, invert = false) {
 }
 
 async function checkSystemMetrics() {
-  // Backend metrics
-  try {
-    const r = await _fetchT('/api/system/metrics', {}, 5000);
-    if (r.ok) {
-      const d = await r.json();
-      _setBar('sysBeBarCpu', d.cpu_percent);
-      if ($('sysBeCpu'))   $('sysBeCpu').textContent   = d.cpu_percent + '%';
-      _setBar('sysBeBarMem', d.mem_percent);
-      if ($('sysBeMem'))   $('sysBeMem').textContent   = `${d.mem_used_mb.toLocaleString()} / ${d.mem_total_mb.toLocaleString()} MB (${d.mem_percent}%)`;
-      _setBar('sysBeBarDisk', d.disk_percent);
-      if ($('sysBeDisk'))  $('sysBeDisk').textContent  = `${d.disk_used_gb} / ${d.disk_total_gb} GB (${d.disk_percent}%)`;
-      if ($('sysBeUptime')) $('sysBeUptime').textContent = _fmtUptime(d.uptime_s);
-      _setDot('sysDotBackend', d.cpu_percent > 90 || d.mem_percent > 90 || d.disk_percent > 90 ? 'warn' : 'ok');
-    } else {
-      _setDot('sysDotBackend', 'err');
-    }
-  } catch {
-    _setDot('sysDotBackend', 'err');
-  }
+  await Promise.all([
 
-  // Database metrics
-  try {
-    const r = await _fetchT('/check/db/db/metrics', {}, 5000);
-    if (r.ok) {
-      const d = await r.json();
-      if (d.status === 'ok') {
-        _setBar('sysDbBarConn', d.connections_percent);
-        if ($('sysDbConn'))   $('sysDbConn').textContent   = `${d.total_connections} / ${d.max_connections} (${d.connections_percent}%)`;
-        if ($('sysDbActive')) $('sysDbActive').textContent = d.active_connections;
-        if ($('sysDbSize'))   $('sysDbSize').textContent   = `${d.db_size_mb} MB`;
-        if (d.cache_hit_ratio !== null) {
-          _setBar('sysDbBarCache', d.cache_hit_ratio, true);
-          if ($('sysDbCache')) $('sysDbCache').textContent = d.cache_hit_ratio + '%';
+    // Frontend sys-probe metrics
+    (async () => {
+      try {
+        const r = await _fetchT('/check/frontend-sys/sys/metrics', {}, 5000);
+        if (r.ok) {
+          const d = await r.json();
+          if (d.status === 'ok') {
+            _setBar('sysFeBarCpu', d.cpu_percent);
+            if ($('sysFeCpu'))    $('sysFeCpu').textContent    = d.cpu_percent + '%';
+            _setBar('sysFeBarMem', d.mem_percent);
+            if ($('sysFeMem'))    $('sysFeMem').textContent    = `${d.mem_used_mb.toLocaleString()} / ${d.mem_total_mb.toLocaleString()} MB (${d.mem_percent}%)`;
+            _setBar('sysFeBarDisk', d.disk_percent);
+            if ($('sysFeDisk'))   $('sysFeDisk').textContent   = `${d.disk_used_gb} / ${d.disk_total_gb} GB (${d.disk_percent}%)`;
+            if ($('sysFeUptime')) $('sysFeUptime').textContent = _fmtUptime(d.uptime_s);
+            _setDot('sysDotFrontend', d.cpu_percent > 90 || d.mem_percent > 90 || d.disk_percent > 90 ? 'warn' : 'ok');
+          } else {
+            _setDot('sysDotFrontend', 'err');
+          }
+        } else {
+          _setDot('sysDotFrontend', 'err');
         }
-        if ($('sysDbTx') && d.transactions !== null)
-          $('sysDbTx').textContent = d.transactions.toLocaleString();
-        _setDot('sysDotDb', d.connections_percent > 80 ? 'warn' : 'ok');
-      } else {
+      } catch {
+        _setDot('sysDotFrontend', 'err');
+      }
+    })(),
+
+    // Backend metrics
+    (async () => {
+      try {
+        const r = await _fetchT('/api/system/metrics', {}, 5000);
+        if (r.ok) {
+          const d = await r.json();
+          _setBar('sysBeBarCpu', d.cpu_percent);
+          if ($('sysBeCpu'))    $('sysBeCpu').textContent    = d.cpu_percent + '%';
+          _setBar('sysBeBarMem', d.mem_percent);
+          if ($('sysBeMem'))    $('sysBeMem').textContent    = `${d.mem_used_mb.toLocaleString()} / ${d.mem_total_mb.toLocaleString()} MB (${d.mem_percent}%)`;
+          _setBar('sysBeBarDisk', d.disk_percent);
+          if ($('sysBeDisk'))   $('sysBeDisk').textContent   = `${d.disk_used_gb} / ${d.disk_total_gb} GB (${d.disk_percent}%)`;
+          if ($('sysBeUptime')) $('sysBeUptime').textContent = _fmtUptime(d.uptime_s);
+          _setDot('sysDotBackend', d.cpu_percent > 90 || d.mem_percent > 90 || d.disk_percent > 90 ? 'warn' : 'ok');
+        } else {
+          _setDot('sysDotBackend', 'err');
+        }
+      } catch {
+        _setDot('sysDotBackend', 'err');
+      }
+    })(),
+
+    // Database sys-probe metrics
+    (async () => {
+      try {
+        const r = await _fetchT('/check/db-sys/sys/metrics', {}, 5000);
+        if (r.ok) {
+          const d = await r.json();
+          if (d.status === 'ok') {
+            _setBar('sysDbBarCpu', d.cpu_percent);
+            if ($('sysDbCpu'))    $('sysDbCpu').textContent    = d.cpu_percent + '%';
+            _setBar('sysDbBarMem', d.mem_percent);
+            if ($('sysDbMem'))    $('sysDbMem').textContent    = `${d.mem_used_mb.toLocaleString()} / ${d.mem_total_mb.toLocaleString()} MB (${d.mem_percent}%)`;
+            _setBar('sysDbBarDisk', d.disk_percent);
+            if ($('sysDbDisk'))   $('sysDbDisk').textContent   = `${d.disk_used_gb} / ${d.disk_total_gb} GB (${d.disk_percent}%)`;
+            if ($('sysDbUptime')) $('sysDbUptime').textContent = _fmtUptime(d.uptime_s);
+          }
+        }
+      } catch { /* sys-probe errors handled silently; dot updated by db/metrics below */ }
+    })(),
+
+    // Database probe metrics (PostgreSQL stats)
+    (async () => {
+      try {
+        const r = await _fetchT('/check/db/db/metrics', {}, 5000);
+        if (r.ok) {
+          const d = await r.json();
+          if (d.status === 'ok') {
+            _setBar('sysDbBarConn', d.connections_percent);
+            if ($('sysDbConn'))   $('sysDbConn').textContent   = `${d.total_connections} / ${d.max_connections} (${d.connections_percent}%)`;
+            if ($('sysDbActive')) $('sysDbActive').textContent = d.active_connections;
+            if ($('sysDbSize'))   $('sysDbSize').textContent   = `${d.db_size_mb} MB`;
+            if (d.cache_hit_ratio !== null) {
+              _setBar('sysDbBarCache', d.cache_hit_ratio, true);
+              if ($('sysDbCache')) $('sysDbCache').textContent = d.cache_hit_ratio + '%';
+            }
+            if ($('sysDbTx') && d.transactions !== null)
+              $('sysDbTx').textContent = d.transactions.toLocaleString();
+            _setDot('sysDotDb', d.connections_percent > 80 ? 'warn' : 'ok');
+          } else {
+            _setDot('sysDotDb', 'err');
+          }
+        } else {
+          _setDot('sysDotDb', 'err');
+        }
+      } catch {
         _setDot('sysDotDb', 'err');
       }
-    } else {
-      _setDot('sysDotDb', 'err');
-    }
-  } catch {
-    _setDot('sysDotDb', 'err');
-  }
+    })(),
+
+  ]);
 }
 
 // ── Digital clock ─────────────────────────────────────────────────────────────

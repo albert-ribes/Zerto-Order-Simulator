@@ -1,0 +1,15 @@
+[Unit]
+Description=Zerto Sys Probe (system metrics: CPU, RAM, disk, uptime)
+After=network.target
+
+[Service]
+User=adminhpe
+WorkingDirectory=/opt/zerto/observability/sys-probe
+ExecStart=/opt/zerto/.venv/bin/python main.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

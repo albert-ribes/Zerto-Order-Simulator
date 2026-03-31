@@ -13,6 +13,12 @@ services:
     environment:
       DATABASE_URL: postgresql://zerto:zerto@db:5432/zerto
 
+  sys-probe-frontend:
+    build: ./observability/sys-probe
+
+  sys-probe-db:
+    build: ./observability/sys-probe
+
   observability:
     build:
       context: .

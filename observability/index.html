@@ -242,28 +242,32 @@
         <!-- Frontend -->
         <div class="card sys-metric-card">
           <div class="sys-metric-header">
-            <span class="infra-dot infra-dot--ok" id="sysDotFrontend"></span>
+            <span class="infra-dot" id="sysDotFrontend"></span>
             <div>
               <div class="sys-metric-name">Frontend</div>
               <div class="sys-metric-sub">nginx · frontend.tec.bcn</div>
             </div>
           </div>
           <div class="sys-metric-row">
-            <span class="sys-metric-lbl" data-i18n="sys_ping">Ping</span>
-            <span></span>
-            <span class="sys-metric-val" id="sysFePing">–</span>
+            <span class="sys-metric-lbl" data-i18n="sys_cpu">CPU</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysFeBarCpu"></div></div>
+            <span class="sys-metric-val" id="sysFeCpu">–</span>
           </div>
           <div class="sys-metric-row">
-            <span class="sys-metric-lbl" data-i18n="sys_http">HTTP</span>
-            <span></span>
-            <span class="sys-metric-val" id="sysFeHttp">–</span>
+            <span class="sys-metric-lbl" data-i18n="sys_ram">RAM</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysFeBarMem"></div></div>
+            <span class="sys-metric-val" id="sysFeMem">–</span>
           </div>
           <div class="sys-metric-row">
-            <span class="sys-metric-lbl" data-i18n="sys_assets">Assets</span>
-            <span></span>
-            <span class="sys-metric-val" id="sysFeAssets">–</span>
+            <span class="sys-metric-lbl" data-i18n="sys_disk">Disc</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysFeBarDisk"></div></div>
+            <span class="sys-metric-val" id="sysFeDisk">–</span>
           </div>
-          <div class="sys-metric-note" data-i18n="sys_no_agent">Agent no desplegat</div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_uptime">Uptime</span>
+            <span></span>
+            <span class="sys-metric-val" id="sysFeUptime">–</span>
+          </div>
         </div>
 
         <!-- Backend -->
@@ -306,6 +310,27 @@
               <div class="sys-metric-sub">PostgreSQL · postgresql.tec.bcn</div>
             </div>
           </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_cpu">CPU</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysDbBarCpu"></div></div>
+            <span class="sys-metric-val" id="sysDbCpu">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_ram">RAM</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysDbBarMem"></div></div>
+            <span class="sys-metric-val" id="sysDbMem">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_disk">Disc</span>
+            <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysDbBarDisk"></div></div>
+            <span class="sys-metric-val" id="sysDbDisk">–</span>
+          </div>
+          <div class="sys-metric-row">
+            <span class="sys-metric-lbl" data-i18n="sys_uptime">Uptime</span>
+            <span></span>
+            <span class="sys-metric-val" id="sysDbUptime">–</span>
+          </div>
+          <div class="sys-metric-separator"></div>
           <div class="sys-metric-row">
             <span class="sys-metric-lbl" data-i18n="sys_connections">Connexions</span>
             <div class="sys-metric-bar-wrap"><div class="sys-metric-bar" id="sysDbBarConn"></div></div>
