@@ -283,14 +283,6 @@ def update_client(client_id: int, data: schemas.ClientUpdate, db: Session = Depe
     return obj
 
 
-@app.delete("/clients/{client_id}", status_code=204)
-def delete_client(client_id: int, db: Session = Depends(get_db)):
-    obj = db.query(models.Client).get(client_id)
-    if not obj:
-        raise HTTPException(404, "Client not found")
-    db.delete(obj); db.commit()
-
-
 @app.delete("/clients/batch", status_code=200)
 def delete_clients_batch(data: schemas.BatchDeleteRequest, db: Session = Depends(get_db)):
     if not data.ids:
@@ -302,6 +294,14 @@ def delete_clients_batch(data: schemas.BatchDeleteRequest, db: Session = Depends
     )
     db.commit()
     return {"deleted": deleted}
+
+
+@app.delete("/clients/{client_id}", status_code=204)
+def delete_client(client_id: int, db: Session = Depends(get_db)):
+    obj = db.query(models.Client).get(client_id)
+    if not obj:
+        raise HTTPException(404, "Client not found")
+    db.delete(obj); db.commit()
 
 
 @app.post("/clients/import")
@@ -350,14 +350,6 @@ def update_product(product_id: int, data: schemas.ProductUpdate, db: Session = D
     return obj
 
 
-@app.delete("/products/{product_id}", status_code=204)
-def delete_product(product_id: int, db: Session = Depends(get_db)):
-    obj = db.query(models.Product).get(product_id)
-    if not obj:
-        raise HTTPException(404, "Product not found")
-    db.delete(obj); db.commit()
-
-
 @app.delete("/products/batch", status_code=200)
 def delete_products_batch(data: schemas.BatchDeleteRequest, db: Session = Depends(get_db)):
     if not data.ids:
@@ -369,6 +361,14 @@ def delete_products_batch(data: schemas.BatchDeleteRequest, db: Session = Depend
     )
     db.commit()
     return {"deleted": deleted}
+
+
+@app.delete("/products/{product_id}", status_code=204)
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    obj = db.query(models.Product).get(product_id)
+    if not obj:
+        raise HTTPException(404, "Product not found")
+    db.delete(obj); db.commit()
 
 
 @app.post("/products/import")
