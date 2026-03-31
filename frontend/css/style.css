@@ -307,7 +307,7 @@ body {
 }
 .orders-stats-col .stat-card { flex: 1; }
 .orders-chart-card { min-width: 0; overflow: hidden; }
-.orders-chart-card .chart-wrap { min-height: 200px; }
+.orders-chart-card .chart-wrap { min-height: 160px; }
 
 /* Tables scroll inside their container, not the whole page */
 .table-card { overflow-x: auto; }
