@@ -353,33 +353,22 @@ const chartCumulative = new Chart(ctxCumul, {
   }
 })();
 
-// ── Product quantity (doughnut) ───────────────────────────────────────────────
+// ── Product quantity (horizontal bar) ────────────────────────────────────────
 const chartProductQty = document.getElementById('chartProductQty')
   ? new Chart(document.getElementById('chartProductQty').getContext('2d'), {
-      type: 'doughnut',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: PALETTE,
-        borderColor: '#0d0d1a', borderWidth: 3, hoverOffset: 6 }]},
+      type: 'bar',
+      data: { labels: [], datasets: [{ label: 'Unitats', data: [],
+        backgroundColor: PALETTE, borderRadius: 3, maxBarThickness: 14 }]},
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: {
-              boxWidth: 12, padding: 14,
-              generateLabels(chart) {
-                const labels = chart.data.labels   || [];
-                const values = chart.data.datasets[0]?.data || [];
-                const colors = chart.data.datasets[0]?.backgroundColor || [];
-                return labels.map((name, i) => ({
-                  text: `${name}: ${(values[i] ?? 0).toLocaleString()}`,
-                  fillStyle: colors[i % colors.length], strokeStyle: colors[i % colors.length],
-                  lineWidth: 0, hidden: false, index: i,
-                }));
-              },
-            },
-          },
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#2a2a5044' },
+               ticks: { callback: v => v.toLocaleString(), font: { size: 11 } } },
+          y: { grid: { color: '#2a2a5044' },
+               ticks: { font: { size: 11 } } },
         },
-        cutout: '60%',
       },
     })
   : null;
@@ -555,14 +544,21 @@ function updateCumulative(data, gran) {
 }
 
 function updateProductCharts(data) {
+  const h = Math.max(160, data.length * 18 + 40);
   if (chartProductQty) {
-    chartProductQty.data.labels           = data.map(d => d.name);
-    chartProductQty.data.datasets[0].data = data.map(d => d.total_quantity);
+    const byQty = [...data].sort((a, b) => b.total_quantity - a.total_quantity);
+    const wrap = document.getElementById('chartWrapProductQty');
+    if (wrap) wrap.style.height = h + 'px';
+    chartProductQty.data.labels           = byQty.map(d => d.name);
+    chartProductQty.data.datasets[0].data = byQty.map(d => d.total_quantity);
     chartProductQty.update('none');
   }
   if (chartProductRev) {
-    chartProductRev.data.labels           = data.map(d => d.name);
-    chartProductRev.data.datasets[0].data = data.map(d => d.total_revenue);
+    const byRev = [...data].sort((a, b) => b.total_revenue - a.total_revenue);
+    const wrap = document.getElementById('chartWrapProductRev');
+    if (wrap) wrap.style.height = h + 'px';
+    chartProductRev.data.labels           = byRev.map(d => d.name);
+    chartProductRev.data.datasets[0].data = byRev.map(d => d.total_revenue);
     chartProductRev.update('none');
   }
 }

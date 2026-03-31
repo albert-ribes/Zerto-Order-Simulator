@@ -3,8 +3,6 @@ const PALETTE = [
   '#6366f1','#10b981','#f59e0b','#ef4444',
   '#3b82f6','#8b5cf6','#ec4899','#14b8a6',
 ];
-let _ordChartQty = null;
-let _ordChartRev = null;
 {
   const _t = localStorage.getItem('theme') || 'dark';
   Chart.defaults.color       = _t === 'dark' ? '#8892a4' : '#64748b';
@@ -170,7 +168,6 @@ function applyTheme(theme) {
   localStorage.setItem('theme', theme);
   Chart.defaults.color       = theme === 'dark' ? '#8892a4' : '#64748b';
   Chart.defaults.borderColor = theme === 'dark' ? '#2a2a5044' : '#d1d9e688';
-  [_ordChartQty, _ordChartRev].forEach(c => c?.update());
 }
 
 applyTheme(_theme);
@@ -465,74 +462,11 @@ setInterval(async () => {
   } catch {}
 }, 5000);
 
-// ── Orders summary charts ─────────────────────────────────────────────────────
-_ordChartQty = new Chart(
-  $('ordChartProductQty').getContext('2d'), {
-    type: 'bar',
-    data: { labels: [], datasets: [{ label: 'Unitats', data: [],
-      backgroundColor: PALETTE, borderRadius: 3, maxBarThickness: 14 }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      indexAxis: 'y',
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: '#2a2a5044' },
-             ticks: { callback: v => v.toLocaleString(), font: { size: 11 } } },
-        y: { grid: { color: '#2a2a5044' },
-             ticks: { font: { size: 11 } } },
-      },
-    },
-  }
-);
-
-_ordChartRev = new Chart(
-  $('ordChartProductRev').getContext('2d'), {
-    type: 'bar',
-    data: { labels: [], datasets: [{ label: 'Ingressos (€)', data: [],
-      backgroundColor: PALETTE, borderRadius: 3, maxBarThickness: 14 }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      indexAxis: 'y',
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: '#2a2a5044' },
-             ticks: { callback: v => '€' + v.toLocaleString(), font: { size: 11 } } },
-        y: { grid: { color: '#2a2a5044' },
-             ticks: { font: { size: 11 } } },
-      },
-    },
-  }
-);
-
 async function _refreshOrdersSummary() {
   try {
-    const p = ordTRP.params();
-    const [summary, products] = await Promise.all([
-      api.summary(p), api.productStats(p),
-    ]);
+    const summary = await api.summary(ordTRP.params());
     const ordEl = $('ordStatOrders');
-    const revEl = $('ordStatRevenue');
     if (ordEl) { ordEl.textContent = summary.total_orders.toLocaleString(); ordEl.style.color = ''; }
-    if (revEl) { revEl.textContent = '€' + fmt(summary.total_revenue); revEl.style.color = ''; }
-
-    // Ordenació independent per a cada gràfica
-    const byQty = [...products].sort((a, b) => b.total_quantity - a.total_quantity);
-    const byRev = [...products].sort((a, b) => b.total_revenue  - a.total_revenue);
-
-    // Altura dinàmica compacta: 18px per producte + marges, mínim 160px
-    const h = Math.max(160, products.length * 18 + 40);
-    const qtyWrap = document.getElementById('ordChartProductQty')?.parentElement;
-    const revWrap = document.getElementById('ordChartProductRev')?.parentElement;
-    if (qtyWrap) qtyWrap.style.height = h + 'px';
-    if (revWrap) revWrap.style.height = h + 'px';
-
-    _ordChartQty.data.labels               = byQty.map(p => p.name);
-    _ordChartQty.data.datasets[0].data     = byQty.map(p => p.total_quantity);
-    _ordChartQty.update('none');
-
-    _ordChartRev.data.labels               = byRev.map(p => p.name);
-    _ordChartRev.data.datasets[0].data     = byRev.map(p => p.total_revenue);
-    _ordChartRev.update('none');
   } catch {}
 }
 

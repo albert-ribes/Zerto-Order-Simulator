@@ -286,28 +286,15 @@ body {
 }
 .charts-grid > .card { min-width: 0; overflow: hidden; }
 .chart-wide  { grid-column: span 2; }
+.chart-half  { grid-column: span 1; }
 .chart-header { margin-bottom: 16px; }
 .chart-header h3 { font-size: 0.95rem; font-weight: 600; color: var(--text-muted); }
 .chart-wrap { position: relative; height: 220px; }
 
-/* Orders summary row: [orders+revenue stacked] | bar qty | bar rev */
+/* Orders summary */
 .orders-summary-row {
-  display: grid;
-  grid-template-columns: minmax(200px, 280px) minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
   margin-bottom: 20px;
-  align-items: start;
 }
-.orders-stats-col {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  position: sticky;
-  top: 0;
-}
-.orders-stats-col .stat-card { flex: 1; }
-.orders-chart-card { min-width: 0; overflow: hidden; }
-.orders-chart-card .chart-wrap { min-height: 160px; }
 
 /* Tables scroll inside their container, not the whole page */
 .table-card { overflow-x: auto; }

@@ -214,13 +214,21 @@
             <div class="cumul-delta" id="cumulDelta"></div>
           </div>
         </div>
-        <div class="card chart-card chart-wide">
+        <div class="card chart-card chart-half">
           <div class="chart-header"><h3 data-i18n="chart_daily">Historial diari</h3></div>
           <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
         </div>
-        <div class="card chart-card chart-wide">
+        <div class="card chart-card chart-half">
           <div class="chart-header"><h3 data-i18n="chart_hourly">Distribució horària</h3></div>
           <div class="chart-wrap"><canvas id="chartHourly"></canvas></div>
+        </div>
+        <div class="card chart-card chart-half" id="wrapProductQty">
+          <div class="chart-header"><h3 data-i18n="chart_qty">Unitats per producte</h3></div>
+          <div class="chart-wrap" id="chartWrapProductQty"><canvas id="chartProductQty"></canvas></div>
+        </div>
+        <div class="card chart-card chart-half" id="wrapProductRev">
+          <div class="chart-header"><h3 data-i18n="chart_rev">Ingressos per producte</h3></div>
+          <div class="chart-wrap" id="chartWrapProductRev"><canvas id="chartProductRev"></canvas></div>
         </div>
       </div>
     </section>

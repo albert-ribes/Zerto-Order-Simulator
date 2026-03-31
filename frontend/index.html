@@ -82,15 +82,15 @@
             <span data-i18n="gen_interval">Interval (s)</span>
             <div class="interval-row">
               <div class="interval-cell">
-                <input type="number" id="genMin" value="1" min="0.5" max="3600" step="0.5" />
+                <input type="number" id="genMin" value="20" min="0.5" max="3600" step="0.5" />
                 <span class="interval-cell-lbl" data-i18n="gen_min">Mín</span>
               </div>
               <div class="interval-cell">
-                <input type="number" id="genInterval" value="15" min="1" max="60" step="0.5" />
+                <input type="number" id="genInterval" value="60" min="1" max="60" step="0.5" />
                 <span class="interval-cell-lbl" data-i18n="gen_val">Val</span>
               </div>
               <div class="interval-cell">
-                <input type="number" id="genMax" value="60" min="1" max="3600" step="1" />
+                <input type="number" id="genMax" value="180" min="1" max="3600" step="1" />
                 <span class="interval-cell-lbl" data-i18n="gen_max">Màx</span>
               </div>
             </div>
@@ -182,25 +182,11 @@
         <button class="btn btn-ghost btn-sm" id="btnClearSelection" data-i18n="sel_clear">Netejar selecció</button>
       </div>
 
-      <!-- Orders summary row: [orders+revenue stacked] | doughnut | bar -->
+      <!-- Orders summary -->
       <div class="orders-summary-row" id="ordersSummaryRow">
-        <div class="orders-stats-col">
-          <div class="card stat-card">
-            <div class="stat-label" data-i18n="stat_total_orders">Total ordres</div>
-            <div class="stat-value" id="ordStatOrders">–</div>
-          </div>
-          <div class="card stat-card">
-            <div class="stat-label" data-i18n="stat_total_revenue">Ingressos totals</div>
-            <div class="stat-value" id="ordStatRevenue">–</div>
-          </div>
-        </div>
-        <div class="card chart-card orders-chart-card">
-          <div class="chart-header"><h3 data-i18n="chart_qty">Unitats per producte</h3></div>
-          <div class="chart-wrap"><canvas id="ordChartProductQty"></canvas></div>
-        </div>
-        <div class="card chart-card orders-chart-card">
-          <div class="chart-header"><h3 data-i18n="chart_rev">Ingressos per producte</h3></div>
-          <div class="chart-wrap"><canvas id="ordChartProductRev"></canvas></div>
+        <div class="card stat-card">
+          <div class="stat-label" data-i18n="stat_total_orders">Total ordres</div>
+          <div class="stat-value" id="ordStatOrders">–</div>
         </div>
       </div>
 
