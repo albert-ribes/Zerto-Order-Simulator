@@ -62,23 +62,42 @@ def _get_token(zvm):
         if t and t["expires"] > now + 30:
             return t["token"]
 
-    # OAuth2 client_credentials
-    data = urllib.parse.urlencode({
-        "grant_type":    "client_credentials",
-        "client_id":     zvm["client_id"],
-        "client_secret": zvm["client_secret"],
-    }).encode()
-    url = f"https://{zvm['host']}:{zvm['port']}/auth/realms/zerto/protocol/openid-connect/token"
-    req = urllib.request.Request(url, data=data, method="POST")
-    req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    try:
+    token_url = f"https://{zvm['host']}:{zvm['port']}/auth/realms/zerto/protocol/openid-connect/token"
+
+    def _try_oauth(payload):
+        req = urllib.request.Request(token_url, data=urllib.parse.urlencode(payload).encode(), method="POST")
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
         with urllib.request.urlopen(req, context=_ssl_ctx, timeout=10) as r:
-            body  = json.loads(r.read())
-            token = body["access_token"]
-            exp   = now + body.get("expires_in", 300) - 15
-            with _tok_lock:
-                _tokens[zid] = {"token": token, "expires": exp}
-            return token
+            body = json.loads(r.read())
+            if "access_token" not in body:
+                raise ValueError(body.get("error_description", "no access_token"))
+            return body["access_token"], body.get("expires_in", 300)
+
+    # Intent 1: OAuth2 client_credentials
+    try:
+        token, exp_in = _try_oauth({
+            "grant_type": "client_credentials",
+            "client_id": zvm["client_id"],
+            "client_secret": zvm["client_secret"],
+        })
+        with _tok_lock:
+            _tokens[zid] = {"token": token, "expires": now + exp_in - 15}
+        return token
+    except Exception:
+        pass
+
+    # Intent 2: OAuth2 password grant (quan client_credentials no és habilitat)
+    try:
+        token, exp_in = _try_oauth({
+            "grant_type": "password",
+            "client_id": zvm["client_id"],
+            "client_secret": zvm["client_secret"],
+            "username": zvm["username"],
+            "password": zvm["password"],
+        })
+        with _tok_lock:
+            _tokens[zid] = {"token": token, "expires": now + exp_in - 15}
+        return token
     except Exception:
         pass
 

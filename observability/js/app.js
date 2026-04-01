@@ -628,9 +628,24 @@ function _fmtDuration(minutes) {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-const _VPG_STATUS_CLS = { 1:'zerto-status-ok', 2:'zerto-status-err', 3:'zerto-status-err',
-                           4:'zerto-status-warn', 5:'zerto-status-warn', 6:'zerto-status-warn',
-                           7:'zerto-status-warn', 8:'zerto-status-ok' };
+const _ZVM_STATUS_MAP = {
+  0: { text: 'Initializing',          cls: 'zerto-status-warn' },
+  1: { text: 'Meeting SLA',           cls: 'zerto-status-ok'   },
+  2: { text: 'Not Meeting SLA',       cls: 'zerto-status-err'  },
+  3: { text: 'RPO Not Meeting SLA',   cls: 'zerto-status-err'  },
+  4: { text: 'History Not Meeting SLA', cls: 'zerto-status-warn' },
+  5: { text: 'Failing Over',          cls: 'zerto-status-warn' },
+  6: { text: 'Moving',                cls: 'zerto-status-warn' },
+  7: { text: 'Deleting',              cls: 'zerto-status-warn' },
+  8: { text: 'Recovered',             cls: 'zerto-status-ok'   },
+};
+function _zpgStatusText(status, desc) {
+  if (desc && desc !== 'None') return desc;
+  return (_ZVM_STATUS_MAP[status] || { text: `Status ${status}` }).text;
+}
+function _zpgStatusCls(status) {
+  return (_ZVM_STATUS_MAP[status] || { cls: '' }).cls;
+}
 
 async function checkZerto() {
   try {
@@ -665,8 +680,8 @@ async function checkZerto() {
     // VPG Status
     const stEl = $('zertoVpgStatus');
     if (stEl) {
-      stEl.textContent = vpg.status_desc || '–';
-      stEl.className   = 'zerto-stat-value ' + (_VPG_STATUS_CLS[vpg.status] || '');
+      stEl.textContent = _zpgStatusText(vpg.status, vpg.status_desc);
+      stEl.className   = 'zerto-stat-value ' + _zpgStatusCls(vpg.status);
     }
     const subEl = $('zertoVpgSub');
     if (subEl) subEl.textContent = (vpg.sub_status_desc && vpg.sub_status_desc !== 'None')
@@ -703,11 +718,11 @@ async function checkZerto() {
         : vms.map(vm => {
             const p   = vpg.rpo_config_s > 0 ? vm.rpo_actual_s / vpg.rpo_config_s : 0;
             const rc  = p < 0.5 ? 'zerto-status-ok' : p < 1 ? 'zerto-status-warn' : 'zerto-status-err';
-            const sc  = vm.status === 1 ? 'zerto-status-ok' : vm.status === 0 ? '' : 'zerto-status-err';
+            const sc  = _zpgStatusCls(vm.status);
             const jnl = vm.journal_mb > 1024 ? (vm.journal_mb/1024).toFixed(1)+'GB' : vm.journal_mb+'MB';
             return `<tr>
               <td><strong>${vm.name}</strong></td>
-              <td class="${sc}">${vm.status_desc || vm.status}</td>
+              <td class="${sc}">${_zpgStatusText(vm.status, vm.status_desc)}</td>
               <td class="${rc}">${_fmtRPO(vm.rpo_actual_s)}</td>
               <td>${vm.iops}</td>
               <td>${jnl}</td>

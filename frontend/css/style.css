@@ -1214,6 +1214,9 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
   .sys-metrics-grid { grid-template-columns: 1fr; }
 }
 
+/* ── Utility ─────────────────────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+
 /* ── Zerto ───────────────────────────────────────────────────────────────────── */
 .zerto-zvm-row {
   display: flex;
