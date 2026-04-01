@@ -89,11 +89,12 @@ def _get_token(zvm):
     # Intent 2: OAuth2 password grant (quan client_credentials no és habilitat)
     try:
         token, exp_in = _try_oauth({
-            "grant_type": "password",
-            "client_id": zvm["client_id"],
+            "grant_type":    "password",
+            "client_id":     zvm["client_id"],
             "client_secret": zvm["client_secret"],
-            "username": zvm["username"],
-            "password": zvm["password"],
+            "username":      zvm["username"],
+            "password":      zvm["password"],
+            "scope":         "openid",
         })
         with _tok_lock:
             _tokens[zid] = {"token": token, "expires": now + exp_in - 15}
