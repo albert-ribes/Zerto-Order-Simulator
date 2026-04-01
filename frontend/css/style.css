@@ -252,6 +252,17 @@ body {
   gap: 4px;
 }
 
+.dev-env-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #60a5fa;
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 20px;
+  padding: 1px 8px;
+  letter-spacing: 0.03em;
+}
+
 /* Tabs */
 .tab-content { display: none; }
 .tab-content.active { display: block; }

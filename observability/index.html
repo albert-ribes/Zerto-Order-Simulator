@@ -164,7 +164,10 @@
     <section id="tab-systems" class="tab-content">
       <div class="page-header-obs">
         <h1 class="page-title" data-i18n="nav_systems">Systems</h1>
-        <div class="digital-clock"></div>
+        <div class="page-header-right">
+          <div class="digital-clock"></div>
+          <div class="dev-env-badge hidden" id="devEnvBadge">🐳 Docker dev</div>
+        </div>
       </div>
 
       <!-- Infrastructure Status -->
@@ -249,7 +252,7 @@
             <span class="infra-dot" id="sysDotFrontend"></span>
             <div>
               <div class="sys-metric-name">Frontend</div>
-              <div class="sys-metric-sub">nginx · frontend.tec.bcn</div>
+              <div class="sys-metric-sub" id="sysFeSubtitle">nginx · frontend.tec.bcn</div>
             </div>
           </div>
           <div class="sys-metric-row">
@@ -280,7 +283,7 @@
             <span class="infra-dot" id="sysDotBackend"></span>
             <div>
               <div class="sys-metric-name">Backend</div>
-              <div class="sys-metric-sub">FastAPI · backend.tec.bcn</div>
+              <div class="sys-metric-sub" id="sysBeSubtitle">FastAPI · backend.tec.bcn</div>
             </div>
           </div>
           <div class="sys-metric-row">
@@ -311,7 +314,7 @@
             <span class="infra-dot" id="sysDotDb"></span>
             <div>
               <div class="sys-metric-name">Database</div>
-              <div class="sys-metric-sub">PostgreSQL · postgresql.tec.bcn</div>
+              <div class="sys-metric-sub" id="sysDbSubtitle">PostgreSQL · postgresql.tec.bcn</div>
             </div>
           </div>
           <div class="sys-metric-row">
@@ -371,7 +374,6 @@
         <h1 class="page-title" data-i18n="nav_zerto">Zerto</h1>
         <div class="page-header-right">
           <div class="digital-clock"></div>
-          <div class="zerto-meta" id="zertoMeta">–</div>
         </div>
       </div>
 

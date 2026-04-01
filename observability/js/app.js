@@ -786,7 +786,43 @@ async function checkZerto() {
 })();
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
+// ── Detecció d'entorn (dev vs prod) ───────────────────────────────────────────
+function _applyEnvContext() {
+  const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (!isDev) return;
+
+  // Badge "Docker dev" al header de Systems
+  const badge = $('devEnvBadge');
+  if (badge) badge.classList.remove('hidden');
+
+  // Subtítols dels cards de mètriques → noms de contenidors Docker
+  const subs = {
+    sysFeSubtitle: 'nginx · Docker (frontend)',
+    sysBeSubtitle: 'FastAPI · Docker (backend)',
+    sysDbSubtitle: 'PostgreSQL · Docker (db)',
+  };
+  Object.entries(subs).forEach(([id, txt]) => {
+    const el = $(id);
+    if (el) el.textContent = txt;
+  });
+
+  // Infra-name labels → afegim "(Docker)"
+  const infraMap = {
+    dotFrontend: 'Frontend · nginx (Docker)',
+    dotBackend:  'Backend · FastAPI (Docker)',
+    dotDatabase: 'Database · PostgreSQL (Docker)',
+  };
+  Object.entries(infraMap).forEach(([dotId, txt]) => {
+    const dot = $(dotId);
+    if (dot) {
+      const nameEl = dot.closest('.infra-item-head')?.querySelector('.infra-name');
+      if (nameEl) nameEl.textContent = txt;
+    }
+  });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+  _applyEnvContext();
   initFilter();
   refreshDashboard();
   startRefreshTimer();
