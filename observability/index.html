@@ -364,8 +364,6 @@
       </div>
     </section>
 
-  </main>
-
     <!-- ── Zerto ── -->
     <section id="tab-zerto" class="tab-content">
       <div class="page-header-obs">
@@ -374,7 +372,7 @@
       </div>
 
       <!-- ZVM Status -->
-      <div class="card" style="padding:12px 16px">
+      <div class="card zerto-zvm-card">
         <div class="zerto-zvm-row">
           <div class="zerto-zvm-badge">
             <span class="infra-dot" id="zvmDotTec"></span>
@@ -405,13 +403,13 @@
           <div class="zerto-stat-label" data-i18n="zerto_rpo">RPO Actual</div>
           <div class="zerto-stat-value" id="zertoRpoActual">–</div>
           <div class="zerto-stat-sub"><span data-i18n="zerto_configured">Configurat</span>: <span id="zertoRpoConfig">–</span></div>
-          <div class="sys-metric-bar-wrap" style="margin-top:8px"><div class="sys-metric-bar" id="zertoRpoBar"></div></div>
+          <div class="sys-metric-bar-wrap zerto-stat-bar"><div class="sys-metric-bar" id="zertoRpoBar"></div></div>
         </div>
         <div class="card zerto-stat-card">
           <div class="zerto-stat-label" data-i18n="zerto_history">Journal History</div>
           <div class="zerto-stat-value" id="zertoHistActual">–</div>
           <div class="zerto-stat-sub"><span data-i18n="zerto_configured">Configurat</span>: <span id="zertoHistConfig">–</span></div>
-          <div class="sys-metric-bar-wrap" style="margin-top:8px"><div class="sys-metric-bar" id="zertoHistBar"></div></div>
+          <div class="sys-metric-bar-wrap zerto-stat-bar"><div class="sys-metric-bar" id="zertoHistBar"></div></div>
         </div>
         <div class="card zerto-stat-card">
           <div class="zerto-stat-label" data-i18n="zerto_failsafe">Failsafe History</div>
@@ -422,7 +420,7 @@
 
       <!-- VMs + Alerts -->
       <div class="zerto-main-grid">
-        <div class="card" style="padding:16px">
+        <div class="card zerto-panel-card">
           <div class="zerto-section-title" data-i18n="zerto_vms">VMs Protegides</div>
           <table class="zerto-table">
             <thead><tr>
@@ -437,7 +435,7 @@
             </tbody>
           </table>
         </div>
-        <div class="card" style="padding:16px">
+        <div class="card zerto-panel-card">
           <div class="zerto-section-title" data-i18n="zerto_alerts">Alertes Actives</div>
           <div id="zertoAlertsList">
             <div class="zerto-empty" data-i18n="zerto_no_alerts">Cap alerta activa</div>
@@ -446,7 +444,7 @@
       </div>
 
       <!-- Events -->
-      <div class="card zerto-events-card" style="padding:16px">
+      <div class="card zerto-events-card zerto-panel-card">
         <div class="zerto-section-title" data-i18n="zerto_events">Events Recents</div>
         <table class="zerto-table">
           <thead><tr>
@@ -462,6 +460,8 @@
       </div>
 
     </section>
+
+  </main>
 
   <!-- Toast -->
   <div id="toast" class="toast"></div>
