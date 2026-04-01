@@ -1213,3 +1213,144 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
 @media (max-width: 900px) {
   .sys-metrics-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Zerto ───────────────────────────────────────────────────────────────────── */
+.zerto-zvm-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 4px 0 8px;
+}
+.zerto-zvm-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.zerto-zvm-err {
+  font-size: 0.72rem;
+  color: var(--danger);
+  font-weight: 400;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.zerto-meta {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.zerto-ransomware-banner {
+  background: var(--danger);
+  color: #fff;
+  padding: 13px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+  animation: zerto-pulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes zerto-pulse {
+  from { opacity: 0.8; }
+  to   { opacity: 1;   box-shadow: 0 0 18px var(--danger); }
+}
+.zerto-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--card-gap);
+}
+@media (max-width: 1000px) { .zerto-stats-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width:  600px) { .zerto-stats-grid { grid-template-columns: 1fr; } }
+.zerto-stat-card { padding: 14px 16px; }
+.zerto-stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.zerto-stat-value {
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.zerto-stat-sub {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+.zerto-status-ok   { color: var(--success); }
+.zerto-status-warn { color: var(--warning); }
+.zerto-status-err  { color: var(--danger);  }
+.zerto-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--card-gap);
+}
+@media (max-width: 900px) { .zerto-main-grid { grid-template-columns: 1fr; } }
+.zerto-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.zerto-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.zerto-table th {
+  text-align: left;
+  padding: 5px 8px;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.zerto-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.zerto-table tr:last-child td { border-bottom: none; }
+[data-theme="dark"]  .zerto-table tr:hover td { background: rgba(255,255,255,0.04); }
+[data-theme="light"] .zerto-table tr:hover td { background: rgba(0,0,0,0.04); }
+.zerto-alert-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+}
+.zerto-alert-item:last-child { border-bottom: none; }
+.zerto-alert-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.zerto-alert-badge--error   { background: rgba(220,38,38,.15);  color: var(--danger);  }
+.zerto-alert-badge--warning { background: rgba(234,179,8,.15);  color: var(--warning); }
+.zerto-alert-badge--info    { background: rgba(14,165,233,.15); color: var(--info, #0ea5e9); }
+.zerto-alert-body { flex: 1; line-height: 1.4; }
+.zerto-alert-time { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+.zerto-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 18px 0;
+  font-size: 0.82rem;
+}
+.zerto-events-card { overflow-x: auto; }
+.zerto-event-ok  { color: var(--success); }
+.zerto-event-err { color: var(--danger);  }

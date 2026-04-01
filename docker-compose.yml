@@ -19,6 +19,9 @@ services:
   sys-probe-db:
     build: ./observability/sys-probe
 
+  zerto-probe:
+    build: ./observability/zerto-probe
+
   observability:
     build:
       context: .

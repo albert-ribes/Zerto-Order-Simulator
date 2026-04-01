@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Observability · Order Simulator</title>
+  <title>Observability Console</title>
   <link rel="stylesheet" href="/css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
@@ -23,6 +23,9 @@
       </button>
       <button class="nav-item" data-tab="systems" title="Systems">
         <span class="nav-icon">🖥️</span><span data-i18n="nav_systems">Systems</span>
+      </button>
+      <button class="nav-item" data-tab="zerto" title="Zerto">
+        <span class="nav-icon">🛡️</span><span data-i18n="nav_zerto">Zerto</span>
       </button>
     </nav>
 
@@ -362,6 +365,103 @@
     </section>
 
   </main>
+
+    <!-- ── Zerto ── -->
+    <section id="tab-zerto" class="tab-content">
+      <div class="page-header-obs">
+        <h1 class="page-title" data-i18n="nav_zerto">Zerto</h1>
+        <div class="zerto-meta" id="zertoMeta">–</div>
+      </div>
+
+      <!-- ZVM Status -->
+      <div class="card" style="padding:12px 16px">
+        <div class="zerto-zvm-row">
+          <div class="zerto-zvm-badge">
+            <span class="infra-dot" id="zvmDotTec"></span>
+            <span>ZVM TEC</span>
+            <span class="zerto-zvm-err" id="zvmErrTec"></span>
+          </div>
+          <div class="zerto-zvm-badge">
+            <span class="infra-dot" id="zvmDotRecovery"></span>
+            <span>ZVM Recovery</span>
+            <span class="zerto-zvm-err" id="zvmErrRecovery"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ransomware Banner -->
+      <div class="zerto-ransomware-banner hidden" id="zertoRansomwareBanner" data-i18n="zerto_ransomware_warning">
+        ⚠️ POSSIBLE ATAC RANSOMWARE DETECTAT — REVISA ELS EVENTS I ALERTES IMMEDIATAMENT
+      </div>
+
+      <!-- Stats -->
+      <div class="zerto-stats-grid">
+        <div class="card zerto-stat-card">
+          <div class="zerto-stat-label" data-i18n="zerto_vpg_status">Estat VPG</div>
+          <div class="zerto-stat-value" id="zertoVpgStatus">–</div>
+          <div class="zerto-stat-sub" id="zertoVpgSub"></div>
+        </div>
+        <div class="card zerto-stat-card">
+          <div class="zerto-stat-label" data-i18n="zerto_rpo">RPO Actual</div>
+          <div class="zerto-stat-value" id="zertoRpoActual">–</div>
+          <div class="zerto-stat-sub"><span data-i18n="zerto_configured">Configurat</span>: <span id="zertoRpoConfig">–</span></div>
+          <div class="sys-metric-bar-wrap" style="margin-top:8px"><div class="sys-metric-bar" id="zertoRpoBar"></div></div>
+        </div>
+        <div class="card zerto-stat-card">
+          <div class="zerto-stat-label" data-i18n="zerto_history">Journal History</div>
+          <div class="zerto-stat-value" id="zertoHistActual">–</div>
+          <div class="zerto-stat-sub"><span data-i18n="zerto_configured">Configurat</span>: <span id="zertoHistConfig">–</span></div>
+          <div class="sys-metric-bar-wrap" style="margin-top:8px"><div class="sys-metric-bar" id="zertoHistBar"></div></div>
+        </div>
+        <div class="card zerto-stat-card">
+          <div class="zerto-stat-label" data-i18n="zerto_failsafe">Failsafe History</div>
+          <div class="zerto-stat-value" id="zertoFailsafeActual">–</div>
+          <div class="zerto-stat-sub"><span data-i18n="zerto_configured">Configurat</span>: <span id="zertoFailsafeConfig">–</span></div>
+        </div>
+      </div>
+
+      <!-- VMs + Alerts -->
+      <div class="zerto-main-grid">
+        <div class="card" style="padding:16px">
+          <div class="zerto-section-title" data-i18n="zerto_vms">VMs Protegides</div>
+          <table class="zerto-table">
+            <thead><tr>
+              <th data-i18n="zerto_vm_name">VM</th>
+              <th data-i18n="zerto_vm_status">Estat</th>
+              <th data-i18n="zerto_rpo">RPO</th>
+              <th>IOPs</th>
+              <th data-i18n="zerto_journal">Journal</th>
+            </tr></thead>
+            <tbody id="zertoVmsTbody">
+              <tr><td colspan="5" class="zerto-empty">–</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card" style="padding:16px">
+          <div class="zerto-section-title" data-i18n="zerto_alerts">Alertes Actives</div>
+          <div id="zertoAlertsList">
+            <div class="zerto-empty" data-i18n="zerto_no_alerts">Cap alerta activa</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events -->
+      <div class="card zerto-events-card" style="padding:16px">
+        <div class="zerto-section-title" data-i18n="zerto_events">Events Recents</div>
+        <table class="zerto-table">
+          <thead><tr>
+            <th data-i18n="zerto_event_time">Hora</th>
+            <th data-i18n="zerto_event_site">Lloc</th>
+            <th data-i18n="zerto_event_desc">Descripció</th>
+            <th data-i18n="zerto_event_user">Usuari</th>
+          </tr></thead>
+          <tbody id="zertoEventsTbody">
+            <tr><td colspan="4" class="zerto-empty" data-i18n="zerto_no_events">Cap event recent</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
 
   <!-- Toast -->
   <div id="toast" class="toast"></div>
