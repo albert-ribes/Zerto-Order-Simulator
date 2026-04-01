@@ -773,14 +773,13 @@ async function checkZerto() {
 
 // ── Digital clock ─────────────────────────────────────────────────────────────
 (function () {
-  const el = $('digitalClock');
-  if (!el) return;
   function _tick() {
     const now = new Date();
     const p   = n => String(n).padStart(2, '0');
     const hms = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
     const dmy = `${p(now.getDate())}/${p(now.getMonth() + 1)}/${String(now.getFullYear()).slice(-2)}`;
-    el.textContent = `${hms}  ${dmy}`;
+    const txt = `${hms}  ${dmy}`;
+    document.querySelectorAll('.digital-clock').forEach(el => { el.textContent = txt; });
   }
   _tick();
   setInterval(_tick, 1000);

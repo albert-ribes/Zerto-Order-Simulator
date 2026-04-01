@@ -245,6 +245,13 @@ body {
 }
 .page-header .page-title { margin-bottom: 0; }
 
+.page-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
 /* Tabs */
 .tab-content { display: none; }
 .tab-content.active { display: block; }
