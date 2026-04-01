@@ -15,7 +15,10 @@ from datetime import datetime, timedelta
 
 import json
 import os
-import psutil
+try:
+    import psutil as _psutil
+except ImportError:
+    _psutil = None
 
 import models
 import schemas
@@ -828,11 +831,13 @@ def stats_products(
 
 @app.get("/system/metrics")
 def system_metrics():
+    if _psutil is None:
+        raise HTTPException(status_code=503, detail="psutil not available")
     import time as _time
-    cpu  = psutil.cpu_percent(interval=0.2)
-    mem  = psutil.virtual_memory()
-    disk = psutil.disk_usage('/')
-    uptime_s = int(_time.time() - psutil.boot_time())
+    cpu  = _psutil.cpu_percent(interval=0.2)
+    mem  = _psutil.virtual_memory()
+    disk = _psutil.disk_usage('/')
+    uptime_s = int(_time.time() - _psutil.boot_time())
     return {
         "cpu_percent":   round(cpu, 1),
         "mem_total_mb":  round(mem.total  / 1024**2),
