@@ -7,20 +7,36 @@ services:
       - ./frontend:/usr/share/nginx/html:ro   # live reload: canvis immediats sense rebuild
     depends_on:
       - backend
+    networks:
+      devnet:
+        ipv4_address: 172.30.0.10
 
   db-probe:
     build: ./observability/db-probe
     environment:
       DATABASE_URL: postgresql://zerto:zerto@db:5432/zerto
+    networks:
+      devnet:
+        ipv4_address: 172.30.0.11
 
   sys-probe-frontend:
     build: ./observability/sys-probe
+    networks:
+      devnet:
+        ipv4_address: 172.30.0.12
 
   sys-probe-db:
     build: ./observability/sys-probe
+    networks:
+      devnet:
+        ipv4_address: 172.30.0.13
 
   zerto-probe:
     build: ./observability/zerto-probe
+    networks:
+      devnet:
+        ipv4_address: 172.30.0.14
+      externalnet: {}  # necessita externalnet per arribar als ZVMs (10.20.0.x)
 
   observability:
     build:
@@ -36,6 +52,18 @@ services:
       - ./frontend/js/charts.js:/usr/share/nginx/html/js/charts.js:ro
       - ./observability/index.html:/usr/share/nginx/html/index.html:ro
       - ./observability/js/app.js:/usr/share/nginx/html/js/app.js:ro
+    networks:
+      devnet:
+        ipv4_address: 172.30.0.20
+    # IPs fixes als extra_hosts: quan un contenidor és aturat, nginx rep "connection refused"
+    # a la IP Docker en lloc de resolució DNS al host (que apuntaria a producció)
+    extra_hosts:
+      - "backend:172.30.0.30"
+      - "frontend:172.30.0.10"
+      - "db-probe:172.30.0.11"
+      - "sys-probe-frontend:172.30.0.12"
+      - "sys-probe-db:172.30.0.13"
+      - "zerto-probe:172.30.0.14"
 
   backend:
     build: ./backend
@@ -49,6 +77,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      devnet:
+        ipv4_address: 172.30.0.30
 
   db:
     image: postgres:16
@@ -65,6 +96,16 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      devnet:
+        ipv4_address: 172.30.0.40
+
+networks:
+  devnet:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24   # subxarxa fixa: les IPs dels contenidors no canvien mai
+  externalnet: {}    # xarxa amb sortida a internet, només per a zerto-probe (ZVMs 10.20.0.x)
 
 volumes:
   pgdata:
