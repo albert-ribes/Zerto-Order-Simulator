@@ -45,6 +45,8 @@ function onAuthSuccess() {
 
 // Login form
 document.addEventListener('DOMContentLoaded', () => {
+  _applyEnvContext();
+
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
@@ -63,8 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
         onAuthSuccess();
         initApp();
       } catch (err) {
-        errEl.textContent = err.message === '401' || err.message.includes('Credencial') || err.message.includes('Login')
-          ? t('login_error') : err.message;
+        if      (err.message === 'network_error')     errEl.textContent = t('login_error_network');
+        else if (err.message === 'backend_error')     errEl.textContent = t('login_error_backend');
+        else                                          errEl.textContent = t('login_error');
       } finally {
         btn.disabled = false;
         btn.textContent = t('login_btn');
@@ -98,6 +101,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
+
+// ── Dev environment context ───────────────────────────────────────────────────
+function _applyEnvContext() {
+  const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (!isDev) return;
+  const badge = document.getElementById('devEnvBadge');
+  if (badge) badge.classList.remove('hidden');
+  document.title = 'Order Simulator App · dev';
+}
 const fmt     = n => Number(n).toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtDate = s => new Date(s).toLocaleString('ca-ES', { dateStyle: 'short', timeStyle: 'medium' });
 

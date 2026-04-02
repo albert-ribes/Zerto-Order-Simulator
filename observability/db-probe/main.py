@@ -4,7 +4,7 @@ Exposa GET /db/ping i GET /db/metrics sense autenticació.
 """
 import os
 import time
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import psycopg2
 
@@ -118,6 +118,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", 5000), Handler)
+    server = ThreadingHTTPServer(("0.0.0.0", 5000), Handler)
     print("db-probe listening on :5000")
     server.serve_forever()

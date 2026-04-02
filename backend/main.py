@@ -67,13 +67,20 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup():
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
+    import logging as _logging
     try:
-        auth.ensure_default_admin(db)
-    finally:
-        db.close()
-    _seed()
+        Base.metadata.create_all(bind=engine)
+        db = SessionLocal()
+        try:
+            auth.ensure_default_admin(db)
+        finally:
+            db.close()
+        _seed()
+    except Exception as _e:
+        _logging.warning(
+            "startup: DB unavailable (%s) — skipping schema/seed. "
+            "Tables must already exist from a previous run.", _e
+        )
     # Restore generator state from previous run
     saved = _load_gen_state()
     if saved and saved.get("running"):
@@ -523,7 +530,8 @@ def stop_generator():
 
 
 @app.get("/generator/status", response_model=schemas.GeneratorStatus)
-def generator_status():
+async def generator_status():
+    """Async so it always responds even when the sync thread pool is exhausted."""
     return {"running": _generator["running"], "interval": _generator["interval"]}
 
 
@@ -830,11 +838,12 @@ def stats_products(
 
 
 @app.get("/system/metrics")
-def system_metrics():
+async def system_metrics():
     if _psutil is None:
         raise HTTPException(status_code=503, detail="psutil not available")
     import time as _time
-    cpu  = _psutil.cpu_percent(interval=0.2)
+    # interval=None returns last cached value — never blocks the event loop
+    cpu  = _psutil.cpu_percent(interval=None)
     mem  = _psutil.virtual_memory()
     disk = _psutil.disk_usage('/')
     uptime_s = int(_time.time() - _psutil.boot_time())
@@ -851,8 +860,9 @@ def system_metrics():
 
 
 @app.get("/ping")
-def ping():
-    """Backend-exclusive health check — no DB involved."""
+async def ping():
+    """Backend-exclusive health check — no DB involved. Async so it always
+    responds even when the sync thread pool is exhausted by hanging DB queries."""
     return {"pong": True}
 
 

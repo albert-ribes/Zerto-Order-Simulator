@@ -16,6 +16,7 @@
       <span class="logo-text">Observability</span>
       <button class="sidebar-toggle" id="btnSidebarToggle" title="Compactar">‹</button>
     </div>
+    <div class="dev-env-badge hidden" id="devEnvBadge">🐳 dev</div>
 
     <nav class="sidebar-nav">
       <button class="nav-item active" data-tab="orders" title="Orders">
@@ -37,6 +38,13 @@
           <button class="lang-btn" data-lang="en">EN</button>
         </div>
         <button class="theme-toggle" id="btnTheme" title="Toggle theme">🌙</button>
+      </div>
+      <div class="sidebar-refresh">
+        <button class="btn-refresh" id="btnRefreshStatus" title="Actualitzar estat dels serveis">
+          <span class="btn-refresh-icon">↺</span>
+          <span class="btn-refresh-label">Actualitzar</span>
+        </button>
+        <span class="sidebar-refresh-ts" id="refreshTs"></span>
       </div>
     </div>
   </aside>
@@ -164,10 +172,7 @@
     <section id="tab-systems" class="tab-content">
       <div class="page-header-obs">
         <h1 class="page-title" data-i18n="nav_systems">Systems</h1>
-        <div class="page-header-right">
-          <div class="digital-clock"></div>
-          <div class="dev-env-badge hidden" id="devEnvBadge">🐳 Docker dev</div>
-        </div>
+        <div class="digital-clock"></div>
       </div>
 
       <!-- Infrastructure Status -->

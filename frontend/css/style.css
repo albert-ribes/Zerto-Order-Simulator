@@ -84,6 +84,7 @@ body {
 .sidebar.collapsed .generator-card { display: none; }
 .sidebar.collapsed .sidebar-logo { justify-content: center; padding: 20px 0; gap: 0; }
 .sidebar.collapsed .sidebar-toggle { margin-left: 0; }
+.sidebar.collapsed .dev-env-badge  { display: none !important; }
 .sidebar.collapsed .sidebar-nav    { padding: 16px 8px; }
 .sidebar.collapsed .nav-item       { justify-content: center; padding: 10px; gap: 0; }
 .sidebar.collapsed .nav-icon       { font-size: 1.3rem; }
@@ -144,6 +145,50 @@ body {
 
 /* ── Sidebar footer ────────────────────────────────────────────────────────── */
 .sidebar-footer  { padding: 12px 16px 16px; border-top: 1px solid var(--border); }
+
+/* Refresh button */
+.sidebar-refresh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.btn-refresh {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.btn-refresh:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn-refresh:disabled { opacity: 0.5; cursor: default; }
+.btn-refresh-icon { font-size: 0.9rem; line-height: 1; }
+.btn-refresh-icon.spinning {
+  display: inline-block;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.sidebar-refresh-ts {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sidebar.collapsed .btn-refresh-label { display: none; }
+.sidebar.collapsed .sidebar-refresh-ts { display: none; }
+.sidebar.collapsed .btn-refresh { padding: 6px; justify-content: center; }
 
 /* Language + Theme row */
 .controls-row {
@@ -261,6 +306,14 @@ body {
   border-radius: 20px;
   padding: 1px 8px;
   letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* Badge as a sidebar column item: centre it under the logo */
+.sidebar > .dev-env-badge {
+  align-self: center;
+  margin: 6px 0 0;
+  flex-shrink: 0;
 }
 
 /* Tabs */

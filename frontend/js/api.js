@@ -46,13 +46,19 @@ async function reqForm(path, file) {
 // ── API ───────────────────────────────────────────────────────────────────
 const api = {
   // Auth
-  login: (username, password) => {
+  login: async (username, password) => {
     const body = new URLSearchParams({ username, password });
-    return fetch(`${BASE}/auth/login`, { method: 'POST', body }).then(async r => {
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(d.detail || 'Login failed');
-      return d;
-    });
+    let r;
+    try {
+      r = await fetch(`${BASE}/auth/login`, { method: 'POST', body });
+    } catch {
+      // fetch itself failed: network unreachable, nginx down, DNS error, etc.
+      throw new Error('network_error');
+    }
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 401) throw new Error('credentials_error');
+    if (!r.ok)            throw new Error('backend_error');
+    return d;
   },
   me:           ()        => req('GET',    '/auth/me'),
   getUsers:     ()        => req('GET',    '/auth/users'),

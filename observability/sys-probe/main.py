@@ -3,7 +3,7 @@ sys-probe: microservei mínim que exposa mètriques del sistema operatiu.
 Exposa GET /sys/metrics sense autenticació.
 """
 import time
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import psutil
 
@@ -50,6 +50,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", 5001), Handler)
+    server = ThreadingHTTPServer(("0.0.0.0", 5001), Handler)
     print("sys-probe listening on :5001")
     server.serve_forever()

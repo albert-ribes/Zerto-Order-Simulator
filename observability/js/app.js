@@ -390,14 +390,21 @@ async function checkInfraStatus() {
 
     (async () => {
       let feDot = 'ok';
+      // Helper: 5xx from nginx → container unreachable → 'err'; other non-ok → 'warn'
+      const _httpState = r => r.ok ? 'ok' : r.status >= 500 ? 'err' : 'warn';
+      // Escalate dot: 'err' > 'warn' > 'ok', never downgrade
+      const _escalate = (current, next) =>
+        next === 'err' || (next === 'warn' && current === 'ok') ? next : current;
+
       await Promise.all([
         (async () => {
           const t0 = performance.now();
           try {
             const r = await _fetchT('/check/frontend/', { method: 'HEAD' });
             const ms = Math.round(performance.now()-t0);
-            _setBadge('tFePing', r.ok ? 'ok' : 'warn', `HTTP ${r.status} · ${ms}ms`);
-            if (!r.ok) feDot = 'warn';
+            const s = _httpState(r);
+            _setBadge('tFePing', s, `HTTP ${r.status} · ${ms}ms`);
+            feDot = _escalate(feDot, s);
           } catch {
             _setBadge('tFePing', 'err', t('status_error'));
             feDot = 'err';
@@ -407,8 +414,9 @@ async function checkInfraStatus() {
           const t0 = performance.now();
           try {
             const r = await _fetchT('/check/frontend/css/style.css', { method: 'HEAD' });
-            _setBadge('tFe0', r.ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now()-t0)}ms`);
-            if (!r.ok && feDot === 'ok') feDot = 'warn';
+            const s = _httpState(r);
+            _setBadge('tFe0', s, `HTTP ${r.status} · ${Math.round(performance.now()-t0)}ms`);
+            feDot = _escalate(feDot, s);
           } catch {
             _setBadge('tFe0', 'err', t('status_error'));
             feDot = 'err';
@@ -418,9 +426,10 @@ async function checkInfraStatus() {
           const t0 = performance.now();
           try {
             const r = await _fetchT('/check/frontend/');
-            const ok = r.ok && (r.headers.get('content-type') || '').includes('html');
-            _setBadge('tFe1', ok ? 'ok' : 'warn', `HTTP ${r.status} · ${Math.round(performance.now()-t0)}ms`);
-            if (!ok && feDot === 'ok') feDot = 'warn';
+            const isHtml = (r.headers.get('content-type') || '').includes('html');
+            const s = r.ok && isHtml ? 'ok' : _httpState(r);
+            _setBadge('tFe1', s, `HTTP ${r.status} · ${Math.round(performance.now()-t0)}ms`);
+            feDot = _escalate(feDot, s);
           } catch {
             _setBadge('tFe1', 'err', t('status_error'));
             feDot = 'err';
@@ -439,18 +448,25 @@ async function checkInfraStatus() {
             const r = await _fetchT('/api/ping');
             const ms = Math.round(performance.now()-t0);
             const data = await r.json().catch(() => null);
-            _setBadge('tBePing', r.ok ? 'ok' : 'warn', `HTTP ${r.status} · ${ms}ms`);
-            if (!r.ok) beDot = 'warn';
+            const s = r.ok ? 'ok' : r.status >= 500 ? 'err' : 'warn';
+            _setBadge('tBePing', s, `HTTP ${r.status} · ${ms}ms`);
+            if (s !== 'ok') beDot = s === 'err' ? 'err' : (beDot === 'ok' ? 'warn' : beDot);
             return data;
           } catch { _setBadge('tBePing', 'err', t('status_error')); beDot = 'err'; return null; }
         })(),
         (async () => {
           const t0 = performance.now();
           try {
-            await _fetchT('/api/generator/status');
-            _setBadge('tBe1', 'ok', `HTTP 200 · ${Math.round(performance.now()-t0)}ms`);
-            return true;
-          } catch { _setBadge('tBe1', 'warn', t('status_error')); return false; }
+            const r = await _fetchT('/api/generator/status');
+            const ms = Math.round(performance.now()-t0);
+            if (r.ok) {
+              _setBadge('tBe1', 'ok', `HTTP ${r.status} · ${ms}ms`);
+              return true;
+            } else {
+              _setBadge('tBe1', 'err', `HTTP ${r.status} · ${ms}ms`);
+              return false;
+            }
+          } catch { _setBadge('tBe1', 'err', t('status_error')); return false; }
         })(),
       ]);
       if (pingResult !== null) {
@@ -469,7 +485,7 @@ async function checkInfraStatus() {
       const t0 = performance.now();
       let dbData = null;
       try {
-        const r = await _fetchT('/check/db/db/ping');
+        const r = await _fetchT('/check/db/db/ping', {}, 2500);
         const ms = Math.round(performance.now()-t0);
         dbData = await r.json().catch(() => null);
         _setBadge('tDbPing', r.ok ? 'ok' : 'err', `HTTP ${r.status} · ${ms}ms`);
@@ -516,9 +532,24 @@ async function checkSystemMetrics() {
   await Promise.all([
 
     // Frontend sys-probe metrics
+    // Guard: also ping the actual nginx container. sys-probe-frontend is a separate
+    // Docker container that keeps running even when the frontend nginx is stopped,
+    // so we must verify nginx is reachable before trusting the metrics.
     (async () => {
       try {
-        const r = await _fetchT('/check/frontend-sys/sys/metrics', {}, 5000);
+        const [pingR, r] = await Promise.all([
+          _fetchT('/check/frontend/', { method: 'HEAD' }, 2500),
+          _fetchT('/check/frontend-sys/sys/metrics', {}, 5000),
+        ]);
+
+        // Frontend nginx is down → show error regardless of sys-probe result
+        if (!pingR.ok || pingR.status >= 500) {
+          _setDot('sysDotFrontend', 'err');
+          ['sysFeCpu','sysFeMem','sysFeDisk','sysFeUptime'].forEach(id => { if ($(id)) $(id).textContent = '–'; });
+          ['sysFeBarCpu','sysFeBarMem','sysFeBarDisk'].forEach(id => _setBar(id, 0));
+          return;
+        }
+
         if (r.ok) {
           const d = await r.json();
           if (d.status === 'ok') {
@@ -563,12 +594,33 @@ async function checkSystemMetrics() {
       }
     })(),
 
-    // Database sys-probe metrics
+    // Database sys-probe + PostgreSQL metrics
+    // Guard: ping db-probe first. sys-probe-db is a separate Docker container that
+    // keeps running even when the db container is stopped, so we must verify
+    // PostgreSQL is reachable before trusting any metrics.
     (async () => {
+      const _clearDb = () => {
+        _setDot('sysDotDb', 'err');
+        ['sysDbCpu','sysDbMem','sysDbDisk','sysDbUptime',
+         'sysDbConn','sysDbActive','sysDbSize','sysDbCache','sysDbTx']
+          .forEach(id => { if ($(id)) $(id).textContent = '–'; });
+        ['sysDbBarCpu','sysDbBarMem','sysDbBarDisk','sysDbBarConn','sysDbBarCache']
+          .forEach(id => _setBar(id, 0));
+      };
+
       try {
-        const r = await _fetchT('/check/db-sys/sys/metrics', {}, 5000);
-        if (r.ok) {
-          const d = await r.json();
+        const [pingR, sysR, metricsR] = await Promise.all([
+          _fetchT('/check/db/db/ping', {}, 2500),
+          _fetchT('/check/db-sys/sys/metrics', {}, 5000),
+          _fetchT('/check/db/db/metrics', {}, 5000),
+        ]);
+
+        // DB container is down → clear everything
+        if (!pingR.ok || pingR.status >= 500) { _clearDb(); return; }
+
+        // Sys-probe metrics (CPU / RAM / Disk / Uptime)
+        if (sysR.ok) {
+          const d = await sysR.json();
           if (d.status === 'ok') {
             _setBar('sysDbBarCpu', d.cpu_percent);
             if ($('sysDbCpu'))    $('sysDbCpu').textContent    = d.cpu_percent + '%';
@@ -579,15 +631,10 @@ async function checkSystemMetrics() {
             if ($('sysDbUptime')) $('sysDbUptime').textContent = _fmtUptime(d.uptime_s);
           }
         }
-      } catch { /* sys-probe errors handled silently; dot updated by db/metrics below */ }
-    })(),
 
-    // Database probe metrics (PostgreSQL stats)
-    (async () => {
-      try {
-        const r = await _fetchT('/check/db/db/metrics', {}, 5000);
-        if (r.ok) {
-          const d = await r.json();
+        // PostgreSQL metrics (connections / size / cache / txns)
+        if (metricsR.ok) {
+          const d = await metricsR.json();
           if (d.status === 'ok') {
             _setBar('sysDbBarConn', d.connections_percent);
             if ($('sysDbConn'))   $('sysDbConn').textContent   = `${d.total_connections} / ${d.max_connections} (${d.connections_percent}%)`;
@@ -600,15 +647,10 @@ async function checkSystemMetrics() {
             if ($('sysDbTx') && d.transactions !== null)
               $('sysDbTx').textContent = d.transactions.toLocaleString();
             _setDot('sysDotDb', d.connections_percent > 80 ? 'warn' : 'ok');
-          } else {
-            _setDot('sysDotDb', 'err');
-          }
-        } else {
-          _setDot('sysDotDb', 'err');
-        }
-      } catch {
-        _setDot('sysDotDb', 'err');
-      }
+          } else { _setDot('sysDotDb', 'err'); }
+        } else { _setDot('sysDotDb', 'err'); }
+
+      } catch { _clearDb(); }
     })(),
 
   ]);
@@ -791,9 +833,11 @@ function _applyEnvContext() {
   const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   if (!isDev) return;
 
-  // Badge "Docker dev" al header de Systems
+  // Badge "🐳 dev" al sidebar (visible a totes les pestanyes)
   const badge = $('devEnvBadge');
   if (badge) badge.classList.remove('hidden');
+
+  document.title = 'Observability Console · dev';
 
   // Subtítols dels cards de mètriques → noms de contenidors Docker
   const subs = {
@@ -821,18 +865,53 @@ function _applyEnvContext() {
   });
 }
 
+// ── Unified status refresh ────────────────────────────────────────────────────
+let _refreshing = false;
+
+// Infra + sys metrics only (fast: ~2-3s max). Zerto runs on its own slower cycle
+// so it never blocks this refresh loop.
+async function refreshAllStatus() {
+  if (_refreshing) return;
+  _refreshing = true;
+
+  const btn = $('btnRefreshStatus');
+  const icon = btn?.querySelector('.btn-refresh-icon');
+  if (btn) btn.disabled = true;
+  if (icon) icon.classList.add('spinning');
+
+  try {
+    await Promise.all([checkInfraStatus(), checkSystemMetrics()]);
+  } finally {
+    _refreshing = false;
+    if (btn) btn.disabled = false;
+    if (icon) icon.classList.remove('spinning');
+    const ts = $('refreshTs');
+    if (ts) {
+      const n = new Date();
+      const p = x => String(x).padStart(2, '0');
+      ts.textContent = `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+    }
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   _applyEnvContext();
   initFilter();
   refreshDashboard();
   startRefreshTimer();
+
   const INFRA_INTERVAL_MS = 5000;
   const badge = $('infraRefreshBadge');
   if (badge) badge.textContent = `↻ ${INFRA_INTERVAL_MS / 1000}s`;
-  checkInfraStatus();
-  checkSystemMetrics();
+
+  // Manual button: also trigger Zerto (non-blocking — runs independently)
+  $('btnRefreshStatus').addEventListener('click', () => {
+    refreshAllStatus();
+    checkZerto();
+  });
+
+  refreshAllStatus();
+  setInterval(refreshAllStatus, INFRA_INTERVAL_MS);
+  setInterval(checkZerto, 30000);
   checkZerto();
-  setInterval(checkInfraStatus,   INFRA_INTERVAL_MS);
-  setInterval(checkSystemMetrics, INFRA_INTERVAL_MS);
-  setInterval(checkZerto,         30000);
 });
