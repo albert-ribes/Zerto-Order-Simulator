@@ -28,6 +28,9 @@
       <button class="nav-item" data-tab="zerto" title="Zerto">
         <span class="nav-icon">🛡️</span><span data-i18n="nav_zerto">Zerto</span>
       </button>
+      <button class="nav-item" data-tab="about" title="Sobre">
+        <span class="nav-icon">ℹ️</span><span data-i18n="nav_about">Sobre</span>
+      </button>
     </nav>
 
     <div class="sidebar-footer">
@@ -472,14 +475,151 @@
 
     </section>
 
+    <!-- ── About ── -->
+    <section id="tab-about" class="tab-content">
+      <h1 class="page-title" data-i18n="obs_about_title">Sobre la Consola d'Observabilitat</h1>
+
+      <div class="about-grid">
+
+        <!-- Description -->
+        <div class="card about-card">
+          <h2 class="about-section-title" data-i18n="obs_about_desc_title">Què és la Consola d'Observabilitat?</h2>
+          <p class="about-text" data-i18n="obs_about_desc">La Consola d'Observabilitat és un panell de monitoratge en temps real...</p>
+          <div class="about-location">
+            <span class="about-location-icon">📍</span>
+            <span data-i18n="about_location">Desplegat al <strong>Tech Experience Center (TEC)</strong> de les oficines de <strong>HPE Barcelona</strong>. Totes les màquines virtuals formen part del domini intern <code>tec.bcn</code>.</span>
+          </div>
+        </div>
+
+        <!-- How data is collected -->
+        <div class="card about-card">
+          <h2 class="about-section-title" data-i18n="obs_about_how_title">Com s'obté la informació</h2>
+          <div class="obs-sources">
+            <div class="obs-source-row">
+              <div class="obs-source-tab">
+                <span class="nav-icon">📊</span>
+                <strong data-i18n="obs_about_orders_title">Pestanya Orders</strong>
+              </div>
+              <p class="obs-source-desc" data-i18n="obs_about_orders_desc">Fa polling cada 5 s als endpoints <code>/api/stats/*</code> del backend...</p>
+            </div>
+            <div class="obs-source-row">
+              <div class="obs-source-tab">
+                <span class="nav-icon">🖥️</span>
+                <strong data-i18n="obs_about_systems_title">Pestanya Systems</strong>
+              </div>
+              <p class="obs-source-desc" data-i18n="obs_about_systems_desc">Comprova l'estat de cada servei a través de proxies nginx dedicats...</p>
+            </div>
+            <div class="obs-source-row">
+              <div class="obs-source-tab">
+                <span class="nav-icon">🛡️</span>
+                <strong data-i18n="obs_about_zerto_title">Pestanya Zerto</strong>
+              </div>
+              <p class="obs-source-desc" data-i18n="obs_about_zerto_desc">Consulta el servei zerto-probe (port 5002)...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Architecture diagram -->
+        <div class="card about-card about-card-wide">
+          <h2 class="about-section-title" data-i18n="obs_about_arch_title">Arquitectura de la Consola</h2>
+          <p class="about-arch-domain" data-i18n="obs_about_arch_domain">VM obsdemo.tec.bcn · HPE Tech Experience Center (TEC) · Barcelona</p>
+          <div class="arch-diagram">
+            <div class="arch-vms">
+              <div class="arch-vm-col">
+                <div class="arch-browser">
+                  <div class="arch-icon">🌐</div>
+                  <div class="arch-name">Browser</div>
+                  <div class="arch-sub">HTTP :80</div>
+                </div>
+                <div class="arch-arrow-v">↕</div>
+                <div class="arch-vm arch-vm--frontend">
+                  <div class="arch-vm-label">VM obsdemo · obsdemo.tec.bcn</div>
+                  <div class="arch-service arch-frontend">
+                    <div class="arch-service-icon">📡</div>
+                    <div class="arch-service-name">Observability</div>
+                    <div class="arch-service-tech">nginx</div>
+                    <div class="arch-service-sub">HTML · CSS · JS</div>
+                    <div class="arch-port">:80</div>
+                  </div>
+                </div>
+              </div>
+              <div class="arch-connector arch-connector--multi">
+                <div class="arch-arrow-line"></div>
+                <div class="arch-arrow-label">/api/ · /check/*</div>
+              </div>
+              <div class="arch-vm-col">
+                <div class="arch-vm arch-vm--backend">
+                  <div class="arch-vm-label">VM Backend · backend.tec.bcn</div>
+                  <div class="arch-service arch-backend">
+                    <div class="arch-service-icon">⚙️</div>
+                    <div class="arch-service-name">Backend API</div>
+                    <div class="arch-service-tech">FastAPI</div>
+                    <div class="arch-service-sub">/api/stats/* · /api/ping</div>
+                    <div class="arch-port">:8000</div>
+                  </div>
+                </div>
+                <div class="arch-vm arch-vm--db" style="margin-top:8px">
+                  <div class="arch-vm-label">VM Database · postgresql.tec.bcn</div>
+                  <div class="arch-service arch-db">
+                    <div class="arch-service-icon">🗄</div>
+                    <div class="arch-service-name">DB Probe + Sys Probe</div>
+                    <div class="arch-service-tech">PostgreSQL 16</div>
+                    <div class="arch-service-sub">db-probe :5000 · sys-probe :5001</div>
+                    <div class="arch-port">:5432</div>
+                  </div>
+                </div>
+                <div class="arch-vm arch-vm--frontend" style="margin-top:8px">
+                  <div class="arch-vm-label">VM Frontend · frontend.tec.bcn</div>
+                  <div class="arch-service arch-frontend">
+                    <div class="arch-service-icon">🖥</div>
+                    <div class="arch-service-name">Frontend + Sys Probe</div>
+                    <div class="arch-service-tech">nginx</div>
+                    <div class="arch-service-sub">nginx :80 · sys-probe :5001</div>
+                    <div class="arch-port">:80</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Probes table -->
+          <h3 class="about-section-subtitle" data-i18n="obs_about_probes_title">Serveis de la VM obsdemo</h3>
+          <div class="obs-probes-table">
+            <div class="obs-probe-row obs-probe-header">
+              <span>Servei</span><span>Port</span><span>Endpoint clau</span><span>Usada per</span>
+            </div>
+            <div class="obs-probe-row">
+              <span><strong>db-probe</strong></span>
+              <span><code>:5000</code></span>
+              <span><code>/db/ping</code> · <code>/db/metrics</code></span>
+              <span>Systems</span>
+            </div>
+            <div class="obs-probe-row">
+              <span><strong>zerto-probe</strong></span>
+              <span><code>:5002</code></span>
+              <span><code>/zerto/data</code></span>
+              <span>Zerto</span>
+            </div>
+            <div class="obs-probe-row">
+              <span><strong>sys-probe</strong> (obsdemo)</span>
+              <span><code>:5001</code></span>
+              <span><code>/sys/metrics</code></span>
+              <span>Systems (obsdemo)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
   <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <script src="/js/i18n.js?v=18"></script>
-  <script src="/js/api.js?v=18"></script>
-  <script src="/js/charts.js?v=18"></script>
-  <script src="/js/app.js?v=18"></script>
+  <script src="/js/i18n.js?v=22"></script>
+  <script src="/js/api.js?v=22"></script>
+  <script src="/js/charts.js?v=22"></script>
+  <script src="/js/app.js?v=22"></script>
 </body>
 </html>

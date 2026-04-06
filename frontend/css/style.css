@@ -1471,3 +1471,69 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
   background: var(--border);
   margin: 4px 0;
 }
+
+/* ── Observability About ─────────────────────────────────────────────────────── */
+.obs-sources { display: flex; flex-direction: column; gap: 16px; }
+.obs-source-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+}
+.obs-source-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+.obs-source-tab .nav-icon { font-size: 1rem; }
+.obs-source-desc {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.obs-source-desc code {
+  background: var(--input-bg);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+.obs-probes-table {
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr 90px;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.82rem;
+  margin-top: 14px;
+}
+.obs-probe-row { display: contents; }
+.obs-probe-row > span {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+}
+.obs-probe-row:last-child > span { border-bottom: none; }
+.obs-probe-header > span {
+  background: var(--input-bg);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.obs-probe-row code {
+  background: var(--input-bg);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+.arch-connector--multi .arch-arrow-label { white-space: nowrap; font-size: 0.7rem; }
