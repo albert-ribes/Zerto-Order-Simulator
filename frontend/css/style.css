@@ -1465,6 +1465,44 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
 .zerto-event-ok  { color: var(--success); }
 .zerto-event-err { color: var(--danger);  }
 
+/* ── Zerto per-VPG layout ────────────────────────────────────────────────────── */
+.zerto-vpg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 1100px) { .zerto-vpg-grid { grid-template-columns: 1fr; } }
+
+.zerto-vpg-panel {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.zerto-vpg-panel-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.zerto-vpg-panel-title small {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.zerto-stats-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.zerto-vpg-no-data { opacity: 0.45; }
+.zerto-vpg-events-wrap { overflow-x: auto; }
+
 /* ── System metrics separator ───────────────────────────────────────────────── */
 .sys-metric-separator {
   height: 1px;

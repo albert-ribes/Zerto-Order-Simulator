@@ -689,6 +689,105 @@ function _zpgStatusCls(status) {
   return (_ZVM_STATUS_MAP[status] || { cls: '' }).cls;
 }
 
+function _renderVpgPanel(zvm) {
+  const s   = '_' + zvm.id;
+  const vpg = zvm.vpg;
+  const panel = $('vpgPanel_' + zvm.id);
+  if (panel) panel.classList.toggle('zerto-vpg-no-data', !vpg);
+
+  if (!vpg) return;
+
+  // Status
+  const stEl = $(('zertoVpgStatus' + s));
+  if (stEl) {
+    stEl.textContent = _zpgStatusText(vpg.status, vpg.status_desc);
+    stEl.className   = 'zerto-stat-value ' + _zpgStatusCls(vpg.status);
+  }
+  const subEl = $('zertoVpgSub' + s);
+  if (subEl) subEl.textContent = (vpg.sub_status_desc && vpg.sub_status_desc !== 'None')
+    ? vpg.sub_status_desc : `${vpg.source_site} → ${vpg.target_site}`;
+
+  // RPO
+  const rpoEl = $('zertoRpoActual' + s);
+  if (rpoEl) {
+    rpoEl.textContent = _fmtRPO(vpg.rpo_actual_s);
+    const pct = vpg.rpo_config_s > 0 ? vpg.rpo_actual_s / vpg.rpo_config_s : 0;
+    rpoEl.className = 'zerto-stat-value ' + (pct < 0.5 ? 'zerto-status-ok' : pct < 1 ? 'zerto-status-warn' : 'zerto-status-err');
+  }
+  if ($('zertoRpoConfig' + s)) $('zertoRpoConfig' + s).textContent = _fmtRPO(vpg.rpo_config_s);
+  const rpoPct = vpg.rpo_config_s > 0 ? Math.min(100, (vpg.rpo_actual_s / vpg.rpo_config_s) * 100) : 0;
+  _setBar('zertoRpoBar' + s, rpoPct, false);
+
+  // History
+  if ($('zertoHistActual' + s)) $('zertoHistActual' + s).textContent = _fmtDuration(vpg.history_actual_m);
+  if ($('zertoHistConfig' + s)) $('zertoHistConfig' + s).textContent = _fmtDuration(vpg.history_config_m);
+  const histPct = vpg.history_config_m > 0 ? Math.min(100, (vpg.history_actual_m / vpg.history_config_m) * 100) : 0;
+  const histBar = $('zertoHistBar' + s);
+  if (histBar) { histBar.style.width = histPct + '%'; histBar.className = 'sys-metric-bar bar--good'; }
+
+  // Failsafe
+  if ($('zertoFailsafeActual' + s)) $('zertoFailsafeActual' + s).textContent = _fmtDuration(vpg.failsafe_actual_m);
+  if ($('zertoFailsafeConfig' + s)) $('zertoFailsafeConfig' + s).textContent = _fmtDuration(vpg.failsafe_config_m);
+
+  // VMs
+  const vmsTbody = $('zertoVmsTbody' + s);
+  if (vmsTbody) {
+    const vms = zvm.vms || [];
+    vmsTbody.innerHTML = vms.length === 0
+      ? `<tr><td colspan="5" class="zerto-empty">–</td></tr>`
+      : vms.map(vm => {
+          const p   = vpg.rpo_config_s > 0 ? vm.rpo_actual_s / vpg.rpo_config_s : 0;
+          const rc  = p < 0.5 ? 'zerto-status-ok' : p < 1 ? 'zerto-status-warn' : 'zerto-status-err';
+          const sc  = _zpgStatusCls(vm.status);
+          const jnl = vm.journal_mb > 1024 ? (vm.journal_mb/1024).toFixed(1)+'GB' : vm.journal_mb+'MB';
+          return `<tr>
+            <td><strong>${vm.name}</strong></td>
+            <td class="${sc}">${_zpgStatusText(vm.status, vm.status_desc)}</td>
+            <td class="${rc}">${_fmtRPO(vm.rpo_actual_s)}</td>
+            <td>${vm.iops}</td>
+            <td>${jnl}</td>
+          </tr>`;
+        }).join('');
+  }
+
+  // Alerts
+  const alertsEl = $('zertoAlertsList' + s);
+  if (alertsEl) {
+    const alerts = (zvm.alerts || []).filter(a => !a.dismissed);
+    alertsEl.innerHTML = alerts.length === 0
+      ? `<div class="zerto-empty">${t('zerto_no_alerts')}</div>`
+      : alerts.map(a => {
+          const lvl = (a.level || '').toLowerCase();
+          const ts  = a.turned_on ? new Date(a.turned_on).toLocaleString('ca-ES') : '';
+          return `<div class="zerto-alert-item">
+            <div>
+              <span class="zerto-alert-badge zerto-alert-badge--${lvl}">${a.level}</span>
+              <div class="zerto-alert-time">${ts}</div>
+            </div>
+            <div class="zerto-alert-body">${a.description}</div>
+          </div>`;
+        }).join('');
+  }
+
+  // Events
+  const evTbody = $('zertoEventsTbody' + s);
+  if (evTbody) {
+    const events = zvm.events || [];
+    evTbody.innerHTML = events.length === 0
+      ? `<tr><td colspan="4" class="zerto-empty">${t('zerto_no_events')}</td></tr>`
+      : events.map(e => {
+          const ts = e.occurred_on ? new Date(e.occurred_on).toLocaleString('ca-ES') : '–';
+          const ok = e.success === true ? ' <span class="zerto-event-ok">✓</span>' : e.success === false ? ' <span class="zerto-event-err">✗</span>' : '';
+          return `<tr>
+            <td style="white-space:nowrap;font-size:.75rem">${ts}</td>
+            <td style="white-space:nowrap;font-size:.75rem">${e.site || '–'}</td>
+            <td style="font-size:.8rem">${e.description || '–'}${ok}</td>
+            <td style="white-space:nowrap;font-size:.75rem">${(e.user || '').replace(/^\+/, '')}</td>
+          </tr>`;
+        }).join('');
+  }
+}
+
 async function checkZerto() {
   try {
     const r = await _fetchT('/check/zerto/zerto/data', {}, 20000);
@@ -699,7 +798,7 @@ async function checkZerto() {
     const metaEl = $('zertoMeta');
     if (metaEl && d.ts) {
       const ts = new Date(d.ts * 1000);
-      metaEl.textContent = `${d.vpg_name} · ${ts.toLocaleTimeString()}`;
+      metaEl.textContent = ts.toLocaleTimeString();
     }
 
     // Ransomware
@@ -715,100 +814,8 @@ async function checkZerto() {
       if (err) err.textContent = zvm.error ? `(${zvm.error.slice(0, 80)})` : '';
     }
 
-    const zvmWithVpg = (d.zvms || []).find(z => z.vpg);
-    if (!zvmWithVpg) return;
-    const vpg = zvmWithVpg.vpg;
-
-    // VPG Status
-    const stEl = $('zertoVpgStatus');
-    if (stEl) {
-      stEl.textContent = _zpgStatusText(vpg.status, vpg.status_desc);
-      stEl.className   = 'zerto-stat-value ' + _zpgStatusCls(vpg.status);
-    }
-    const subEl = $('zertoVpgSub');
-    if (subEl) subEl.textContent = (vpg.sub_status_desc && vpg.sub_status_desc !== 'None')
-      ? vpg.sub_status_desc : `${vpg.source_site} → ${vpg.target_site}`;
-
-    // RPO
-    const rpoEl = $('zertoRpoActual');
-    if (rpoEl) {
-      rpoEl.textContent = _fmtRPO(vpg.rpo_actual_s);
-      const pct = vpg.rpo_config_s > 0 ? vpg.rpo_actual_s / vpg.rpo_config_s : 0;
-      rpoEl.className = 'zerto-stat-value ' + (pct < 0.5 ? 'zerto-status-ok' : pct < 1 ? 'zerto-status-warn' : 'zerto-status-err');
-    }
-    if ($('zertoRpoConfig')) $('zertoRpoConfig').textContent = _fmtRPO(vpg.rpo_config_s);
-    const rpoPct = vpg.rpo_config_s > 0 ? Math.min(100, (vpg.rpo_actual_s / vpg.rpo_config_s) * 100) : 0;
-    _setBar('zertoRpoBar', rpoPct, false);  // low actual = good (green)
-
-    // History
-    if ($('zertoHistActual')) $('zertoHistActual').textContent = _fmtDuration(vpg.history_actual_m);
-    if ($('zertoHistConfig')) $('zertoHistConfig').textContent = _fmtDuration(vpg.history_config_m);
-    const histPct = vpg.history_config_m > 0 ? Math.min(100, (vpg.history_actual_m / vpg.history_config_m) * 100) : 0;
-    const histBar = $('zertoHistBar');
-    if (histBar) { histBar.style.width = histPct + '%'; histBar.className = 'sys-metric-bar bar--good'; }
-
-    // Failsafe
-    if ($('zertoFailsafeActual')) $('zertoFailsafeActual').textContent = _fmtDuration(vpg.failsafe_actual_m);
-    if ($('zertoFailsafeConfig')) $('zertoFailsafeConfig').textContent = _fmtDuration(vpg.failsafe_config_m);
-
-    // VMs
-    const vmsTbody = $('zertoVmsTbody');
-    if (vmsTbody) {
-      const vms = zvmWithVpg.vms || [];
-      vmsTbody.innerHTML = vms.length === 0
-        ? `<tr><td colspan="5" class="zerto-empty">–</td></tr>`
-        : vms.map(vm => {
-            const p   = vpg.rpo_config_s > 0 ? vm.rpo_actual_s / vpg.rpo_config_s : 0;
-            const rc  = p < 0.5 ? 'zerto-status-ok' : p < 1 ? 'zerto-status-warn' : 'zerto-status-err';
-            const sc  = _zpgStatusCls(vm.status);
-            const jnl = vm.journal_mb > 1024 ? (vm.journal_mb/1024).toFixed(1)+'GB' : vm.journal_mb+'MB';
-            return `<tr>
-              <td><strong>${vm.name}</strong></td>
-              <td class="${sc}">${_zpgStatusText(vm.status, vm.status_desc)}</td>
-              <td class="${rc}">${_fmtRPO(vm.rpo_actual_s)}</td>
-              <td>${vm.iops}</td>
-              <td>${jnl}</td>
-            </tr>`;
-          }).join('');
-    }
-
-    // Alerts
-    const alertsEl = $('zertoAlertsList');
-    if (alertsEl) {
-      const alerts = (zvmWithVpg.alerts || []).filter(a => !a.dismissed);
-      if (alerts.length === 0) {
-        alertsEl.innerHTML = `<div class="zerto-empty">${t('zerto_no_alerts')}</div>`;
-      } else {
-        alertsEl.innerHTML = alerts.map(a => {
-          const lvl = (a.level || '').toLowerCase();
-          const ts  = a.turned_on ? new Date(a.turned_on).toLocaleString('ca-ES') : '';
-          return `<div class="zerto-alert-item">
-            <div>
-              <span class="zerto-alert-badge zerto-alert-badge--${lvl}">${a.level}</span>
-              <div class="zerto-alert-time">${ts}</div>
-            </div>
-            <div class="zerto-alert-body">${a.description}</div>
-          </div>`;
-        }).join('');
-      }
-    }
-
-    // Events
-    const evTbody = $('zertoEventsTbody');
-    if (evTbody) {
-      const events = zvmWithVpg.events || [];
-      evTbody.innerHTML = events.length === 0
-        ? `<tr><td colspan="4" class="zerto-empty">${t('zerto_no_events')}</td></tr>`
-        : events.map(e => {
-            const ts  = e.occurred_on ? new Date(e.occurred_on).toLocaleString('ca-ES') : '–';
-            const ok  = e.success === true ? ' <span class="zerto-event-ok">✓</span>' : e.success === false ? ' <span class="zerto-event-err">✗</span>' : '';
-            return `<tr>
-              <td style="white-space:nowrap;font-size:.75rem">${ts}</td>
-              <td style="white-space:nowrap;font-size:.75rem">${e.site || '–'}</td>
-              <td style="font-size:.8rem">${e.description || '–'}${ok}</td>
-              <td style="white-space:nowrap;font-size:.75rem">${(e.user || '').replace(/^\\+/, '')}</td>
-            </tr>`;
-          }).join('');
+    for (const zvm of (d.zvms || [])) {
+      _renderVpgPanel(zvm);
     }
   } catch { /* silent */ }
 }
