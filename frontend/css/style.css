@@ -1501,7 +1501,36 @@ tr.row-new { animation: rowFlash 2.5s ease-out forwards; }
   gap: 10px;
 }
 .zerto-vpg-no-data { opacity: 0.45; }
-.zerto-vpg-events-wrap { overflow-x: auto; }
+.zerto-vpg-events-wrap {
+  overflow-x: auto;
+  min-height: 192px;   /* 5 rows × ~34px + header ~22px */
+}
+.zerto-events-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 0 2px;
+  min-height: 30px;
+}
+.ev-pager-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+.ev-pager-btn:hover:not(:disabled) { background: var(--surface3); }
+.ev-pager-btn:disabled { opacity: 0.3; cursor: default; }
+.ev-pager-info { font-size: 0.78rem; color: var(--text-muted); }
 
 /* ── System metrics separator ───────────────────────────────────────────────── */
 .sys-metric-separator {

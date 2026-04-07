@@ -689,6 +689,45 @@ function _zpgStatusCls(status) {
   return (_ZVM_STATUS_MAP[status] || { cls: '' }).cls;
 }
 
+const _EVENTS_PAGE_SIZE = 5;
+const _zvmEvents = {};
+
+function _renderEventsPage(zvmId, events, page) {
+  const tbody  = $('zertoEventsTbody_' + zvmId);
+  const pager  = $('zertoEventsPager_'  + zvmId);
+  if (!tbody) return;
+
+  const total = events.length;
+  const pages = Math.max(1, Math.ceil(total / _EVENTS_PAGE_SIZE));
+  page = Math.max(1, Math.min(page, pages));
+
+  const start = (page - 1) * _EVENTS_PAGE_SIZE;
+  const slice = events.slice(start, start + _EVENTS_PAGE_SIZE);
+
+  tbody.innerHTML = total === 0
+    ? `<tr><td colspan="4" class="zerto-empty">${t('zerto_no_events')}</td></tr>`
+    : slice.map(e => {
+        const ts = e.occurred_on ? new Date(e.occurred_on).toLocaleString('ca-ES') : '–';
+        const ok = e.success === true  ? ' <span class="zerto-event-ok">✓</span>'
+                 : e.success === false ? ' <span class="zerto-event-err">✗</span>' : '';
+        return `<tr>
+          <td style="white-space:nowrap;font-size:.75rem">${ts}</td>
+          <td style="white-space:nowrap;font-size:.75rem">${e.site || '–'}</td>
+          <td style="font-size:.8rem">${e.description || '–'}${ok}</td>
+          <td style="white-space:nowrap;font-size:.75rem">${(e.user || '').replace(/^\+/, '')}</td>
+        </tr>`;
+      }).join('');
+
+  if (pager) {
+    const prevDis = page <= 1    ? ' disabled' : '';
+    const nextDis = page >= pages ? ' disabled' : '';
+    pager.innerHTML = total === 0 ? '' : `
+      <button class="ev-pager-btn"${prevDis} onclick="_renderEventsPage('${zvmId}',_zvmEvents['${zvmId}'],${page-1})">&#8249;</button>
+      <span class="ev-pager-info">${page} / ${pages}</span>
+      <button class="ev-pager-btn"${nextDis} onclick="_renderEventsPage('${zvmId}',_zvmEvents['${zvmId}'],${page+1})">&#8250;</button>`;
+  }
+}
+
 function _renderVpgPanel(zvm) {
   const s   = '_' + zvm.id;
   const vpg = zvm.vpg;
@@ -769,23 +808,9 @@ function _renderVpgPanel(zvm) {
         }).join('');
   }
 
-  // Events
-  const evTbody = $('zertoEventsTbody' + s);
-  if (evTbody) {
-    const events = zvm.events || [];
-    evTbody.innerHTML = events.length === 0
-      ? `<tr><td colspan="4" class="zerto-empty">${t('zerto_no_events')}</td></tr>`
-      : events.map(e => {
-          const ts = e.occurred_on ? new Date(e.occurred_on).toLocaleString('ca-ES') : '–';
-          const ok = e.success === true ? ' <span class="zerto-event-ok">✓</span>' : e.success === false ? ' <span class="zerto-event-err">✗</span>' : '';
-          return `<tr>
-            <td style="white-space:nowrap;font-size:.75rem">${ts}</td>
-            <td style="white-space:nowrap;font-size:.75rem">${e.site || '–'}</td>
-            <td style="font-size:.8rem">${e.description || '–'}${ok}</td>
-            <td style="white-space:nowrap;font-size:.75rem">${(e.user || '').replace(/^\+/, '')}</td>
-          </tr>`;
-        }).join('');
-  }
+  // Events (paginated)
+  _zvmEvents[zvm.id] = zvm.events || [];
+  _renderEventsPage(zvm.id, _zvmEvents[zvm.id], 1);
 }
 
 async function checkZerto() {
