@@ -334,5 +334,6 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     threading.Thread(target=_bg_refresh, daemon=True).start()
     server = HTTPServer(("0.0.0.0", 5002), Handler)
-    print(f"zerto-probe listening on :5002  (VPG={VPG_NAME}, cache={CACHE_TTL}s)")
+    vpg_names = ", ".join(z["vpg_name"] for z in ZVMS)
+    print(f"zerto-probe listening on :5002  (VPGs={vpg_names}, cache={CACHE_TTL}s)")
     server.serve_forever()
