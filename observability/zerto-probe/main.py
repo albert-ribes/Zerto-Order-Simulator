@@ -28,6 +28,7 @@ ZVMS = [
         "client_secret": os.environ.get("ZVM1_CLIENT_SECRET", "zL1MhzdSebevQMxFZmbFmjqwSCfn1zHe"),
         "username": os.environ.get("ZVM1_USERNAME", "admin"),
         "password": os.environ.get("ZVM1_PASSWORD", 'Z3rt0d"t"162534'),
+        "vpg_name": os.environ.get("ZVM1_VPG_NAME", "ResilienceApp Remote"),
     },
     {
         "id": "recovery",
@@ -38,10 +39,9 @@ ZVMS = [
         "client_secret": os.environ.get("ZVM2_CLIENT_SECRET", "dGrmOabeoccdgnK4DxXgq6fMSUBNpUQq"),
         "username": os.environ.get("ZVM2_USERNAME", "admin"),
         "password": os.environ.get("ZVM2_PASSWORD", "Z3rt0d@t@123456"),
+        "vpg_name": os.environ.get("ZVM2_VPG_NAME", "ResilienceApp Local"),
     },
 ]
-
-VPG_NAME  = os.environ.get("ZVM_VPG_NAME", "ResilienceApp")
 CACHE_TTL = int(os.environ.get("SCRAPE_SPEED", "20"))
 
 # ── SSL (ZVMs usen certs autosignats) ─────────────────────────────────────────
@@ -136,7 +136,7 @@ def _fetch_zvm(zvm):
     }
     try:
         vpgs = _api(zvm, "/v1/vpgs")
-        vpg  = next((v for v in vpgs if v.get("VpgName") == VPG_NAME), None)
+        vpg  = next((v for v in vpgs if v.get("VpgName") == zvm["vpg_name"]), None)
         res["status"] = "ok"
 
         if not vpg:
@@ -171,7 +171,7 @@ def _fetch_zvm(zvm):
 
         # VMs
         try:
-            vms_raw = _api(zvm, f"/v1/vms?vpgName={urllib.parse.quote(VPG_NAME)}")
+            vms_raw = _api(zvm, f"/v1/vms?vpgName={urllib.parse.quote(zvm['vpg_name'])}")
             res["vms"] = [
                 {
                     "name":            vm.get("VmName", ""),
@@ -268,7 +268,7 @@ def fetch_all():
     zvms_data = [r for r in results if r is not None]
     return {
         "ts":        time.time(),
-        "vpg_name":  VPG_NAME,
+        "vpg_names": [z["vpg_name"] for z in ZVMS],
         "zvms":      zvms_data,
         "ransomware": _ransomware_detected(zvms_data),
     }

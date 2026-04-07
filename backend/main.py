@@ -493,6 +493,20 @@ def create_order(data: schemas.OrderCreate, db: Session = Depends(get_db)):
     )
 
 
+@app.get("/orders/{order_id}", response_model=schemas.OrderOut)
+def get_order(order_id: int, db: Session = Depends(get_db)):
+    obj = db.query(models.Order).get(order_id)
+    if not obj:
+        raise HTTPException(404, "Order not found")
+    return schemas.OrderOut(
+        id=obj.id, client_id=obj.client_id, product_id=obj.product_id,
+        quantity=obj.quantity, unit_price=obj.unit_price, total_price=obj.total_price,
+        created_at=obj.created_at,
+        client_name=obj.client.name if obj.client else None,
+        product_name=obj.product.name if obj.product else None,
+    )
+
+
 @app.delete("/orders/{order_id}", status_code=204)
 def delete_order(order_id: int, db: Session = Depends(get_db)):
     obj = db.query(models.Order).get(order_id)
