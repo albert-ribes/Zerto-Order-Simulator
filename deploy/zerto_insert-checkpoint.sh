@@ -1,32 +1,32 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
-# zerto_insert-checkpoint.sh — Insereix un checkpoint a un VPG de Zerto
+# zerto_insert-checkpoint.sh — Insert a checkpoint into a Zerto VPG
 #
-# Ús:
-#   ./zerto_insert-checkpoint.sh "<NOM_VPG>" "<TEXT_CHECKPOINT>"
+# Usage:
+#   ./zerto_insert-checkpoint.sh "<VPG_NAME>" "<CHECKPOINT_TEXT>"
 #
-# Exemples:
+# Examples:
 #   ./zerto_insert-checkpoint.sh "ResilienceApp Remote" "Pre-deploy v2.3.1"
-#   ./zerto_insert-checkpoint.sh "ResilienceApp Local"  "Backup manual 08/04/2026"
+#   ./zerto_insert-checkpoint.sh "ResilienceApp Local"  "Manual backup 08/04/2026"
 #
-# El script detecta automàticament a quin ZVM pertany el VPG i hi fa l'autenticació.
+# The script automatically detects which ZVM hosts the VPG and authenticates to it.
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-# ── Paràmetres ────────────────────────────────────────────────────────────────
+# ── Parameters ────────────────────────────────────────────────────────────────
 VPG_NAME="${1:-}"
 CHECKPOINT_TEXT="${2:-}"
 
 if [ -z "$VPG_NAME" ] || [ -z "$CHECKPOINT_TEXT" ]; then
-  echo "Ús: $0 \"<NOM_VPG>\" \"<TEXT_CHECKPOINT>\""
+  echo "Usage: $0 \"<VPG_NAME>\" \"<CHECKPOINT_TEXT>\""
   echo ""
-  echo "Exemples:"
+  echo "Examples:"
   echo "  $0 \"ResilienceApp Remote\" \"Pre-deploy v2.3.1\""
-  echo "  $0 \"ResilienceApp Local\"  \"Backup manual\""
+  echo "  $0 \"ResilienceApp Local\"  \"Manual backup\""
   exit 1
 fi
 
-# ── Configuració ZVMs ─────────────────────────────────────────────────────────
+# ── ZVM configuration ─────────────────────────────────────────────────────────
 ZVM1_HOST="${ZVM1_HOST:-10.20.0.152}"
 ZVM1_PORT="${ZVM1_PORT:-443}"
 ZVM1_CLIENT_ID="${ZVM1_CLIENT_ID:-grafana-client}"
@@ -49,7 +49,7 @@ info()    { echo -e "${CYAN}ℹ${NC}  $*"; }
 success() { echo -e "${GREEN}✓${NC}  $*"; }
 error()   { echo -e "${RED}✗${NC}  $*" >&2; }
 
-# ── Helper: curl sense verificació TLS ────────────────────────────────────────
+# ── Helper: curl without TLS verification ─────────────────────────────────────
 _curl() { curl -sk --max-time 15 "$@"; }
 
 # ── Auth: OAuth2 client_credentials → password grant → session fallback ───────
@@ -59,19 +59,19 @@ get_token() {
   local token_url="https://${host}:${port}/auth/realms/zerto/protocol/openid-connect/token"
   local token=""
 
-  # Intent 1: client_credentials
+  # Attempt 1: client_credentials
   token=$(_curl -X POST "$token_url" \
     -d "grant_type=client_credentials&client_id=${client_id}&client_secret=${client_secret}" \
     | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 
-  # Intent 2: password grant
+  # Attempt 2: password grant
   if [ -z "$token" ]; then
     token=$(_curl -X POST "$token_url" \
       -d "grant_type=password&client_id=${client_id}&client_secret=${client_secret}&username=${username}&password=${password}&scope=openid" \
       | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
   fi
 
-  # Intent 3: session auth (Zerto < 9)
+  # Attempt 3: session auth (Zerto < 9)
   if [ -z "$token" ]; then
     local creds
     creds=$(printf '%s:%s' "$username" "$password" | base64 | tr -d '\n')
@@ -84,7 +84,7 @@ get_token() {
   echo "$token"
 }
 
-# ── Helper: GET JSON endpoint autenticat ──────────────────────────────────────
+# ── Helper: authenticated GET JSON endpoint ───────────────────────────────────
 api_get() {
   local host="$1" port="$2" token="$3" path="$4"
   _curl -H "Authorization: Bearer ${token}" \
@@ -92,7 +92,7 @@ api_get() {
         "https://${host}:${port}${path}"
 }
 
-# ── Helper: POST JSON endpoint autenticat ─────────────────────────────────────
+# ── Helper: authenticated POST JSON endpoint ──────────────────────────────────
 api_post() {
   local host="$1" port="$2" token="$3" path="$4" body="$5"
   _curl -X POST \
@@ -103,17 +103,16 @@ api_post() {
         "https://${host}:${port}${path}"
 }
 
-# ── Detecta a quin ZVM pertany el VPG i obté el seu identificador ─────────────
+# ── Detect which ZVM hosts the VPG and retrieve its identifier ────────────────
 find_vpg() {
   local target_vpg="$1"
-  # Prova cada ZVM fins trobar el VPG
+  # Try each ZVM until the VPG is found
   local hosts=("$ZVM1_HOST" "$ZVM2_HOST")
   local ports=("$ZVM1_PORT" "$ZVM2_PORT")
   local client_ids=("$ZVM1_CLIENT_ID" "$ZVM2_CLIENT_ID")
   local client_secrets=("$ZVM1_CLIENT_SECRET" "$ZVM2_CLIENT_SECRET")
   local usernames=("$ZVM1_USERNAME" "$ZVM2_USERNAME")
   local passwords=("$ZVM1_PASSWORD" "$ZVM2_PASSWORD")
-  local vpg_names=("$ZVM1_VPG_NAME" "$ZVM2_VPG_NAME")
   local zvm_labels=("ZVM TEC" "ZVM Recovery")
 
   for i in 0 1; do
@@ -122,20 +121,20 @@ find_vpg() {
     local user="${usernames[$i]}" pass="${passwords[$i]}"
     local label="${zvm_labels[$i]}"
 
-    info "Provant ${label} (${host}:${port})..." >&2
+    info "Trying ${label} (${host}:${port})..." >&2
 
     local token
     token=$(get_token "$host" "$port" "$cid" "$csecret" "$user" "$pass")
     if [ -z "$token" ]; then
-      error "No s'ha pogut autenticar a ${label}" >&2
+      error "Could not authenticate to ${label}" >&2
       continue
     fi
 
-    # Cerca el VPG per nom (el JSON és compacte; separem els objectes amb sed)
+    # Search for the VPG by name (JSON is compact; split objects with sed)
     local vpgs_json
     vpgs_json=$(api_get "$host" "$port" "$token" "/v1/vpgs")
 
-    # Extreu l'identificador del VPG que coincideix amb el nom
+    # Extract the identifier of the VPG matching the given name
     local vpg_id
     vpg_id=$(echo "$vpgs_json" \
       | sed 's/},{/}\n{/g' \
@@ -143,7 +142,7 @@ find_vpg() {
       | grep -o '"VpgIdentifier":"[^"]*"' | cut -d'"' -f4 | head -1)
 
     if [ -n "$vpg_id" ]; then
-      # Retorna "host|port|token|vpg_id|label" com a cadena delimitada
+      # Return "host|port|token|vpg_id|label" as a pipe-delimited string
       echo "${host}|${port}|${token}|${vpg_id}|${label}"
       return 0
     fi
@@ -154,46 +153,39 @@ find_vpg() {
 
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${YELLOW}Zerto — Inserció de checkpoint${NC}"
+echo -e "${YELLOW}Zerto — Insert checkpoint${NC}"
 echo -e "  VPG:        ${CYAN}${VPG_NAME}${NC}"
 echo -e "  Checkpoint: ${CYAN}${CHECKPOINT_TEXT}${NC}"
 echo ""
 
-# Cerca el VPG
-info "Cercant el VPG als ZVMs configurats..."
+# Find the VPG
+info "Searching for VPG across configured ZVMs..."
 result=$(find_vpg "$VPG_NAME") || {
-  error "No s'ha trobat el VPG \"${VPG_NAME}\" a cap ZVM."
-  echo ""
-  echo "VPGs disponibles:"
-  for zvm_info in "${ZVM1_HOST}:${ZVM1_PORT} ${ZVM1_CLIENT_ID} ${ZVM1_CLIENT_SECRET} ${ZVM1_USERNAME} ${ZVM1_PASSWORD}" \
-                  "${ZVM2_HOST}:${ZVM2_PORT} ${ZVM2_CLIENT_ID} ${ZVM2_CLIENT_SECRET} ${ZVM2_USERNAME} ${ZVM2_PASSWORD}"; do
-    # Intenta llistar VPGs de cada ZVM per ajudar a l'usuari
-    :
-  done
+  error "VPG \"${VPG_NAME}\" not found on any ZVM."
   exit 1
 }
 
-# Desempaqueta resultat
+# Unpack result
 IFS='|' read -r ZVM_HOST ZVM_PORT TOKEN VPG_ID ZVM_LABEL <<< "$result"
-success "VPG trobat a ${ZVM_LABEL} — ID: ${VPG_ID}"
+success "VPG found on ${ZVM_LABEL} — ID: ${VPG_ID}"
 
-# Insereix el checkpoint
-info "Inserint checkpoint..."
+# Insert the checkpoint
+info "Inserting checkpoint..."
 CP_BODY="{\"CheckpointName\":\"${CHECKPOINT_TEXT}\"}"
 response=$(api_post "$ZVM_HOST" "$ZVM_PORT" "$TOKEN" \
   "/v1/vpgs/${VPG_ID}/checkpoints" "$CP_BODY")
 
-# Verifica la resposta (Zerto retorna el task ID o un objecte buit en cas d'èxit)
+# Check response (Zerto returns the task ID or an empty object on success)
 if echo "$response" | grep -qi '"error\|"message\|"detail'; then
-  error "Error de l'API: ${response}"
+  error "API error: ${response}"
   exit 1
 fi
 
 echo ""
-success "Checkpoint inserit correctament!"
+success "Checkpoint inserted successfully!"
 echo -e "  ZVM:        ${ZVM_LABEL} (${ZVM_HOST})"
 echo -e "  VPG:        ${VPG_NAME}"
-echo -e "  ID VPG:     ${VPG_ID}"
+echo -e "  VPG ID:     ${VPG_ID}"
 echo -e "  Checkpoint: ${CHECKPOINT_TEXT}"
-[ -n "$response" ] && echo -e "  Resposta:   ${response}"
+[ -n "$response" ] && echo -e "  Response:   ${response}"
 echo ""
