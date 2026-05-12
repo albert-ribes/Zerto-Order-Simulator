@@ -257,14 +257,11 @@ setInterval(_updateCacheBadge, 1000);
 
 function _renderDashboardData(summary, tl, products, daily, hourly) {
   _noData = false;
-  ['statOrders','statRevenue','statAvgOrders','statAvgRev','statLastOrder'].forEach(id => {
+  ['statOrders','statRevenue','statLastOrder'].forEach(id => {
     const el = $(id); if (el) el.style.color = '';
   });
   $('statOrders').textContent    = summary.total_orders.toLocaleString();
   $('statRevenue').textContent   = '€' + fmt(summary.total_revenue);
-  $('statAvgOrders').textContent = summary.avg_orders_per_day?.toLocaleString() ?? '–';
-  $('statAvgRev').textContent    = summary.avg_revenue_per_day != null
-    ? '€' + fmt(summary.avg_revenue_per_day) : '–';
   _lastOrderAt = summary.last_order_at ? new Date(summary.last_order_at) : null;
   _lastOrderId = summary.last_order_id ?? null;
   _updateLastOrderStat();
@@ -282,7 +279,7 @@ function _renderNoData() {
   _noData = true;
   _lastOrderAt = null;
   _lastOrderId = null;
-  ['statOrders', 'statRevenue', 'statAvgOrders', 'statAvgRev', 'statLastOrder'].forEach(id => {
+  ['statOrders', 'statRevenue', 'statLastOrder'].forEach(id => {
     const el = $(id);
     if (el) { el.textContent = 'No data'; el.style.color = 'var(--text-muted)'; }
   });
