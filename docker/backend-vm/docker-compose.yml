@@ -1,7 +1,7 @@
 # Backend VM (10.20.0.147)
 #
 # Ports:  processed-meat → 8000
-#         hospital        → 8001  (step 2)
+#         hospital        → 8001
 #         flight-booking  → 8002  (step 3)
 
 services:
@@ -13,3 +13,16 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql+psycopg2://zerto:zerto@10.20.0.148:5432/zerto
+
+  hospital-backend:
+    image: hospital-backend:latest
+    container_name: hospital-backend
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      DB_HOST: 10.20.0.148
+      DB_PORT: 5433
+      DB_NAME: hdm_db
+      DB_USER: hdm_user
+      DB_PASS: hdm_pass_2024

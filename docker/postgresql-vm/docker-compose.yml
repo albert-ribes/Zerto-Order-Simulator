@@ -1,11 +1,12 @@
 # PostgreSQL VM (10.20.0.148)
 #
 # Ports:  processed-meat → 5432
-#         hospital        → 5433  (step 2)
+#         hospital        → 5433
 #         flight-booking  → 5434  (step 3)
 #
 # Volumes (bind mounts — accessible des del host per als scripts de demo):
 #   /data/processed-meat/postgresql  ← encrypt/restore scripts apunten aquí
+#   /data/hospital/postgresql        ← hospital encrypt/restore
 
 services:
   processed-meat-postgresql:
@@ -23,5 +24,25 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U zerto"]
       interval: 5s
+      timeout: 5s
+      retries: 5
+
+  hospital-postgresql:
+    image: postgres:16-alpine
+    container_name: hospital-postgresql
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    volumes:
+      - /data/hospital/postgresql:/var/lib/postgresql/data/pgdata
+      - /opt/zerto/hospital/hdm-database/sql:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_DB: hdm_db
+      POSTGRES_USER: hdm_user
+      POSTGRES_PASSWORD: hdm_pass_2024
+      PGDATA: /var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hdm_user -d hdm_db"]
+      interval: 10s
       timeout: 5s
       retries: 5
