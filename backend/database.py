@@ -2,7 +2,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://zerto:zerto@db:5432/zerto")
+_url = os.getenv("DATABASE_URL", "postgresql://zerto:zerto@db:5432/zerto")
+# Force psycopg2 dialect (SQLAlchemy 2.1+ prefers psycopg3 for bare postgresql://)
+DATABASE_URL = _url.replace("postgresql://", "postgresql+psycopg2://", 1) if _url.startswith("postgresql://") else _url
 
 engine = create_engine(
     DATABASE_URL,

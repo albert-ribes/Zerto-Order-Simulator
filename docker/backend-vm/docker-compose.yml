@@ -12,4 +12,4 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://zerto:zerto@10.20.0.148:5432/zerto
+      DATABASE_URL: postgresql+psycopg2://zerto:zerto@10.20.0.148:5432/zerto
