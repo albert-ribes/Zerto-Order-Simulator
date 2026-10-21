@@ -26,3 +26,12 @@ services:
       DB_NAME: hdm_db
       DB_USER: hdm_user
       DB_PASS: hdm_pass_2024
+
+  flight-booking-backend:
+    image: flight-booking-backend:latest
+    container_name: flight-booking-backend
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://flight_app:flight_pass_2024@10.20.0.148:5434/flight_booking

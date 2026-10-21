@@ -7,6 +7,7 @@
 # Volumes (bind mounts — accessible des del host per als scripts de demo):
 #   /data/processed-meat/postgresql  ← encrypt/restore scripts apunten aquí
 #   /data/hospital/postgresql        ← hospital encrypt/restore
+#   /data/flight-booking/postgresql  ← flight-booking encrypt/restore
 
 services:
   processed-meat-postgresql:
@@ -43,6 +44,28 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U hdm_user -d hdm_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  flight-booking-postgresql:
+    image: postgres:16-alpine
+    container_name: flight-booking-postgresql
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    volumes:
+      - /data/flight-booking/postgresql:/var/lib/postgresql/data/pgdata
+      - /opt/zerto/flight-booking/fb-database/initdb/00_init.sh:/docker-entrypoint-initdb.d/00_init.sh
+      - /opt/zerto/flight-booking/fb-database-src/migrations:/docker-entrypoint-initdb.d/migrations
+      - /opt/zerto/flight-booking/fb-database-src/seeds:/docker-entrypoint-initdb.d/seeds
+    environment:
+      POSTGRES_DB: flight_booking
+      POSTGRES_USER: flight_app
+      POSTGRES_PASSWORD: flight_pass_2024
+      PGDATA: /var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flight_app -d flight_booking"]
       interval: 10s
       timeout: 5s
       retries: 5
