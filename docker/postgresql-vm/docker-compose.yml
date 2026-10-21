@@ -1,0 +1,27 @@
+# PostgreSQL VM (10.20.0.148)
+#
+# Ports:  processed-meat → 5432
+#         hospital        → 5433  (step 2)
+#         flight-booking  → 5434  (step 3)
+#
+# Volumes (bind mounts — accessible des del host per als scripts de demo):
+#   /data/processed-meat/postgresql  ← encrypt/restore scripts apunten aquí
+
+services:
+  processed-meat-postgresql:
+    image: postgres:16
+    container_name: processed-meat-postgresql
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - /data/processed-meat/postgresql:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: zerto
+      POSTGRES_PASSWORD: zerto
+      POSTGRES_DB: zerto
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zerto"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

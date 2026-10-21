@@ -3,6 +3,8 @@ services:
     build: ./frontend
     ports:
       - "3000:80"
+    environment:
+      BACKEND_URL: http://172.30.0.30:8000
     volumes:
       - ./frontend:/usr/share/nginx/html:ro   # live reload: canvis immediats sense rebuild
     depends_on:

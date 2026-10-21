@@ -1,0 +1,15 @@
+# Backend VM (10.20.0.147)
+#
+# Ports:  processed-meat → 8000
+#         hospital        → 8001  (step 2)
+#         flight-booking  → 8002  (step 3)
+
+services:
+  processed-meat-backend:
+    image: processed-meat-backend:latest
+    container_name: processed-meat-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://zerto:zerto@10.20.0.148:5432/zerto
