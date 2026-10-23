@@ -1,0 +1,68 @@
+server {
+    listen 80;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location ~* \.(js|css)$ {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        expires 0;
+        try_files $uri =404;
+    }
+
+    location / {
+        add_header Cache-Control "no-cache";
+        try_files $uri $uri/ /index.html;
+    }
+
+    # fb backend has /api/ prefix in its own routes — pass through without rewriting
+    location /api/ {
+        proxy_pass         ${BACKEND_URL};
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout    10s;
+    }
+
+    location ^~ /check/frontend/ {
+        rewrite            ^/check/frontend/(.*)$ /$1 break;
+        proxy_pass         ${FRONTEND_URL};
+        proxy_set_header   Host $host;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout    5s;
+    }
+
+    # fb-obs calls /check/db/ping; db-probe expects /db/ping → rewrite adds /db/ prefix
+    location ^~ /check/db/ {
+        rewrite            ^/check/db/(.*)$ /db/$1 break;
+        proxy_pass         ${DBPROBE_URL};
+        proxy_set_header   Host $host;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout    5s;
+    }
+
+    # sys-probe serves /sys/metrics; prepend /sys/ so /check/frontend-sys/metrics → /sys/metrics
+    location ^~ /check/frontend-sys/ {
+        rewrite            ^/check/frontend-sys/(.*)$ /sys/$1 break;
+        proxy_pass         ${SYSPROBE_FE_URL};
+        proxy_set_header   Host $host;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout    5s;
+    }
+
+    location ^~ /check/db-sys/ {
+        rewrite            ^/check/db-sys/(.*)$ /sys/$1 break;
+        proxy_pass         ${SYSPROBE_DB_URL};
+        proxy_set_header   Host $host;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout    5s;
+    }
+
+    # flight-booking-observer uses /zerto/ prefix directly
+    location ^~ /zerto/ {
+        proxy_pass         ${ZERTOPROBE_URL};
+        proxy_set_header   Host $host;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout    20s;
+    }
+}

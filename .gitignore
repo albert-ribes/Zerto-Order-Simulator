@@ -20,3 +20,10 @@ Thumbs.db
 
 # Claude
 .claude/
+
+# Temp / build scripts
+tmp/
+
+# Portal build artifacts
+portal/hpe-logo-b64.txt
+portal/hpe-logo-datauri.txt

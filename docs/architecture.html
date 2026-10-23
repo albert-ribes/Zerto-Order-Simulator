@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zerto Order Simulator — Documentació Tècnica</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #161b27;
+      --card: #1e2535;
+      --border: #2a3347;
+      --accent: #6366f1;
+      --accent2: #10b981;
+      --accent3: #f59e0b;
+      --accent4: #0ea5e9;
+      --text: #e2e8f0;
+      --text-muted: #8892a4;
+      --text-dim: #4b5563;
+      --danger: #ef4444;
+      --code-bg: #0d1117;
+      --fe: #818cf8;
+      --be: #34d399;
+      --db: #fbbf24;
+      --obs: #38bdf8;
+      --probe: #a78bfa;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    /* ── Layout ── */
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 240px;
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 24px 0 24px;
+      z-index: 10;
+    }
+    .content {
+      margin-left: 240px;
+      padding: 40px 48px;
+      max-width: 1100px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .sidebar-logo h2 { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+    .sidebar-logo p { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .sidebar-nav a {
+      display: block;
+      padding: 7px 20px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .sidebar-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .sidebar-nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(99,102,241,0.08); }
+    .sidebar-section {
+      padding: 14px 20px 4px;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    /* ── Typography ── */
+    h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+    h2 { font-size: 1.3rem; font-weight: 700; margin: 40px 0 16px; padding-top: 8px; border-top: 1px solid var(--border); }
+    h2:first-of-type { border-top: none; }
+    h3 { font-size: 1rem; font-weight: 600; margin: 24px 0 10px; color: var(--text); }
+    h4 { font-size: 0.85rem; font-weight: 600; margin: 16px 0 6px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    p { margin-bottom: 12px; color: var(--text-muted); }
+    strong { color: var(--text); font-weight: 600; }
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.82em;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      overflow-x: auto;
+      margin: 12px 0 20px;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    pre code { background: none; border: none; padding: 0; color: #c9d1d9; }
+    .kw  { color: #ff7b72; }
+    .str { color: #a5d6ff; }
+    .cm  { color: #6e7681; }
+    .fn  { color: #d2a8ff; }
+    .nb  { color: #79c0ff; }
+    .dec { color: #ffa657; }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 32px 0 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+    .hero-subtitle { font-size: 1rem; color: var(--text-muted); margin-top: 6px; }
+    .hero-meta { display: flex; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; font-weight: 600;
+      padding: 4px 12px; border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .hero-badge.fe { border-color: var(--fe); color: var(--fe); background: rgba(129,140,248,.1); }
+    .hero-badge.be { border-color: var(--be); color: var(--be); background: rgba(52,211,153,.1); }
+    .hero-badge.db { border-color: var(--db); color: var(--db); background: rgba(251,191,36,.1); }
+    .hero-badge.obs { border-color: var(--obs); color: var(--obs); background: rgba(56,189,248,.1); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .card-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .card h3 { margin-top: 0; font-size: 0.95rem; }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; margin: 12px 0 24px; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    thead th {
+      background: var(--surface);
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(255,255,255,0.03); }
+
+    /* ── Method badges ── */
+    .method {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+    .GET    { background: rgba(16,185,129,.15); color: #34d399; }
+    .POST   { background: rgba(99,102,241,.15);  color: #818cf8; }
+    .PUT    { background: rgba(245,158,11,.15);  color: #fbbf24; }
+    .DELETE { background: rgba(239,68,68,.15);   color: #f87171; }
+
+    /* ── Architecture diagram ── */
+    .arch {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      padding: 24px 0;
+    }
+    .arch-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .arch-box {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      min-width: 130px;
+      text-align: center;
+    }
+    .arch-box .icon { font-size: 1.6rem; margin-bottom: 4px; }
+    .arch-box .name { font-size: 0.82rem; font-weight: 700; }
+    .arch-box .sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+    .arch-box .port { font-size: 0.68rem; color: var(--text-dim); margin-top: 6px; font-family: monospace; border: 1px solid var(--border); display: inline-block; padding: 1px 6px; border-radius: 10px; }
+    .arch-box.fe  { background: rgba(129,140,248,.08); border-color: var(--fe); }
+    .arch-box.fe  .name { color: var(--fe); }
+    .arch-box.be  { background: rgba(52,211,153,.08);  border-color: var(--be); }
+    .arch-box.be  .name { color: var(--be); }
+    .arch-box.db  { background: rgba(251,191,36,.08);  border-color: var(--db); }
+    .arch-box.db  .name { color: var(--db); }
+    .arch-box.obs { background: rgba(56,189,248,.08);  border-color: var(--obs); }
+    .arch-box.obs .name { color: var(--obs); }
+    .arch-box.probe { background: rgba(167,139,250,.08); border-color: var(--probe); }
+    .arch-box.probe .name { color: var(--probe); }
+    .arch-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 6px;
+      flex-shrink: 0;
+    }
+    .arch-arrow .line { width: 40px; height: 1px; background: var(--border); }
+    .arch-arrow .label { font-size: 0.62rem; color: var(--text-dim); white-space: nowrap; margin-top: 4px; }
+    .arch-arrow .tip { color: var(--text-dim); font-size: 0.8rem; }
+
+    /* ── Network grid ── */
+    .net-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+    .net-node {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.8rem;
+    }
+    .net-node .ip { font-family: monospace; font-size: 0.75rem; color: var(--accent); margin-top: 4px; }
+    .net-node .port { font-size: 0.68rem; color: var(--text-dim); }
+    .net-node.fe  { border-top: 2px solid var(--fe); }
+    .net-node.be  { border-top: 2px solid var(--be); }
+    .net-node.db  { border-top: 2px solid var(--db); }
+    .net-node.obs { border-top: 2px solid var(--obs); }
+    .net-node.probe { border-top: 2px solid var(--probe); }
+
+    /* ── DB schema ── */
+    .db-table {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .db-table-header {
+      background: var(--surface);
+      padding: 10px 16px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .db-table-header .icon { font-size: 1rem; }
+    .db-col {
+      display: grid;
+      grid-template-columns: 140px 120px 1fr;
+      padding: 7px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem;
+      align-items: center;
+    }
+    .db-col:last-child { border-bottom: none; }
+    .db-col .col-name { font-family: monospace; color: var(--text); font-weight: 600; }
+    .db-col .col-type { font-family: monospace; color: var(--accent3); font-size: 0.72rem; }
+    .db-col .col-note { color: var(--text-muted); font-size: 0.72rem; }
+    .pk  { color: var(--accent3); }
+    .fk  { color: var(--accent4); }
+    .uq  { color: var(--accent2); }
+
+    /* ── File tree ── */
+    .filetree {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .filetree .dir   { color: var(--obs); font-weight: 700; }
+    .filetree .file  { color: var(--text-muted); }
+    .filetree .desc  { color: var(--text-dim); font-style: italic; }
+    .filetree .badge { color: var(--accent); font-size: 0.72em; border: 1px solid var(--border); padding: 1px 6px; border-radius: 3px; vertical-align: middle; margin-left: 6px; }
+
+    /* ── Service cards ── */
+    .service-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .service-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .service-card h3 { margin: 0 0 6px; font-size: 0.95rem; }
+    .service-card .svc-meta { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    .svc-tag {
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* ── Endpoint groups ── */
+    .endpoint-group { margin-bottom: 28px; }
+    .endpoint-group h3 { color: var(--text); margin-bottom: 8px; }
+    .ep-row {
+      display: grid;
+      grid-template-columns: 60px 240px 1fr 120px;
+      gap: 10px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      align-items: start;
+      font-size: 0.8rem;
+    }
+    .ep-row:last-child { border-bottom: none; }
+    .ep-row:hover { background: rgba(255,255,255,.03); }
+    .ep-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .ep-block-header {
+      background: var(--surface);
+      padding: 8px 14px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .ep-path { font-family: monospace; color: var(--text); }
+    .ep-desc { color: var(--text-muted); }
+    .ep-auth { font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; text-align: center; }
+    .ep-auth.pub  { background: rgba(16,185,129,.12); color: var(--accent2); }
+    .ep-auth.priv { background: rgba(239,68,68,.1);   color: #f87171; }
+    .ep-auth.adm  { background: rgba(245,158,11,.1);  color: var(--accent3); }
+
+    /* ── Misc ── */
+    .section { margin-bottom: 56px; }
+    .divider { height: 1px; background: var(--border); margin: 32px 0; }
+    .note {
+      background: rgba(99,102,241,.08);
+      border: 1px solid rgba(99,102,241,.3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin: 12px 0 20px;
+    }
+    .note strong { color: var(--accent); }
+    .warn {
+      background: rgba(245,158,11,.08);
+      border: 1px solid rgba(245,158,11,.3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin: 12px 0 20px;
+    }
+    .chip {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin: 2px;
+    }
+    .chip.fe    { background: rgba(129,140,248,.15); color: var(--fe); }
+    .chip.be    { background: rgba(52,211,153,.15);  color: var(--be); }
+    .chip.db    { background: rgba(251,191,36,.15);  color: var(--db); }
+    .chip.obs   { background: rgba(56,189,248,.15);  color: var(--obs); }
+    .chip.probe { background: rgba(167,139,250,.15); color: var(--probe); }
+    .chip.grey  { background: rgba(255,255,255,.07); color: var(--text-muted); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .content { margin-left: 0; padding: 24px 20px; }
+      .card-grid, .card-grid-3, .service-grid, .net-grid { grid-template-columns: 1fr; }
+      .ep-row { grid-template-columns: 60px 1fr; }
+      .ep-row .ep-desc, .ep-row .ep-auth { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<div class="layout">
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h2>⚡ Order Simulator</h2>
+    <p>Documentació Tècnica v2026</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section">General</div>
+    <a href="#overview">Visió general</a>
+    <a href="#architecture">Arquitectura</a>
+    <a href="#network">Xarxa i IPs</a>
+    <a href="#filetree">Estructura de fitxers</a>
+
+    <div class="sidebar-section">Backend</div>
+    <a href="#api-auth">API · Autenticació</a>
+    <a href="#api-clients">API · Clients</a>
+    <a href="#api-products">API · Productes</a>
+    <a href="#api-orders">API · Ordres</a>
+    <a href="#api-generator">API · Generador</a>
+    <a href="#api-stats">API · Estadístiques</a>
+    <a href="#api-health">API · Health</a>
+    <a href="#datamodel">Model de dades</a>
+    <a href="#dbschema">Esquema SQL</a>
+
+    <div class="sidebar-section">Frontend</div>
+    <a href="#frontend-modules">Mòduls JS</a>
+    <a href="#i18n">Internacionalització</a>
+
+    <div class="sidebar-section">Observabilitat</div>
+    <a href="#probes">Probes / Microserveis</a>
+    <a href="#obs-routes">Rutes nginx obs</a>
+
+    <div class="sidebar-section">Desplegament</div>
+    <a href="#docker">Docker Compose</a>
+    <a href="#production">Producció</a>
+    <a href="#systemd">Serveis systemd</a>
+  </nav>
+</aside>
+
+<!-- ── Content ── -->
+<main class="content">
+
+  <!-- HERO -->
+  <section class="hero" id="overview">
+    <h1>⚡ Order Simulator App</h1>
+    <p class="hero-subtitle">Simulador d'ordres de productes en temps real · HPE Tech Experience Center (TEC) · Barcelona</p>
+    <div class="hero-meta">
+      <span class="hero-badge fe">nginx · HTML5 · JS · Chart.js</span>
+      <span class="hero-badge be">FastAPI · Python 3.12 · Gunicorn</span>
+      <span class="hero-badge db">PostgreSQL 16 · SQLAlchemy</span>
+      <span class="hero-badge obs">📡 Observability Console</span>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- OVERVIEW -->
+  <section class="section">
+    <p><strong>Order Simulator App</strong> és una aplicació full-stack que genera ordres de venda aleatòries entre clients i productes, les emmagatzema a PostgreSQL, i les visualitza amb gràfiques interactives en temps real.</p>
+    <p>A més de l'aplicació principal, inclou una <strong>Consola d'Observabilitat</strong> independent que monitora l'estat de tots els serveis de la infraestructura i integra les dades de protecció <strong>Zerto</strong> via API.</p>
+
+    <div class="card-grid-3">
+      <div class="card">
+        <h3>🖥 Frontend</h3>
+        <p>SPA en JavaScript pur sense frameworks. Inclou selector de rang temporal estil Grafana, suport multiidioma (CA/ES/EN) i tema clar/fosc.</p>
+        <div><span class="chip fe">nginx</span><span class="chip grey">Chart.js</span><span class="chip grey">JWT</span></div>
+      </div>
+      <div class="card">
+        <h3>⚙️ Backend</h3>
+        <p>API REST amb 40+ endpoints. Inclou generador automàtic d'ordres amb model probabilístic de franja horària (Poisson).</p>
+        <div><span class="chip be">FastAPI</span><span class="chip be">Gunicorn</span><span class="chip be">SQLAlchemy</span></div>
+      </div>
+      <div class="card">
+        <h3>📡 Observabilitat</h3>
+        <p>3 microserveis independents (db-probe, sys-probe, zerto-probe) monitorats des d'un dashboard central amb refresh automàtic cada 5 s.</p>
+        <div><span class="chip obs">db-probe</span><span class="chip obs">sys-probe</span><span class="chip probe">zerto-probe</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="section" id="architecture">
+    <h2>Arquitectura</h2>
+    <p>Tota la comunicació entre components passa a través dels proxies nginx. El browser mai contacta directament els serveis de backend.</p>
+
+    <div class="arch">
+      <div class="arch-node">
+        <div class="arch-box obs">
+          <div class="icon">🌐</div>
+          <div class="name">Browser</div>
+          <div class="sub">Usuari final</div>
+        </div>
+      </div>
+      <div class="arch-arrow">
+        <div class="line"></div>
+        <div class="tip">→</div>
+        <div class="label">HTTP :80</div>
+      </div>
+      <div class="arch-node">
+        <div class="arch-box fe">
+          <div class="icon">🖥</div>
+          <div class="name">Frontend</div>
+          <div class="sub">frontend.tec.bcn</div>
+          <div class="port">nginx :80</div>
+        </div>
+      </div>
+      <div class="arch-arrow">
+        <div class="line"></div>
+        <div class="tip">→</div>
+        <div class="label">/api/ proxy</div>
+      </div>
+      <div class="arch-node">
+        <div class="arch-box be">
+          <div class="icon">⚙️</div>
+          <div class="name">Backend</div>
+          <div class="sub">backend.tec.bcn</div>
+          <div class="port">FastAPI :8000</div>
+        </div>
+      </div>
+      <div class="arch-arrow">
+        <div class="line"></div>
+        <div class="tip">→</div>
+        <div class="label">SQL psycopg2</div>
+      </div>
+      <div class="arch-node">
+        <div class="arch-box db">
+          <div class="icon">🗄</div>
+          <div class="name">Database</div>
+          <div class="sub">postgresql.tec.bcn</div>
+          <div class="port">PostgreSQL :5432</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Consola d'Observabilitat</h3>
+    <div class="arch">
+      <div class="arch-node">
+        <div class="arch-box obs">
+          <div class="icon">🌐</div>
+          <div class="name">Browser</div>
+          <div class="sub">Operador</div>
+        </div>
+      </div>
+      <div class="arch-arrow">
+        <div class="line"></div>
+        <div class="tip">→</div>
+        <div class="label">HTTP :80</div>
+      </div>
+      <div class="arch-node">
+        <div class="arch-box obs">
+          <div class="icon">📡</div>
+          <div class="name">Observability</div>
+          <div class="sub">obsdemo.tec.bcn</div>
+          <div class="port">nginx :80</div>
+        </div>
+      </div>
+      <div class="arch-arrow">
+        <div class="line"></div>
+        <div class="tip">→</div>
+        <div class="label">/check/* proxy</div>
+      </div>
+      <div class="arch-node" style="display:flex;flex-direction:column;gap:8px">
+        <div class="arch-box be" style="min-width:120px">
+          <div class="icon">⚙️</div>
+          <div class="name">Backend</div>
+          <div class="port">:8000</div>
+        </div>
+        <div class="arch-box probe" style="min-width:120px">
+          <div class="icon">🔍</div>
+          <div class="name">db-probe</div>
+          <div class="port">:5000</div>
+        </div>
+        <div class="arch-box probe" style="min-width:120px">
+          <div class="icon">💻</div>
+          <div class="name">sys-probe</div>
+          <div class="port">:5001 ×2</div>
+        </div>
+        <div class="arch-box probe" style="min-width:120px">
+          <div class="icon">🛡️</div>
+          <div class="name">zerto-probe</div>
+          <div class="port">:5002</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NETWORK -->
+  <section class="section" id="network">
+    <h2>Xarxa i adreces IP</h2>
+    <p>L'entorn de desenvolupament usa IPs fixes a la xarxa Docker <code>devnet (172.30.0.0/24)</code> per evitar problemes de resolució DNS al Docker Desktop de Windows.</p>
+
+    <div class="net-grid">
+      <div class="net-node fe">
+        <strong>frontend</strong>
+        <div class="ip">172.30.0.10</div>
+        <div class="port">:80 nginx</div>
+      </div>
+      <div class="net-node probe">
+        <strong>db-probe</strong>
+        <div class="ip">172.30.0.11</div>
+        <div class="port">:5000 HTTP</div>
+      </div>
+      <div class="net-node probe">
+        <strong>sys-probe-frontend</strong>
+        <div class="ip">172.30.0.12</div>
+        <div class="port">:5001 HTTP</div>
+      </div>
+      <div class="net-node probe">
+        <strong>sys-probe-db</strong>
+        <div class="ip">172.30.0.13</div>
+        <div class="port">:5001 HTTP</div>
+      </div>
+      <div class="net-node probe">
+        <strong>zerto-probe</strong>
+        <div class="ip">172.30.0.14</div>
+        <div class="port">:5002 HTTP</div>
+      </div>
+      <div class="net-node obs">
+        <strong>observability</strong>
+        <div class="ip">172.30.0.20</div>
+        <div class="port">:80 nginx</div>
+      </div>
+      <div class="net-node be">
+        <strong>backend</strong>
+        <div class="ip">172.30.0.30</div>
+        <div class="port">:8000 Gunicorn</div>
+      </div>
+      <div class="net-node db">
+        <strong>db (PostgreSQL)</strong>
+        <div class="ip">172.30.0.40</div>
+        <div class="port">:5432 PostgreSQL</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>externalnet</strong> — xarxa Docker secundària exclusiva del <strong>zerto-probe</strong> per accedir als ZVM Zerto a la xarxa <code>10.20.0.x</code> (ZVM TEC: 10.20.0.152, ZVM Recovery: 10.20.0.121).
+    </div>
+
+    <h3>Producció (hostnames DNS)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Servei</th><th>Hostname</th><th>Port exposa</th><th>VM</th></tr></thead>
+        <tbody>
+          <tr><td>Frontend</td><td><code>frontend.tec.bcn</code></td><td>80</td><td>frontend</td></tr>
+          <tr><td>Backend API</td><td><code>backend.tec.bcn</code></td><td>8000</td><td>backend</td></tr>
+          <tr><td>Database</td><td><code>postgresql.tec.bcn</code></td><td>5432 (intern)</td><td>postgresql</td></tr>
+          <tr><td>Observability</td><td><code>obsdemo.tec.bcn</code></td><td>80</td><td>obsdemo</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- FILE TREE -->
+  <section class="section" id="filetree">
+    <h2>Estructura de fitxers</h2>
+    <div class="filetree">
+<span class="dir">Zerto/</span>
+├── <span class="file">docker-compose.yml</span>     <span class="desc">— Tots els serveis dev amb IPs fixes</span>
+├── <span class="file">README.md</span>
+│
+├── <span class="dir">backend/</span>                <span class="badge">VM backend.tec.bcn</span>
+│   ├── <span class="file">Dockerfile</span>          <span class="desc">— python:3.12-slim · gunicorn + uvicorn</span>
+│   ├── <span class="file">main.py</span>             <span class="desc">— 895 línies · totes les rutes FastAPI</span>
+│   ├── <span class="file">models.py</span>           <span class="desc">— Models SQLAlchemy (User, Client, Product, Order)</span>
+│   ├── <span class="file">schemas.py</span>          <span class="desc">— Pydantic schemas request/response</span>
+│   ├── <span class="file">database.py</span>         <span class="desc">— Engine SQLAlchemy, SessionLocal, Base</span>
+│   ├── <span class="file">auth.py</span>             <span class="desc">— JWT (HS256), bcrypt, middleware</span>
+│   ├── <span class="file">gunicorn.conf.py</span>    <span class="desc">— 1 worker, classe UvicornWorker</span>
+│   └── <span class="file">requirements.txt</span>
+│
+├── <span class="dir">frontend/</span>               <span class="badge">VM frontend.tec.bcn</span>
+│   ├── <span class="file">Dockerfile</span>          <span class="desc">— nginx:alpine</span>
+│   ├── <span class="file">nginx.conf</span>          <span class="desc">— proxy /api/ → 172.30.0.30:8000 · timeout 2s/10s</span>
+│   ├── <span class="file">index.html</span>          <span class="desc">— SPA entry point</span>
+│   ├── <span class="dir">css/</span>
+│   │   └── <span class="file">style.css</span>       <span class="desc">— Tema dark/light · variables CSS · responsive</span>
+│   └── <span class="dir">js/</span>
+│       ├── <span class="file">api.js</span>          <span class="desc">— Fetch wrapper + tots els mètodes API</span>
+│       ├── <span class="file">app.js</span>          <span class="desc">— Lògica principal · auth · TRP factory</span>
+│       ├── <span class="file">charts.js</span>       <span class="desc">— Instàncies Chart.js · helpers de visualització</span>
+│       ├── <span class="file">main.js</span>         <span class="desc">— Health check mini-script</span>
+│       └── <span class="file">i18n.js</span>         <span class="desc">— Traduccions CA/ES/EN (~90+ claus)</span>
+│
+├── <span class="dir">observability/</span>          <span class="badge">VM obsdemo.tec.bcn</span>
+│   ├── <span class="file">Dockerfile</span>          <span class="desc">— nginx:alpine · barreja frontend + obs-specific</span>
+│   ├── <span class="file">nginx.conf</span>          <span class="desc">— proxy /api/ i /check/* → IPs fixes 172.30.0.x</span>
+│   ├── <span class="file">index.html</span>          <span class="desc">— Dashboard observabilitat (Orders / Systems / Zerto / Sobre)</span>
+│   ├── <span class="dir">js/</span>
+│   │   └── <span class="file">app.js</span>          <span class="desc">— UI consola · refresh 5s · Zerto 30s · infra guards</span>
+│   ├── <span class="dir">db-probe/</span>
+│   │   ├── <span class="file">main.py</span>         <span class="desc">— ThreadingHTTPServer :5000 · psycopg2</span>
+│   │   └── <span class="file">requirements.txt</span>
+│   ├── <span class="dir">sys-probe/</span>
+│   │   ├── <span class="file">main.py</span>         <span class="desc">— ThreadingHTTPServer :5001 · psutil</span>
+│   │   └── <span class="file">requirements.txt</span>
+│   └── <span class="dir">zerto-probe/</span>
+│       ├── <span class="file">main.py</span>         <span class="desc">— ThreadingHTTPServer :5002 · client ZVM API · cache 20s</span>
+│       └── <span class="file">requirements.txt</span>
+│
+└── <span class="dir">deploy/</span>                 <span class="badge">Producció</span>
+    ├── <span class="file">deploy.sh</span>           <span class="desc">— SSH deploy → backend / frontend / observability</span>
+    ├── <span class="file">setup-sysprobe.sh</span>   <span class="desc">— Instal·la sys-probe a un servidor (frontend o postgresql)</span>
+    ├── <span class="file">nginx.prod.conf</span>     <span class="desc">— nginx frontend producció (frontend.tec.bcn)</span>
+    ├── <span class="file">nginx.observability.conf</span> <span class="desc">— nginx observability producció (obsdemo.tec.bcn)</span>
+    ├── <span class="file">zerto-backend.service</span>
+    ├── <span class="file">zerto-dbprobe.service</span>
+    ├── <span class="file">zerto-sysprobe.service</span>
+    └── <span class="file">zerto-zertoprobe.service</span>
+    </div>
+  </section>
+
+  <!-- API AUTH -->
+  <section class="section" id="api-auth">
+    <h2>API · Autenticació</h2>
+    <p>Autenticació basada en <strong>JWT (HS256)</strong> via Bearer token. El token s'obté amb <code>POST /auth/login</code> i s'ha d'incloure a la capçalera <code>Authorization: Bearer &lt;token&gt;</code> en totes les peticions protegides.</p>
+    <div class="ep-block">
+      <div class="ep-block-header">Auth endpoints</div>
+      <div class="ep-row">
+        <span><span class="method POST">POST</span></span>
+        <span class="ep-path">/auth/login</span>
+        <span class="ep-desc">Login amb usuari/contrasenya (form-encoded). Retorna token JWT + info usuari.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/auth/me</span>
+        <span class="ep-desc">Informació de l'usuari autenticat.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/auth/users</span>
+        <span class="ep-desc">Llista tots els usuaris del sistema.</span>
+        <span class="ep-auth adm">admin</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method POST">POST</span></span>
+        <span class="ep-path">/auth/users</span>
+        <span class="ep-desc">Crea un nou usuari. Body: <code>{ username, password, is_admin? }</code></span>
+        <span class="ep-auth adm">admin</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method PUT">PUT</span></span>
+        <span class="ep-path">/auth/users/{id}</span>
+        <span class="ep-desc">Actualitza password i/o rol d'un usuari.</span>
+        <span class="ep-auth adm">admin</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method DELETE">DELETE</span></span>
+        <span class="ep-path">/auth/users/{id}</span>
+        <span class="ep-desc">Elimina un usuari. No pot eliminar el propi compte.</span>
+        <span class="ep-auth adm">admin</span>
+      </div>
+    </div>
+    <pre><code><span class="cm"># Exemple login</span>
+curl -X POST http://backend.tec.bcn:8000/auth/login \
+  -d "username=admin&password=admin"
+
+<span class="cm"># Resposta</span>
+{
+  <span class="str">"access_token"</span>: <span class="str">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>,
+  <span class="str">"token_type"</span>: <span class="str">"bearer"</span>,
+  <span class="str">"username"</span>: <span class="str">"admin"</span>,
+  <span class="str">"is_admin"</span>: <span class="kw">true</span>
+}</code></pre>
+  </section>
+
+  <!-- API CLIENTS -->
+  <section class="section" id="api-clients">
+    <h2>API · Clients</h2>
+    <div class="ep-block">
+      <div class="ep-block-header">Client endpoints</div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/clients</span>
+        <span class="ep-desc">Llista tots els clients ordenats per nom.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method POST">POST</span></span>
+        <span class="ep-path">/clients</span>
+        <span class="ep-desc">Crea client. Body: <code>{ name, email }</code>. Error 400 si l'email ja existeix.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method PUT">PUT</span></span>
+        <span class="ep-path">/clients/{id}</span>
+        <span class="ep-desc">Actualitza nom i email d'un client.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method DELETE">DELETE</span></span>
+        <span class="ep-path">/clients/{id}</span>
+        <span class="ep-desc">Elimina un client (les seves ordres s'eliminen en cascada).</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method DELETE">DELETE</span></span>
+        <span class="ep-path">/clients/batch</span>
+        <span class="ep-desc">Eliminació massiva. Body: <code>{ ids: [1, 2, 3] }</code>. Retorna <code>{ deleted: N }</code>.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method POST">POST</span></span>
+        <span class="ep-path">/clients/import</span>
+        <span class="ep-desc">Importació CSV (multipart). Columnes: <code>name, email</code>. Salta duplicats per email.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- API PRODUCTS -->
+  <section class="section" id="api-products">
+    <h2>API · Productes</h2>
+    <div class="ep-block">
+      <div class="ep-block-header">Product endpoints</div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/products</span>
+        <span class="ep-desc">Llista tots els productes ordenats per nom.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method POST">POST</span></span>
+        <span class="ep-path">/products</span>
+        <span class="ep-desc">Crea producte. Body: <code>{ name, price }</code>.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method PUT">PUT</span></span>
+        <span class="ep-path">/products/{id}</span>
+        <span class="ep-desc">Actualitza nom i preu d'un producte.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method DELETE">DELETE</span></span>
+        <span class="ep-path">/products/{id}</span>
+        <span class="ep-desc">Elimina un producte.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method DELETE">DELETE</span></span>
+        <span class="ep-path">/products/batch</span>
+        <span class="ep-desc">Eliminació massiva. Body: <code>{ ids: [...] }</code>.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method POST">POST</span></span>
+        <span class="ep-path">/products/import</span>
+        <span class="ep-desc">Importació CSV. Columnes: <code>name, price</code>. Valida preu > 0.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- API ORDERS -->
+  <section class="section" id="api-orders">
+    <h2>API · Ordres</h2>
+    <div class="ep-block">
+      <div class="ep-block-header">Order endpoints</div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/orders</span>
+        <span class="ep-desc">Llistat paginat. Params: <code>limit, offset, start, end</code> (ISO 8601). Retorna <code>{ items, total }</code>.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/orders/ids</span>
+        <span class="ep-desc">Llista d'IDs que compleixen el rang de dates. Útil per selecció massiva.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method POST">POST</span></span>
+        <span class="ep-path">/orders</span>
+        <span class="ep-desc">Crea ordre. Body: <code>{ client_id, product_id, quantity }</code>. Calcula <code>unit_price</code> i <code>total_price</code> automàticament.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method DELETE">DELETE</span></span>
+        <span class="ep-path">/orders/{id}</span>
+        <span class="ep-desc">Elimina una ordre.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method DELETE">DELETE</span></span>
+        <span class="ep-path">/orders/batch</span>
+        <span class="ep-desc">Eliminació massiva per IDs.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method DELETE">DELETE</span></span>
+        <span class="ep-path">/orders</span>
+        <span class="ep-desc">Reinicia la simulació: elimina totes les ordres. Retorna <code>{ deleted: N }</code>.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- API GENERATOR -->
+  <section class="section" id="api-generator">
+    <h2>API · Generador automàtic</h2>
+    <p>El generador executa un thread Python que crea ordres aleatòries seguint un <strong>model de Poisson modulat per franja horària</strong>. Entre les 22h i les 6h no genera ordres. El pic de generació és al voltant de les 10h i 15h.</p>
+    <div class="ep-block">
+      <div class="ep-block-header">Generator endpoints</div>
+      <div class="ep-row">
+        <span><span class="method POST">POST</span></span>
+        <span class="ep-path">/generator/start</span>
+        <span class="ep-desc">Inicia el generador. Body opcional: <code>{ interval: 2.0 }</code> (segons entre cicles). Mínim 0.5s.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method POST">POST</span></span>
+        <span class="ep-path">/generator/stop</span>
+        <span class="ep-desc">Atura el generador. L'estat es persisteix a <code>generator_state.json</code>.</span>
+        <span class="ep-auth priv">auth</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/generator/status</span>
+        <span class="ep-desc">Retorna <code>{ running, interval }</code>. Endpoint <strong>async</strong> — sempre respon fins i tot amb el thread pool exhaurit.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+    </div>
+    <div class="note">
+      <strong>Model Poisson:</strong> cada cicle es genera un nombre d'ordres <code>k ~ Poisson(λ)</code> on <code>λ = weight × 2.0</code> i <code>weight ∈ [0.03, 1.0]</code> en funció de la hora del dia.
+    </div>
+  </section>
+
+  <!-- API STATS -->
+  <section class="section" id="api-stats">
+    <h2>API · Estadístiques</h2>
+    <p>Tots els endpoints d'estadístiques accepten els paràmetres opcionals <code>start</code> i <code>end</code> en format ISO 8601 (e.g. <code>2026-04-01T00:00:00Z</code>).</p>
+    <div class="ep-block">
+      <div class="ep-block-header">Stats endpoints — tots públics (no requereixen autenticació)</div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/stats/range</span>
+        <span class="ep-desc">Min/max <code>created_at</code> de les ordres. Usada per inicialitzar el selector de rang.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/stats/summary</span>
+        <span class="ep-desc">KPIs: total ordres, facturació, clients, productes. Inclou sèrie acumulada i darrera ordre.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/stats/timeline</span>
+        <span class="ep-desc">Sèrie temporal amb granularitat automàtica: ≤3h→minut, ≤24h→10min, ≤7d→hora, &gt;7d→dia. Sense buits.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/stats/daily</span>
+        <span class="ep-desc">Agregats per dia natural. Tots els dies del rang estan presents (zeros si no hi ha ordres).</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/stats/hourly</span>
+        <span class="ep-desc">Distribució per franja horària 0–23h. Inclou <code>avg_count</code> i <code>avg_revenue</code> per dia.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/stats/products</span>
+        <span class="ep-desc">Estadístiques per producte: quantitat venuda i facturació total al rang.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- API HEALTH -->
+  <section class="section" id="api-health">
+    <h2>API · Health &amp; Sistema</h2>
+    <div class="ep-block">
+      <div class="ep-block-header">Health endpoints — tots públics i async (no bloquegen el thread pool)</div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/ping</span>
+        <span class="ep-desc">Ping bàsic sense DB. <strong>async def</strong> → respon sempre fins i tot quan la DB és pausada i el thread pool és exhaurit.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/db/ping</span>
+        <span class="ep-desc">Latència de la DB. Retorna <code>{ status, latency_ms }</code> o 503 si la DB no respon.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/health</span>
+        <span class="ep-desc">Salut completa: backend + DB. Retorna <code>{ status, database, db_latency_ms }</code>.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+      <div class="ep-row">
+        <span><span class="method GET">GET</span></span>
+        <span class="ep-path">/system/metrics</span>
+        <span class="ep-desc"><strong>async def</strong> → CPU (<code>interval=None</code>), RAM, disc, uptime. Mesures del servidor backend.</span>
+        <span class="ep-auth pub">públic</span>
+      </div>
+    </div>
+    <div class="warn">
+      <strong>Resiliència:</strong> <code>/ping</code>, <code>/generator/status</code> i <code>/system/metrics</code> són <code>async def</code> — no ocupen el thread pool de Gunicorn. Quan la DB és pausada i les queries de <code>/stats/*</code> pengen indefinidament exhaurint el pool, aquests endpoints continuen responent.
+    </div>
+  </section>
+
+  <!-- DATA MODEL -->
+  <section class="section" id="datamodel">
+    <h2>Model de dades</h2>
+    <p>Quatre entitats principals gestionades per <strong>SQLAlchemy ORM</strong>. L'eliminació d'un client o producte elimina les seves ordres en cascada (FK amb <code>ON DELETE CASCADE</code>).</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>🧑 User</h3>
+        <p>Gestió d'accés a l'aplicació. Hi ha sempre un usuari admin per defecte creat a l'arrencada si no n'hi ha cap.</p>
+        <div><span class="chip grey">id</span><span class="chip grey">username</span><span class="chip grey">hashed_password</span><span class="chip grey">is_admin</span><span class="chip grey">created_at</span></div>
+      </div>
+      <div class="card">
+        <h3>🏢 Client</h3>
+        <p>Empresa compradora. L'email és únic al sistema. Té relació 1→N amb ordres.</p>
+        <div><span class="chip grey">id</span><span class="chip grey">name</span><span class="chip grey">email</span><span class="chip grey">created_at</span></div>
+      </div>
+      <div class="card">
+        <h3>📦 Product</h3>
+        <p>Producte a la venda. El preu (<code>NUMERIC(10,2)</code>) es copia a l'ordre en el moment de la venda.</p>
+        <div><span class="chip grey">id</span><span class="chip grey">name</span><span class="chip grey">price</span><span class="chip grey">created_at</span></div>
+      </div>
+      <div class="card">
+        <h3>📋 Order</h3>
+        <p>Venda. Inclou <code>unit_price</code> (snapshot del preu) i <code>total_price</code> calculat. FK a client i producte.</p>
+        <div><span class="chip grey">id</span><span class="chip grey">client_id</span><span class="chip grey">product_id</span><span class="chip grey">quantity</span><span class="chip grey">unit_price</span><span class="chip grey">total_price</span><span class="chip grey">created_at</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DB SCHEMA -->
+  <section class="section" id="dbschema">
+    <h2>Esquema SQL</h2>
+
+    <div class="db-table">
+      <div class="db-table-header"><span class="icon">🧑</span> users</div>
+      <div class="db-col"><span class="col-name pk">id</span><span class="col-type">INTEGER</span><span class="col-note">PK · auto-increment</span></div>
+      <div class="db-col"><span class="col-name uq">username</span><span class="col-type">VARCHAR(50)</span><span class="col-note">UNIQUE · NOT NULL · indexed</span></div>
+      <div class="db-col"><span class="col-name">hashed_password</span><span class="col-type">VARCHAR(200)</span><span class="col-note">bcrypt hash · NOT NULL</span></div>
+      <div class="db-col"><span class="col-name">is_admin</span><span class="col-type">BOOLEAN</span><span class="col-note">DEFAULT false</span></div>
+      <div class="db-col"><span class="col-name">created_at</span><span class="col-type">TIMESTAMPTZ</span><span class="col-note">server_default = now()</span></div>
+    </div>
+
+    <div class="db-table">
+      <div class="db-table-header"><span class="icon">🏢</span> clients</div>
+      <div class="db-col"><span class="col-name pk">id</span><span class="col-type">INTEGER</span><span class="col-note">PK · auto-increment</span></div>
+      <div class="db-col"><span class="col-name">name</span><span class="col-type">VARCHAR(100)</span><span class="col-note">NOT NULL</span></div>
+      <div class="db-col"><span class="col-name uq">email</span><span class="col-type">VARCHAR(100)</span><span class="col-note">UNIQUE · NOT NULL</span></div>
+      <div class="db-col"><span class="col-name">created_at</span><span class="col-type">TIMESTAMPTZ</span><span class="col-note">server_default = now()</span></div>
+    </div>
+
+    <div class="db-table">
+      <div class="db-table-header"><span class="icon">📦</span> products</div>
+      <div class="db-col"><span class="col-name pk">id</span><span class="col-type">INTEGER</span><span class="col-note">PK · auto-increment</span></div>
+      <div class="db-col"><span class="col-name">name</span><span class="col-type">VARCHAR(100)</span><span class="col-note">NOT NULL</span></div>
+      <div class="db-col"><span class="col-name">price</span><span class="col-type">NUMERIC(10,2)</span><span class="col-note">NOT NULL</span></div>
+      <div class="db-col"><span class="col-name">created_at</span><span class="col-type">TIMESTAMPTZ</span><span class="col-note">server_default = now()</span></div>
+    </div>
+
+    <div class="db-table">
+      <div class="db-table-header"><span class="icon">📋</span> orders</div>
+      <div class="db-col"><span class="col-name pk">id</span><span class="col-type">INTEGER</span><span class="col-note">PK · auto-increment</span></div>
+      <div class="db-col"><span class="col-name fk">client_id</span><span class="col-type">INTEGER</span><span class="col-note">FK → clients.id (ON DELETE CASCADE)</span></div>
+      <div class="db-col"><span class="col-name fk">product_id</span><span class="col-type">INTEGER</span><span class="col-note">FK → products.id (ON DELETE CASCADE)</span></div>
+      <div class="db-col"><span class="col-name">quantity</span><span class="col-type">INTEGER</span><span class="col-note">NOT NULL · DEFAULT 1</span></div>
+      <div class="db-col"><span class="col-name">unit_price</span><span class="col-type">NUMERIC(10,2)</span><span class="col-note">Snapshot del preu en el moment de la venda</span></div>
+      <div class="db-col"><span class="col-name">total_price</span><span class="col-type">NUMERIC(10,2)</span><span class="col-note">= quantity × unit_price</span></div>
+      <div class="db-col"><span class="col-name">created_at</span><span class="col-type">TIMESTAMPTZ</span><span class="col-note">server_default = now()</span></div>
+    </div>
+
+    <h3>Seed data (carregada a l'arrencada si les taules són buides)</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h4>Clients (5)</h4>
+        <p>Acme Corp · Globex Inc · Initech · Umbrella Ltd · Hooli</p>
+      </div>
+      <div class="card">
+        <h4>Productes (6)</h4>
+        <p>Laptop Pro (1299.99) · Wireless Mouse (29.99) · Mechanical Keyboard (149.99) · 4K Monitor (599.99) · USB-C Hub (49.99) · Webcam HD (89.99)</p>
+      </div>
+    </div>
+
+    <h3>Connexió SQLAlchemy</h3>
+    <pre><code><span class="fn">create_engine</span>(DATABASE_URL,
+    pool_timeout=<span class="nb">5</span>,
+    pool_pre_ping=<span class="kw">True</span>,
+    connect_args={
+        <span class="str">"connect_timeout"</span>: <span class="nb">5</span>,          <span class="cm"># TCP timeout psycopg2</span>
+        <span class="str">"options"</span>: <span class="str">"-c statement_timeout=5000"</span>,  <span class="cm"># PG kill query > 5s</span>
+    },
+)</code></pre>
+  </section>
+
+  <!-- FRONTEND MODULES -->
+  <section class="section" id="frontend-modules">
+    <h2>Mòduls JavaScript (Frontend)</h2>
+    <div class="service-grid">
+      <div class="service-card">
+        <h3>api.js</h3>
+        <div class="svc-meta"><span class="svc-tag">109 línies</span><span class="svc-tag">fetch wrapper</span></div>
+        <p>Centralitza totes les crides HTTP. Gestiona el token JWT (localStorage), respon als 401 fent logout automàtic i exposa l'objecte <code>api</code> amb mètodes per a auth, clients, productes, ordres, stats i generador.</p>
+        <p>La funció <code>login()</code> llança errors tipats: <code>network_error</code>, <code>credentials_error</code>, <code>backend_error</code>.</p>
+      </div>
+      <div class="service-card">
+        <h3>app.js</h3>
+        <div class="svc-meta"><span class="svc-tag">lògica principal</span><span class="svc-tag">auth</span><span class="svc-tag">TRP</span></div>
+        <p>Inicialitza l'aplicació, gestiona el login/logout, la navegació per pestanyes i el tema. Conté la <strong>Time Range Picker (TRP) Factory</strong> <code>makeTRP(ids, onChange)</code> que crea selectors de rang temporal independents amb presets (15m–30d) i rang personalitzat.</p>
+        <p>Detecta <code>localhost</code> per mostrar el badge 🐳 dev i modificar el <code>document.title</code>.</p>
+      </div>
+      <div class="service-card">
+        <h3>charts.js</h3>
+        <div class="svc-meta"><span class="svc-tag">Chart.js 4.4</span><span class="svc-tag">visualització</span></div>
+        <p>Instàncies i helpers de Chart.js. Implementa: paleta de 8 colors, <strong>coloració per franja horària</strong> (blau nit, taronja alba, ambre dinar, verd hores laborables), marcadors de dia en gràfiques multi-dia, i alineació precisa dels eixos entre gràfiques.</p>
+      </div>
+      <div class="service-card">
+        <h3>i18n.js</h3>
+        <div class="svc-meta"><span class="svc-tag">CA · ES · EN</span><span class="svc-tag">~90+ claus</span></div>
+        <p>Sistema de traducció. Les claus s'apliquen via atributs <code>data-i18n</code> al DOM. Suporta interpolació de variables amb <code>ti(key, {n: 5})</code>. El canvi d'idioma persisteix a localStorage.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- I18N -->
+  <section class="section" id="i18n">
+    <h2>Internacionalització</h2>
+    <p>L'aplicació suporta tres idiomes configurables per l'usuari. La llengua per defecte és el <strong>català (CA)</strong>.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Idioma</th><th>Codi</th><th>Cobertura</th></tr></thead>
+        <tbody>
+          <tr><td>Català</td><td><code>ca</code></td><td>Complet (idioma principal)</td></tr>
+          <tr><td>Castellà</td><td><code>es</code></td><td>Complet</td></tr>
+          <tr><td>Anglès</td><td><code>en</code></td><td>Complet</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      El fitxer <code>i18n.js</code> és compartit entre el frontend principal i la consola d'observabilitat. Les claus específiques de la consola comencen per <code>obs_about_*</code>.
+    </div>
+  </section>
+
+  <!-- PROBES -->
+  <section class="section" id="probes">
+    <h2>Probes / Microserveis d'Observabilitat</h2>
+
+    <div class="service-grid">
+      <div class="service-card">
+        <h3>🔍 db-probe</h3>
+        <div class="svc-meta"><span class="svc-tag">port 5000</span><span class="svc-tag">psycopg2</span><span class="svc-tag">ThreadingHTTPServer</span></div>
+        <p>Comprova l'estat de PostgreSQL <strong>independentment del backend</strong>. Mesura temps de connexió TCP i latència de query SQL per separat.</p>
+        <div class="table-wrap" style="margin-top:10px">
+          <table>
+            <thead><tr><th>Endpoint</th><th>Retorna</th></tr></thead>
+            <tbody>
+              <tr><td><code>GET /db/ping</code></td><td><code>{ status, tcp_ms, sql_ms }</code></td></tr>
+              <tr><td><code>GET /db/metrics</code></td><td><code>{ total_connections, active_connections, max_connections, connections_percent, db_size_mb, cache_hit_ratio, transactions }</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="service-card">
+        <h3>💻 sys-probe</h3>
+        <div class="svc-meta"><span class="svc-tag">port 5001</span><span class="svc-tag">psutil</span><span class="svc-tag">ThreadingHTTPServer</span></div>
+        <p>Exposa mètriques del sistema operatiu del servidor on s'executa. S'instal·la a <strong>frontend.tec.bcn</strong> i <strong>postgresql.tec.bcn</strong> com a servei systemd.</p>
+        <div class="table-wrap" style="margin-top:10px">
+          <table>
+            <thead><tr><th>Endpoint</th><th>Retorna</th></tr></thead>
+            <tbody>
+              <tr><td><code>GET /sys/metrics</code></td><td><code>{ cpu_percent, mem_total_mb, mem_used_mb, mem_percent, disk_total_gb, disk_used_gb, disk_percent, uptime_s }</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="service-grid">
+      <div class="service-card" style="grid-column:span 2">
+        <h3>🛡️ zerto-probe</h3>
+        <div class="svc-meta"><span class="svc-tag">port 5002</span><span class="svc-tag">stdlib only</span><span class="svc-tag">cache 20s</span><span class="svc-tag">dual ZVM</span></div>
+        <p>Agrega dades de dos <strong>Zerto Virtual Managers (ZVM)</strong> via API REST. Autentificació multi-mètode (OAuth2 client_credentials → password grant → Basic auth). Les dades es fan cache 20 s per no sobrecarregar els ZVMs. Detecta possibles atacs ransomware via sub_status, events i alertes.</p>
+        <div class="card-grid" style="margin-top:12px">
+          <div>
+            <h4>Dades recollides per ZVM</h4>
+            <ul style="color:var(--text-muted);font-size:0.8rem;padding-left:18px;line-height:1.8">
+              <li>VPG: nom, estat, sub_estat, RPO, historial, failsafe, IOPs, storage</li>
+              <li>VMs: nom, estat, RPO, storage, journal, IOPs</li>
+              <li>Alertes: nivell, descripció, entitat, estat</li>
+              <li>Events: descripció, hora, tipus, categoria, lloc, usuari</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Variables d'entorn ZVM</h4>
+            <pre style="margin:0"><code>ZVM1_HOST=10.20.0.152
+ZVM1_CLIENT_ID=grafana-client
+ZVM1_CLIENT_SECRET=...
+ZVM2_HOST=10.20.0.121
+ZVM_VPG_NAME=ResilienceApp
+SCRAPE_SPEED=20</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="warn">
+      <strong>ThreadingHTTPServer:</strong> tots els probes usen <code>ThreadingHTTPServer</code> (no l'<code>HTTPServer</code> simple) per evitar que una petició lenta (e.g. query SQL que penja) bloquegi les peticions posteriors.
+    </div>
+  </section>
+
+  <!-- OBS ROUTES -->
+  <section class="section" id="obs-routes">
+    <h2>Rutes nginx Observabilitat</h2>
+    <p>La consola fa proxy de totes les comprovacions a través del seu propi nginx per evitar CORS i centralitzar les rutes. Cada <code>/check/</code> apunta a un servei diferent.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Path nginx</th><th>Destí</th><th>Timeout connect</th><th>Timeout read</th><th>Usada per</th></tr></thead>
+        <tbody>
+          <tr><td><code>/api/</code></td><td>backend :8000</td><td>2s</td><td>10s</td><td>Pestanya Orders</td></tr>
+          <tr><td><code>/check/frontend/</code></td><td>frontend :80</td><td>2s</td><td>5s</td><td>Pestanya Systems</td></tr>
+          <tr><td><code>/check/db/</code></td><td>db-probe :5000</td><td>2s</td><td>5s</td><td>Pestanya Systems</td></tr>
+          <tr><td><code>/check/frontend-sys/</code></td><td>sys-probe-frontend :5001</td><td>2s</td><td>5s</td><td>Pestanya Systems</td></tr>
+          <tr><td><code>/check/db-sys/</code></td><td>sys-probe-db :5001</td><td>2s</td><td>5s</td><td>Pestanya Systems</td></tr>
+          <tr><td><code>/check/zerto/</code></td><td>zerto-probe :5002</td><td>5s</td><td>20s</td><td>Pestanya Zerto</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      Els timeouts de connexió nginx (2s) son menors que els timeouts JavaScript (3s/AbortController) per assegurar que nginx respon <strong>sempre</strong> abans que el JS llenci l'error, evitant una condició de carrera que podia mostrar l'estat incorrecte.
+    </div>
+  </section>
+
+  <!-- DOCKER -->
+  <section class="section" id="docker">
+    <h2>Docker Compose (Entorn dev)</h2>
+    <p>L'entorn de desenvolupament s'aixeca amb <code>docker-compose up</code>. La xarxa <code>devnet</code> usa IPs fixes per evitar els problemes de resolució DNS del Docker Desktop en Windows.</p>
+    <pre><code><span class="cm"># Ports exposats a la màquina host</span>
+frontend        → localhost:3000
+observability   → localhost:3001
+backend         → localhost:8000  <span class="cm">(accés directe, normalment via /api/)</span>
+db              → localhost:5432  <span class="cm">(per a eines DB com DBeaver)</span>
+
+<span class="cm"># Amb live-reload (volums muntats):</span>
+frontend        <span class="cm">→ ./frontend:/usr/share/nginx/html</span>
+backend         <span class="cm">→ ./backend:/app  (uvicorn --reload)</span>
+observability   <span class="cm">→ ./observability/index.html i js/app.js muntats individualment</span></code></pre>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Servei</th><th>Imatge base</th><th>Port host</th><th>IP devnet</th><th>Depends on</th></tr></thead>
+        <tbody>
+          <tr><td>frontend</td><td>nginx:alpine</td><td>3000</td><td>172.30.0.10</td><td>backend</td></tr>
+          <tr><td>backend</td><td>python:3.12-slim</td><td>8000</td><td>172.30.0.30</td><td>db (healthy)</td></tr>
+          <tr><td>db</td><td>postgres:16</td><td>5432</td><td>172.30.0.40</td><td>—</td></tr>
+          <tr><td>db-probe</td><td>python:3.12-slim</td><td>—</td><td>172.30.0.11</td><td>—</td></tr>
+          <tr><td>sys-probe-frontend</td><td>python:3.12-slim</td><td>—</td><td>172.30.0.12</td><td>—</td></tr>
+          <tr><td>sys-probe-db</td><td>python:3.12-slim</td><td>—</td><td>172.30.0.13</td><td>—</td></tr>
+          <tr><td>zerto-probe</td><td>python:3.12-slim</td><td>—</td><td>172.30.0.14</td><td>—</td></tr>
+          <tr><td>observability</td><td>nginx:alpine</td><td>3001</td><td>172.30.0.20</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PRODUCTION -->
+  <section class="section" id="production">
+    <h2>Producció</h2>
+    <p>En producció, tots els serveis corren com a processos natius a VMs Ubuntu 24.04 LTS. El repositori es clona a <code>/opt/zerto/</code> i s'usa un virtualenv Python a <code>/opt/zerto/.venv/</code>.</p>
+
+    <h3>Script de desplegament</h3>
+    <pre><code><span class="cm"># Desplegar tot</span>
+./deploy/deploy.sh
+
+<span class="cm"># Desplegar un component concret</span>
+./deploy/deploy.sh backend
+./deploy/deploy.sh frontend
+./deploy/deploy.sh observability</code></pre>
+
+    <p>El script fa <code>git pull origin main</code> via SSH a cada VM, instal·la les dependències Python i reinicia els serveis systemd.</p>
+
+    <h3>Configuració nginx producció</h3>
+    <p>Els fitxers <code>nginx.prod.conf</code> i <code>nginx.observability.conf</code> s'instal·len manualment a <code>/etc/nginx/sites-available/</code> durant la posada en marxa inicial. El deploy només actualitza els fitxers estàtics i reinicia nginx amb <code>systemctl reload nginx</code>.</p>
+  </section>
+
+  <!-- SYSTEMD -->
+  <section class="section" id="systemd">
+    <h2>Serveis systemd</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Servei</th><th>VM</th><th>Usuari</th><th>WorkingDirectory</th><th>ExecStart</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>zerto-backend</code></td>
+            <td>backend.tec.bcn</td>
+            <td>adminhpe</td>
+            <td><code>/opt/zerto/backend</code></td>
+            <td><code>gunicorn main:app --config gunicorn.conf.py</code></td>
+          </tr>
+          <tr>
+            <td><code>zerto-dbprobe</code></td>
+            <td>obsdemo.tec.bcn</td>
+            <td>adminhpe</td>
+            <td><code>/opt/zerto/observability/db-probe</code></td>
+            <td><code>python main.py</code></td>
+          </tr>
+          <tr>
+            <td><code>zerto-sysprobe</code></td>
+            <td>frontend.tec.bcn<br>postgresql.tec.bcn</td>
+            <td>adminhpe</td>
+            <td><code>/opt/zerto/observability/sys-probe</code></td>
+            <td><code>python main.py</code></td>
+          </tr>
+          <tr>
+            <td><code>zerto-zertoprobe</code></td>
+            <td>obsdemo.tec.bcn</td>
+            <td>www-data</td>
+            <td><code>/opt/zerto/observability/zerto-probe</code></td>
+            <td><code>python main.py</code> (venv propi)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Tots els serveis tenen <code>Restart=always</code> i <code>RestartSec=5</code>. Els logs es consulten amb <code>journalctl -u &lt;servei&gt; -f</code>.</p>
+
+    <pre><code><span class="cm"># Instal·lar sys-probe en un servidor nou</span>
+ssh frontend.tec.bcn <span class="str">"bash -s"</span> &lt; deploy/setup-sysprobe.sh
+
+<span class="cm"># Verificar estat de tots els serveis a obsdemo</span>
+ssh obsdemo <span class="str">"sudo systemctl status zerto-dbprobe zerto-sysprobe zerto-zertoprobe"</span></code></pre>
+  </section>
+
+  <div class="divider"></div>
+  <p style="color:var(--text-dim);font-size:0.75rem;text-align:center;padding-bottom:40px">
+    Zerto Order Simulator · HPE Tech Experience Center · Barcelona · Documentació generada el 2026-04-07
+  </p>
+
+</main>
+</div>
+
+<script>
+  // Sidebar active link tracking
+  const links = document.querySelectorAll('.sidebar-nav a');
+  const sections = Array.from(document.querySelectorAll('section[id], h2[id]'));
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.sidebar-nav a[href="#${e.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

@@ -1,9 +1,10 @@
 # Frontend VM (10.20.0.146)
 # Host nginx router: /etc/nginx/sites-available/frontend-router (see deploy/)
 #
-# Ports:  processed-meat → 8080
-#         hospital        → 8081
-#         flight-booking  → 8082  (step 3)
+# Ports:  processed-meat → 8080       hospital → 8081       flight-booking → 8082
+# Probes: sys-probe → 5001            zerto-probe → 5002
+#
+# Les consoles d'observabilitat (8090/8091/8092) corren a obsdemo.tec.bcn (10.20.0.149)
 
 services:
   processed-meat-frontend:
@@ -32,3 +33,18 @@ services:
       - "8082:80"
     environment:
       BACKEND_URL: http://10.20.0.147:8002
+
+  # ── Probes (frontend VM) ─────────────────────────────────────────────────────
+  sys-probe:
+    image: sys-probe:latest
+    container_name: sys-probe
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+
+  zerto-probe:
+    image: zerto-probe:latest
+    container_name: zerto-probe
+    restart: unless-stopped
+    ports:
+      - "5002:5002"

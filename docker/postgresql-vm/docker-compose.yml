@@ -1,8 +1,7 @@
 # PostgreSQL VM (10.20.0.148)
 #
-# Ports:  processed-meat → 5432
-#         hospital        → 5433
-#         flight-booking  → 5434  (step 3)
+# Ports:  processed-meat → 5432       hospital → 5433       flight-booking → 5434
+# Probes: db-probe per demo → 5000 / 5010 / 5020            sys-probe → 5001
 #
 # Volumes (bind mounts — accessible des del host per als scripts de demo):
 #   /data/processed-meat/postgresql  ← encrypt/restore scripts apunten aquí
@@ -69,3 +68,48 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ── DB Probes (one per demo, container name = PostgreSQL container) ──────────
+  processed-meat-db-probe:
+    image: db-probe:latest
+    container_name: processed-meat-db-probe
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://zerto:zerto@processed-meat-postgresql:5432/zerto
+    depends_on:
+      processed-meat-postgresql:
+        condition: service_healthy
+
+  hospital-db-probe:
+    image: db-probe:latest
+    container_name: hospital-db-probe
+    restart: unless-stopped
+    ports:
+      - "5010:5000"
+    environment:
+      DATABASE_URL: postgresql://hdm_user:hdm_pass_2024@hospital-postgresql:5432/hdm_db
+    depends_on:
+      hospital-postgresql:
+        condition: service_healthy
+
+  flight-booking-db-probe:
+    image: db-probe:latest
+    container_name: flight-booking-db-probe
+    restart: unless-stopped
+    ports:
+      - "5020:5000"
+    environment:
+      DATABASE_URL: postgresql://flight_app:flight_pass_2024@flight-booking-postgresql:5432/flight_booking
+    depends_on:
+      flight-booking-postgresql:
+        condition: service_healthy
+
+  # ── Sys Probe (DB VM) ────────────────────────────────────────────────────────
+  sys-probe:
+    image: sys-probe:latest
+    container_name: sys-probe
+    restart: unless-stopped
+    ports:
+      - "5001:5001"

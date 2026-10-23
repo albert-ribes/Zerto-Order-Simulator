@@ -10,4 +10,4 @@ COPY frontend/js/charts.js /usr/share/nginx/html/js/charts.js
 # Observability-specific files
 COPY observability/index.html /usr/share/nginx/html/index.html
 COPY observability/js/app.js /usr/share/nginx/html/js/app.js
-COPY observability/nginx.conf /etc/nginx/conf.d/default.conf
+COPY observability/nginx.conf.template /etc/nginx/templates/default.conf.template

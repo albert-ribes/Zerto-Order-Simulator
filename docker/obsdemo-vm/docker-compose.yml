@@ -1,0 +1,104 @@
+# ObsDemo VM (10.20.0.149)
+# Host nginx router: /etc/nginx/sites-available/obsdemo-router (see deploy/)
+#
+# Portal:   portal.tec.bcn → 8089
+# Obs:      processed-meat → 8090       hospital → 8091       flight-booking → 8092
+# DB probes (apunten a postgresql VM 10.20.0.148):
+#           processed-meat → 5000       hospital → 5010       flight-booking → 5020
+# Sys probe (mesura aquest VM): 5001
+# Zerto probe: 5002
+
+services:
+  # ── Observability consoles ───────────────────────────────────────────────────
+  processed-meat-obs:
+    image: processed-meat-obs:latest
+    container_name: processed-meat-obs
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    environment:
+      BACKEND_URL:     http://10.20.0.147:8000
+      FRONTEND_URL:    http://10.20.0.146:8080
+      DBPROBE_URL:     http://10.20.0.149:5000
+      SYSPROBE_FE_URL: http://10.20.0.146:5001
+      SYSPROBE_DB_URL: http://10.20.0.148:5001
+      ZERTOPROBE_URL:  http://10.20.0.149:5002
+
+  hospital-obs:
+    image: hospital-obs:latest
+    container_name: hospital-obs
+    restart: unless-stopped
+    ports:
+      - "8091:80"
+    environment:
+      BACKEND_URL:     http://10.20.0.147:8001
+      FRONTEND_URL:    http://10.20.0.146:8081
+      DBPROBE_URL:     http://10.20.0.149:5010
+      SYSPROBE_FE_URL: http://10.20.0.146:5001
+      SYSPROBE_DB_URL: http://10.20.0.148:5001
+      ZERTOPROBE_URL:  http://10.20.0.149:5002
+
+  flight-booking-obs:
+    image: flight-booking-obs:latest
+    container_name: flight-booking-obs
+    restart: unless-stopped
+    ports:
+      - "8092:80"
+    environment:
+      BACKEND_URL:     http://10.20.0.147:8002
+      FRONTEND_URL:    http://10.20.0.146:8082
+      DBPROBE_URL:     http://10.20.0.149:5020
+      SYSPROBE_FE_URL: http://10.20.0.146:5001
+      SYSPROBE_DB_URL: http://10.20.0.148:5001
+      ZERTOPROBE_URL:  http://10.20.0.149:5002
+
+  # ── DB Probes (connecten als PostgreSQL containers de 10.20.0.148) ────────────
+  processed-meat-db-probe:
+    image: db-probe:latest
+    container_name: processed-meat-db-probe
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://zerto:zerto@10.20.0.148:5432/zerto
+
+  hospital-db-probe:
+    image: db-probe:latest
+    container_name: hospital-db-probe
+    restart: unless-stopped
+    ports:
+      - "5010:5000"
+    environment:
+      DATABASE_URL: postgresql://hdm_user:hdm_pass_2024@10.20.0.148:5433/hdm_db
+
+  flight-booking-db-probe:
+    image: db-probe:latest
+    container_name: flight-booking-db-probe
+    restart: unless-stopped
+    ports:
+      - "5020:5000"
+    environment:
+      DATABASE_URL: postgresql://flight_app:flight_pass_2024@10.20.0.148:5434/flight_booking
+
+  # ── Portal ───────────────────────────────────────────────────────────────────
+  portal:
+    image: portal:latest
+    container_name: portal
+    restart: unless-stopped
+    ports:
+      - "8089:80"
+
+  # ── Sys Probe + Zerto Probe ───────────────────────────────────────────────────
+  sys-probe:
+    image: sys-probe:latest
+    container_name: sys-probe
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+
+  zerto-probe:
+    image: zerto-probe:latest
+    container_name: zerto-probe
+    restart: unless-stopped
+    ports:
+      - "5002:5002"

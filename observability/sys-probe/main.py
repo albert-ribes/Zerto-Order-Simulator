@@ -20,10 +20,14 @@ def sys_metrics():
             "mem_total_mb":  round(mem.total  / 1024**2),
             "mem_used_mb":   round(mem.used   / 1024**2),
             "mem_percent":   round(mem.percent, 1),
+            # aliases for clients that use ram_* / uptime_seconds naming
+            "ram_total_mb":  round(mem.total  / 1024**2),
+            "ram_used_mb":   round(mem.used   / 1024**2),
             "disk_total_gb": round(disk.total / 1024**3, 1),
             "disk_used_gb":  round(disk.used  / 1024**3, 1),
             "disk_percent":  round(disk.percent, 1),
-            "uptime_s":      uptime_s,
+            "uptime_s":        uptime_s,
+            "uptime_seconds":  uptime_s,
         }
     except Exception as e:
         return 503, {"status": "error", "detail": str(e)}
