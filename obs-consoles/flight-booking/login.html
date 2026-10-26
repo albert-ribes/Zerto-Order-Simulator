@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x2708;&#xFE0F;</text></svg>">
+<title>Flight Booking Simulator</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/login.css">
+</head>
+<body class="login-body">
+
+  <div class="login-topbar">
+    <div class="lang-switcher">
+      <button class="lang-btn lang-btn--active" data-lang="ca">CA</button>
+      <button class="lang-btn" data-lang="es">ES</button>
+      <button class="lang-btn" data-lang="pt">PT</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <button class="theme-toggle" aria-label="Cambiar tema"></button>
+  </div>
+
+  <div class="login-card">
+    <div class="brand-row">
+      <span class="brand-row__mark">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2.5 1.5V22l4-1 4 1v-1.5L13 19v-5.5l8 2.5Z"/></svg>
+      </span>
+      <span class="brand-row__title">Flight Booking Simulator</span>
+    </div>
+
+    <!-- Huecos para los logos oficiales de HPE y Zerto — ver assets/logos/README.md -->
+    <div class="partner-logos">
+      <img src="assets/logos/hpe-logo.svg" alt="HPE" onerror="this.style.display='none'">
+      <img src="assets/logos/zerto-logo.svg" alt="Zerto" onerror="this.style.display='none'">
+    </div>
+
+    <div class="login-card__eyebrow" data-i18n="login.eyebrow">Acceso</div>
+
+    <form id="loginForm" class="form">
+      <label>
+        <span data-i18n="login.username">Usuario</span>
+        <input type="text" id="username" autocomplete="username" required>
+      </label>
+
+      <label>
+        <span data-i18n="login.password">Contraseña</span>
+        <div class="password-field">
+          <input type="password" id="password" autocomplete="current-password" required>
+          <button type="button" id="togglePassword" class="password-toggle" aria-label="Mostrar contraseña">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </label>
+
+      <button type="submit" class="btn btn--primary btn--block" data-i18n="login.submit">Entrar</button>
+      <p id="loginMessage" class="form-message"></p>
+    </form>
+  </div>
+
+  <script src="js/i18n/ca.js"></script>
+  <script src="js/i18n/es.js"></script>
+  <script src="js/i18n/pt.js"></script>
+  <script src="js/i18n/en.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
