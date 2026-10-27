@@ -38,7 +38,7 @@
 }
 
 .login-card .brand-row { justify-content: center; margin-bottom: 6px; flex-direction: column; gap: 12px; }
-.login-card .brand-row__mark { width: 64px; height: 64px; border-radius: 16px; background: #f3e8ff; color: var(--primary); }
+.login-card .brand-row__mark { width: 64px; height: 64px; border-radius: 16px; background: #f0ebfe; color: var(--primary); }
 .login-card .brand-row__mark svg { width: 28px; height: 28px; }
 .login-card .brand-row__title { font-size: 17px; }
 

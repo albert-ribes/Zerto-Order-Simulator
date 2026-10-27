@@ -1,4 +1,4 @@
-:root,
+﻿:root,
 [data-theme="light"] {
   --bg: #f4f5f9;
   --surface: #ffffff;
@@ -6,8 +6,8 @@
   --border: #e5e7eb;
   --text: #1f2333;
   --text-muted: #6b7280;
-  --primary: #6d28d9;
-  --primary-dark: #5b21b6;
+  --primary: #8b5cf6;
+  --primary-dark: #7c3aed;
   --accent-green: #16a34a;
   --accent-green-bg: #dcfce7;
   --accent-red: #dc2626;

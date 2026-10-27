@@ -1,4 +1,4 @@
-/* ── Themes ────────────────────────────────────────────────────────────────── */
+﻿/* ── Themes ────────────────────────────────────────────────────────────────── */
 :root, [data-theme="dark"] {
   --bg:         #0d0d1a;
   --surface:    #13132a;
@@ -21,7 +21,7 @@
 
 /* Shared accent colours (theme-independent) */
 :root {
-  --accent:     #d4500a;
+  --accent:     #e07030;
   --accent-dim: #b83f0b;
   --success:    #10b981;
   --warning:    #f59e0b;

@@ -12,7 +12,7 @@
 .zp-hpe-logo{height:20px;width:auto;object-fit:contain;flex-shrink:0}
 .zp-tec,.zp-portal{font-size:12px;font-weight:700;color:#172324}
 .zp-sep{color:#879391;font-size:12px}
-.zp-tagline{position:fixed;top:52px;left:0;right:0;z-index:9999;height:28px;background:#1a5fb4;color:#fff;display:flex;align-items:center;gap:10px;padding:0 20px;font-family:"Trebuchet MS","Segoe UI",sans-serif}
+.zp-tagline{position:fixed;top:52px;left:0;right:0;z-index:9999;height:28px;background:#4080c8;color:#fff;display:flex;align-items:center;gap:10px;padding:0 20px;font-family:"Trebuchet MS","Segoe UI",sans-serif}
 .zp-badge{background:rgba(255,255,255,.2);font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 7px;border-radius:3px}
 .zp-tagtxt{font-size:10px;font-weight:600}
 /* ── COLOR OVERRIDE: green → blue ────────────────────────────────────────── */
@@ -20,14 +20,14 @@
 <style>
 :root {
   --bg: #f4f6f9; --surface: #fff; --border: #e2e8f0;
-  --primary: #1a5fb4; --primary-light: #dbeafe; --primary-dark: #1e3a5f;
+  --primary: #4080c8; --primary-light: #dbeafe; --primary-dark: #2563eb;
   --text: #1a2332; --text-muted: #64748b;
   --danger: #dc2626; --warning: #d97706; --success: #059669;
   --sidebar-w: 220px; --radius: 10px; --shadow: 0 1px 3px rgba(0,0,0,.08);
 }
 [data-theme="dark"] {
   --bg: #0f1117; --surface: #1a1d27; --border: #2d3148;
-  --primary: #3b82f6; --primary-light: #1e3a5f; --primary-dark: #3b82f6;
+  --primary: #3b82f6; --primary-light: #2563eb; --primary-dark: #3b82f6;
   --text: #e2e8f0; --text-muted: #64748b;
   --danger: #ef4444; --warning: #f59e0b; --success: #10b981;
   --shadow: 0 1px 3px rgba(0,0,0,.3);
@@ -36,7 +36,7 @@
 body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; display: flex; height: calc(100vh - 80px); margin-top: 80px; overflow: hidden; transition: background .2s, color .2s; }
 
 /* ── LOGIN ── */
-#login-screen { position: fixed; inset: 0; top: 80px; z-index: 200; background: linear-gradient(135deg, #1e3a5f 0%, #1a5fb4 60%, #2d7dd2 100%); display: flex; align-items: center; justify-content: center; }
+#login-screen { position: fixed; inset: 0; top: 80px; z-index: 200; background: linear-gradient(135deg, #2563eb 0%, #4080c8 60%, #60a5d9 100%); display: flex; align-items: center; justify-content: center; }
 #login-screen.hidden { display: none; }
 .login-box { background: #fff; border-radius: 16px; padding: 40px 44px; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,.3); text-align: center; }
 .login-logo { font-size: 40px; margin-bottom: 8px; }
@@ -45,9 +45,9 @@ body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--t
 .login-field { margin-bottom: 14px; text-align: left; }
 .login-field label { display: block; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
 .login-field input { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; transition: border-color .2s; }
-.login-field input:focus { border-color: #1a5fb4; }
-.login-btn { width: 100%; padding: 12px; margin-top: 8px; background: #1a5fb4; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s; }
-.login-btn:hover { background: #1e3a5f; }
+.login-field input:focus { border-color: #4080c8; }
+.login-btn { width: 100%; padding: 12px; margin-top: 8px; background: #4080c8; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s; }
+.login-btn:hover { background: #2563eb; }
 .login-error { margin-top: 12px; font-size: 12px; color: #dc2626; min-height: 18px; font-weight: 600; }
 .login-footer { margin-top: 24px; font-size: 11px; color: #94a3b8; }
 
@@ -159,7 +159,7 @@ tbody tr.new-row { animation: rowIn .4s ease; }
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-logo" style="width:64px;height:64px;border-radius:16px;background:#eff6ff;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:2rem">🏥</div>
+    <div class="login-logo" style="width:64px;height:64px;border-radius:16px;background:#e8f0fb;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;color:#4080c8"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg></div>
     <div class="login-title">Hospital Discharge Manager</div>
     <div class="login-sub">HOSPITAL DISCHARGE · DEMO ZERTO</div>
     <div class="login-field">

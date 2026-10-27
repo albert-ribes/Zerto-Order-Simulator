@@ -1,4 +1,4 @@
-:root,
+﻿:root,
 [data-theme="light"] {
   /* Paleta inspirada en la identidad visual de Iberia (rojo/blanco),
      sin usar su logotipo ni assets reales. */
@@ -6,8 +6,8 @@
   --surface: #ffffff;
   --surface-alt: #fbf7f3;
   --border: #e8e3df;
-  --primary: #6d28d9;
-  --primary-dark: #5b21b6;
+  --primary: #8b5cf6;
+  --primary-dark: #7c3aed;
   --primary-tint: #ede9fe;
   --text: #1a1a1a;
   --text-muted: #6b7280;

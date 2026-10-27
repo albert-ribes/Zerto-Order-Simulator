@@ -10,7 +10,7 @@
 :root {
   --bg:#0f1117; --surface:#1a1d27; --surface-alt:#22263a;
   --border:#2d3148; --border-strong:#3d4268;
-  --primary:#1a5fb4; --primary-dim:#1e3a5f; --primary-glow:rgba(26,95,180,.15);
+  --primary:#4080c8; --primary-dim:#2563eb; --primary-glow:rgba(26,95,180,.15);
   --text:#e2e8f0; --text-muted:#64748b; --text-dim:#94a3b8;
   --danger:#ef4444; --danger-dim:rgba(239,68,68,.12);
   --warning:#f59e0b; --warning-dim:rgba(245,158,11,.12);
@@ -22,7 +22,7 @@
 [data-theme="light"] {
   --bg:#f1f5f9; --surface:#fff; --surface-alt:#f8fafc;
   --border:#e2e8f0; --border-strong:#cbd5e1;
-  --primary:#1a5fb4; --primary-dim:#1e3a5f; --primary-glow:rgba(26,95,180,.1);
+  --primary:#4080c8; --primary-dim:#2563eb; --primary-glow:rgba(26,95,180,.1);
   --text:#1a2332; --text-muted:#64748b; --text-dim:#475569;
   --danger:#dc2626; --danger-dim:rgba(220,38,38,.08);
   --warning:#d97706; --warning-dim:rgba(217,119,6,.08);
@@ -237,7 +237,7 @@ canvas{width:100%!important;display:block}
 .zp-hpe-logo{height:20px;width:auto;object-fit:contain;flex-shrink:0}
 .zp-tec,.zp-portal{font-size:12px;font-weight:700;color:#172324}
 .zp-sep{color:#879391;font-size:12px}
-.zp-tagline{position:fixed;top:52px;left:0;right:0;z-index:9999;height:28px;background:#1a5fb4;color:#fff;display:flex;align-items:center;gap:10px;padding:0 20px;font-family:"Trebuchet MS","Segoe UI",sans-serif}
+.zp-tagline{position:fixed;top:52px;left:0;right:0;z-index:9999;height:28px;background:#4080c8;color:#fff;display:flex;align-items:center;gap:10px;padding:0 20px;font-family:"Trebuchet MS","Segoe UI",sans-serif}
 .zp-badge{background:rgba(255,255,255,.2);font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 7px;border-radius:3px}
 .zp-tagtxt{font-size:10px;font-weight:600}
 </style>
@@ -724,7 +724,7 @@ Chart.defaults.borderColor='#2d3148';
 const chartRate = new Chart(document.getElementById('chart-rate'),{
   type:'bar',
   data:{labels:[],datasets:[
-    {label:'Altas/min',data:[],backgroundColor:'#1a5fb466',borderColor:'#1a5fb4',borderWidth:1.5,borderRadius:3,order:2},
+    {label:'Altas/min',data:[],backgroundColor:'#4080c866',borderColor:'#4080c8',borderWidth:1.5,borderRadius:3,order:2},
   ]},
   options:{
     responsive:true,maintainAspectRatio:true,
