@@ -4,7 +4,7 @@ const PALETTE = [
   '#3b82f6','#8b5cf6','#ec4899','#14b8a6',
 ];
 {
-  const _t = localStorage.getItem('theme') || 'dark';
+  const _t = localStorage.getItem('theme') || 'light';
   Chart.defaults.color       = _t === 'dark' ? '#8892a4' : '#64748b';
   Chart.defaults.borderColor = _t === 'dark' ? '#2a2a5044' : '#d1d9e688';
   Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
@@ -171,7 +171,7 @@ function localToISO(val) {
 })();
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
-let _theme = localStorage.getItem('theme') || 'dark';
+let _theme = localStorage.getItem('theme') || 'light';
 
 function applyTheme(theme) {
   _theme = theme;

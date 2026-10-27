@@ -59,7 +59,7 @@ document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
 })();
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
-let _theme = localStorage.getItem('theme') || 'dark';
+let _theme = localStorage.getItem('theme') || 'light';
 
 function applyTheme(theme) {
   _theme = theme;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -677,7 +677,7 @@ const STRINGS = {
   },
 };
 let lang = localStorage.getItem('hdm_obs_lang')||'ca';
-let theme = localStorage.getItem('hdm_obs_theme')||'dark';
+let theme = localStorage.getItem('hdm_obs_theme')||'light';
 function t(k){return STRINGS[lang][k]||STRINGS.es[k]||k}
 
 function applyI18n(){
