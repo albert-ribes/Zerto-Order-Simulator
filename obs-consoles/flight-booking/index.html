@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Observability Console</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x2708;&#xFE0F;</text></svg>">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<style>
+.zp-topbar{position:fixed;top:0;left:0;right:0;z-index:2000;height:52px;background:#fff;border-bottom:1px solid #d8e1df;display:flex;align-items:center;padding:0 20px;font-family:"Trebuchet MS","Segoe UI",sans-serif}
+.zp-brand{display:flex;align-items:center;gap:8px}
+.zp-hpe{background:#01A982;color:#fff;font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 6px;border-radius:3px}
+.zp-tec,.zp-portal{font-size:12px;font-weight:700;color:#172324}
+.zp-sep{color:#879391;font-size:12px}
+.zp-tagline{position:fixed;top:52px;left:0;right:0;z-index:1999;height:28px;background:#6d28d9;color:#fff;display:flex;align-items:center;gap:10px;padding:0 20px;font-family:"Trebuchet MS","Segoe UI",sans-serif}
+.zp-badge{background:rgba(255,255,255,.2);font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 7px;border-radius:3px}
+.zp-tagtxt{font-size:10px;font-weight:600}
+.shell{padding-top:80px}
+</style>
+</head>
+<body>
+<div class="zp-topbar"><div class="zp-brand"><span class="zp-hpe">HPE</span><span class="zp-tec">TEC Barcelona</span><span class="zp-sep">/</span><span class="zp-portal">ZERTO DEMO PORTAL</span></div></div>
+<div class="zp-tagline"><span class="zp-badge">ZERTO</span><span class="zp-tagtxt">Flight Booking · Observability</span></div>
+
+  <div class="shell">
+
+    <!-- ===================== MENÚ LATERAL ===================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__header">
+        <span class="sidebar__logo">🛰️</span>
+        <span class="sidebar__title" data-i18n="app.title">Observability</span>
+        <button class="sidebar__collapse-btn" id="collapseBtn" aria-label="Colapsar menú">‹</button>
+      </div>
+
+      <nav class="sidebar__nav">
+        <button class="nav-item nav-item--active" data-tab="bookings">
+          <span class="nav-item__icon">📊</span>
+          <span class="nav-item__label" data-i18n="nav.bookings">Reservas</span>
+        </button>
+        <button class="nav-item" data-tab="systems">
+          <span class="nav-item__icon">🖥️</span>
+          <span class="nav-item__label" data-i18n="nav.systems">Systems</span>
+        </button>
+        <button class="nav-item" data-tab="zerto">
+          <span class="nav-item__icon">🛡️</span>
+          <span class="nav-item__label" data-i18n="nav.zerto">Zerto</span>
+        </button>
+        <button class="nav-item" data-tab="about">
+          <span class="nav-item__icon">ℹ️</span>
+          <span class="nav-item__label" data-i18n="nav.about">About</span>
+        </button>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="lang-switcher" id="langSwitcher">
+          <button class="lang-btn lang-btn--active" data-lang="ca">CA</button>
+          <button class="lang-btn" data-lang="es">ES</button>
+          <button class="lang-btn" data-lang="pt">PT</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">🌙</button>
+      </div>
+    </aside>
+
+    <!-- ===================== CONTENIDO ===================== -->
+    <div class="content">
+
+      <header class="content__topbar">
+        <h1 id="pageTitle" data-i18n="nav.bookings">Reservas</h1>
+        <div class="content__topbar-right">
+          <span class="live-clock" id="liveClock">--:--:--</span>
+          <button class="btn btn--ghost btn--small" id="refreshBtn">
+            <span data-i18n="common.refresh">Actualizar</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="content__body">
+
+        <!-- ============ TAB: RESERVAS (Bookings) ============ -->
+        <section class="tab-panel tab-panel--active" id="tab-bookings">
+
+          <div class="toolbar">
+            <div class="range-picker" id="rangePicker">
+              <button class="range-picker__trigger" id="rangeTrigger">
+                <span id="rangeLabel" data-i18n="range.last24h">Últimas 24h</span> ▾
+              </button>
+            </div>
+            <div id="bookingsFreshness"></div>
+          </div>
+
+          <div class="kpi-grid" id="kpiGrid">
+            <div class="kpi-card">
+              <span class="kpi-card__label" data-i18n="kpi.totalBookings">Total reservas</span>
+              <span class="kpi-card__value" id="kpiTotalBookings">—</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-card__label" data-i18n="kpi.totalRevenue">Ingresos totales</span>
+              <span class="kpi-card__value" id="kpiTotalRevenue">—</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-card__label" data-i18n="kpi.lastBooking">Última reserva hace</span>
+              <span class="kpi-card__value" id="kpiLastBooking">—</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-card__label" data-i18n="kpi.avgPerDay">Media reservas/día</span>
+              <span class="kpi-card__value" id="kpiAvgPerDay">—</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 data-i18n="chart.timeline">Reservas por minuto (timeline)</h2>
+            <div class="chart-container">
+              <canvas id="timelineChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 data-i18n="chart.cumulative">Ingresos acumulados</h2>
+            <p class="card__subtitle" data-i18n="chart.cumulativeHint">Haz clic en 2 puntos para calcular el revenue entre ellos</p>
+            <div class="chart-container">
+              <canvas id="cumulativeChart"></canvas>
+            </div>
+            <div id="deltaPanel" class="delta-panel"></div>
+          </div>
+
+          <div class="card">
+            <h2 data-i18n="chart.hourly">Distribución por hora</h2>
+            <div class="chart-container chart-container--small">
+              <canvas id="hourlyChart"></canvas>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ============ TAB: SYSTEMS ============ -->
+        <section class="tab-panel" id="tab-systems">
+
+          <div class="card">
+            <h2 data-i18n="systems.infraStatus">Estado de la infraestructura</h2>
+            <div class="infra-status-grid" id="infraStatusGrid">
+              <!-- generado por JS -->
+            </div>
+          </div>
+
+          <div class="card-grid card-grid--three" id="systemsCardGrid">
+            <!-- generado por JS: Frontend / Backend / Database -->
+          </div>
+
+        </section>
+
+        <!-- ============ TAB: ZERTO ============ -->
+        <section class="tab-panel" id="tab-zerto">
+
+          <!-- Banner de alerta de ransomware — visible solo cuando Zerto
+               detecta comportamiento de cifrado anómalo en algún VPG -->
+          <div id="ransomwareBanner" class="ransomware-banner" style="display:none"></div>
+
+          <div class="zvm-status-bar" id="zvmStatusBar">
+            <!-- generado por JS -->
+          </div>
+
+          <div class="card-grid card-grid--two" id="zertoCardGrid">
+            <!-- generado por JS: Remote / Local -->
+          </div>
+
+        </section>
+
+        <!-- ============ TAB: ABOUT ============ -->
+        <section class="tab-panel" id="tab-about">
+
+          <div class="card-grid card-grid--two">
+            <div class="card">
+              <h2 data-i18n="about.whatTitle">¿Qué es la Observability Console?</h2>
+              <p data-i18n="about.whatBody">
+                La Observability Console es un dashboard de monitorización en tiempo real
+                para toda la infraestructura del simulador de reservas de vuelos. Ofrece
+                un único panel para el estado de los servicios, las métricas de sistema
+                y el estado de protección de datos con Zerto.
+              </p>
+            </div>
+            <div class="card">
+              <h2 data-i18n="about.howTitle">Cómo se recogen los datos</h2>
+              <ul class="about-list">
+                <li><strong data-i18n="about.tabBookings">Pestaña Reservas:</strong> <span data-i18n="about.howBookings">consulta el backend (FastAPI) cada 5s vía el proxy de NGINX de esta consola.</span></li>
+                <li><strong data-i18n="about.tabSystems">Pestaña Systems:</strong> <span data-i18n="about.howSystems">consulta los sys-probe/db-probe de cada VM a través de rutas dedicadas de NGINX.</span></li>
+                <li><strong data-i18n="about.tabZerto">Pestaña Zerto:</strong> <span data-i18n="about.howZerto">consulta el zerto-probe local, que agrega datos de los dos ZVMA (origen y destino).</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 data-i18n="about.stackTitle">Stack tecnológico</h2>
+            <div class="stack-groups" id="stackGroups">
+              <!-- generado por JS -->
+            </div>
+          </div>
+
+          <div id="archDiagramContainer">
+            <!-- generado por JS: dos tarjetas (flujo de negocio + flujo de observabilidad) -->
+          </div>
+
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="js/vendor/chart.umd.min.js"></script>
+  <script src="js/i18n/ca.js"></script>
+  <script src="js/i18n/es.js"></script>
+  <script src="js/i18n/pt.js"></script>
+  <script src="js/i18n/en.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/freshness.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/tab-bookings.js"></script>
+  <script src="js/tab-systems.js"></script>
+  <script src="js/tab-zerto.js"></script>
+  <script src="js/tab-about.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

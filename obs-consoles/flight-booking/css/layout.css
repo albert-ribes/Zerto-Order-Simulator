@@ -1,0 +1,178 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ===================== SIDEBAR ===================== */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  transition: width 0.18s ease;
+  /* Fija la barra a la altura de la ventana, con su propio scroll,
+     para que el pie (idioma/tema) no dependa del scroll de la página
+     ni de lo larga que sea la pestaña activa (Zerto/About son más
+     largas que Bookings/Systems). */
+  position: sticky;
+  top: 80px;
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.sidebar.is-collapsed { width: 68px; }
+
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 18px;
+  position: relative;
+}
+
+.sidebar__logo { font-size: 20px; }
+
+.sidebar__title {
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  color: var(--primary);
+}
+
+.sidebar.is-collapsed .sidebar__title { display: none; }
+
+.sidebar__collapse-btn {
+  margin-left: auto;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: 6px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.sidebar.is-collapsed .sidebar__collapse-btn { transform: rotate(180deg); }
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nav-item:hover { background: var(--surface-alt); }
+
+.nav-item--active {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.nav-item__icon { font-size: 16px; width: 20px; text-align: center; }
+
+.sidebar.is-collapsed .nav-item__label { display: none; }
+
+.sidebar__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.lang-switcher { display: flex; gap: 4px; }
+
+.sidebar.is-collapsed .lang-switcher { flex-direction: column; }
+
+.lang-btn {
+  flex: 1;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 5px 0;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lang-btn--active { background: var(--primary); color: white; border-color: var(--primary); }
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 6px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+/* ===================== CONTENT ===================== */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.content__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.content__topbar h1 { font-size: 19px; margin: 0; }
+
+.content__topbar-right { display: flex; align-items: center; gap: 14px; }
+
+.live-clock {
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+.content__body {
+  padding: 22px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tab-panel { display: none; flex-direction: column; gap: 18px; }
+.tab-panel--active { display: flex; }
+
+@media (max-width: 900px) {
+  .sidebar { position: fixed; z-index: 20; height: 100vh; }
+  .content { margin-left: 68px; }
+}

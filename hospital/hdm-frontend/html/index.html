@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F3E5;</text></svg>">
+<title>HDM — Hospital Discharge Manager</title>
+<style>
+/* ── ZERTO PORTAL HEADER ─────────────────────────────────────────────────── */
+.zp-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;height:52px;background:#fff;border-bottom:1px solid #d8e1df;display:flex;align-items:center;padding:0 20px;font-family:"Trebuchet MS","Segoe UI",sans-serif}
+.zp-brand{display:flex;align-items:center;gap:8px}
+.zp-hpe{background:#01A982;color:#fff;font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 6px;border-radius:3px}
+.zp-tec,.zp-portal{font-size:12px;font-weight:700;color:#172324}
+.zp-sep{color:#879391;font-size:12px}
+.zp-tagline{position:fixed;top:52px;left:0;right:0;z-index:9999;height:28px;background:#1a5fb4;color:#fff;display:flex;align-items:center;gap:10px;padding:0 20px;font-family:"Trebuchet MS","Segoe UI",sans-serif}
+.zp-badge{background:rgba(255,255,255,.2);font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 7px;border-radius:3px}
+.zp-tagtxt{font-size:10px;font-weight:600}
+/* ── COLOR OVERRIDE: green → blue ────────────────────────────────────────── */
+</style>
+<style>
+:root {
+  --bg: #f4f6f9; --surface: #fff; --border: #e2e8f0;
+  --primary: #1a5fb4; --primary-light: #dbeafe; --primary-dark: #1e3a5f;
+  --text: #1a2332; --text-muted: #64748b;
+  --danger: #dc2626; --warning: #d97706; --success: #059669;
+  --sidebar-w: 220px; --radius: 10px; --shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+[data-theme="dark"] {
+  --bg: #0f1117; --surface: #1a1d27; --border: #2d3148;
+  --primary: #3b82f6; --primary-light: #1e3a5f; --primary-dark: #3b82f6;
+  --text: #e2e8f0; --text-muted: #64748b;
+  --danger: #ef4444; --warning: #f59e0b; --success: #10b981;
+  --shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; display: flex; height: calc(100vh - 80px); margin-top: 80px; overflow: hidden; transition: background .2s, color .2s; }
+
+/* ── LOGIN ── */
+#login-screen { position: fixed; inset: 0; top: 80px; z-index: 200; background: linear-gradient(135deg, #1e3a5f 0%, #1a5fb4 60%, #2d7dd2 100%); display: flex; align-items: center; justify-content: center; }
+#login-screen.hidden { display: none; }
+.login-box { background: #fff; border-radius: 16px; padding: 40px 44px; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,.3); text-align: center; }
+.login-logo { font-size: 40px; margin-bottom: 8px; }
+.login-title { font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.login-sub { font-size: 12px; color: #64748b; margin-bottom: 28px; }
+.login-field { margin-bottom: 14px; text-align: left; }
+.login-field label { display: block; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+.login-field input { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; transition: border-color .2s; }
+.login-field input:focus { border-color: #1a5fb4; }
+.login-btn { width: 100%; padding: 12px; margin-top: 8px; background: #1a5fb4; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s; }
+.login-btn:hover { background: #1e3a5f; }
+.login-error { margin-top: 12px; font-size: 12px; color: #dc2626; min-height: 18px; font-weight: 600; }
+.login-footer { margin-top: 24px; font-size: 11px; color: #94a3b8; }
+
+/* ── APP ── */
+#app-wrapper { display: none; width: 100%; height: 100%; overflow: hidden; }
+#app-wrapper.visible { display: flex; }
+
+/* ── SIDEBAR ── */
+aside { width: var(--sidebar-w); flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+.sidebar-header { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); }
+.sidebar-logo { display: flex; align-items: center; gap: 10px; }
+.sidebar-logo .icon { font-size: 22px; }
+.sidebar-logo .name { font-size: 14px; font-weight: 700; color: var(--primary); line-height: 1.2; }
+.sidebar-logo .sub { font-size: 10px; color: var(--text-muted); }
+nav.sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
+.nav-section { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--text-muted); padding: 10px 10px 4px; }
+.nav-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text-muted); transition: all .15s; margin-bottom: 2px; }
+.nav-item:hover { background: var(--primary-light); color: var(--primary); }
+.nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+.nav-item .nav-icon { font-size: 15px; margin-right: 8px; }
+.nav-item .nav-badge { font-size: 11px; font-weight: 700; background: var(--primary); color: #fff; border-radius: 10px; padding: 1px 7px; }
+
+/* RBG widget */
+.rbg-widget { margin: 8px; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
+.rbg-title { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; }
+.rbg-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.rbg-stat { text-align: center; }
+.rbg-stat .val { font-size: 18px; font-weight: 700; color: var(--primary); }
+.rbg-stat .lbl { font-size: 10px; color: var(--text-muted); }
+.rbg-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.rbg-btn { padding: 6px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+.rbg-btn:hover { opacity: .85; }
+.rbg-btn.start { background: var(--primary); color: #fff; }
+.rbg-btn.stop  { background: #fee2e2; color: var(--danger); }
+.rbg-status { text-align: center; margin-top: 6px; font-size: 11px; }
+.rbg-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ccc; margin-right: 4px; }
+.rbg-dot.running { background: var(--success); animation: blink 1.5s infinite; }
+.rbg-dot.paused  { background: var(--warning); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* Preferencias en sidebar */
+.sidebar-prefs { margin: 0 8px 8px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
+.prefs-title { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
+.lang-btns { display: flex; gap: 4px; margin-bottom: 8px; }
+.lang-btn { flex: 1; padding: 5px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; background: var(--surface); color: var(--text-muted); transition: all .15s; }
+.lang-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.theme-btn { width: 100%; padding: 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-muted); transition: all .15s; }
+.theme-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+.sidebar-footer { padding: 12px 8px; border-top: 1px solid var(--border); }
+.conn-status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); padding: 4px 8px; margin-bottom: 6px; }
+.conn-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+.conn-dot.error { background: var(--danger); }
+.logout-btn { width: 100%; padding: 8px; background: #fee2e2; color: var(--danger); border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+/* ── MAIN ── */
+#main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+header { background: var(--primary); color: #fff; padding: 0 24px; height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; }
+header h1 { font-size: 16px; font-weight: 600; }
+header h1 span { opacity: .65; font-weight: 400; font-size: 13px; margin-left: 10px; }
+#status-pill { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.15); border-radius: 20px; padding: 4px 12px; font-size: 12px; }
+#status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
+#status-dot.error { background: #f87171; }
+main { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+/* ── VISTAS ── */
+.view { display: none; }
+.view.active { display: block; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+.kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.kpi-card .value { font-size: 32px; font-weight: 700; line-height: 1; color: var(--primary); }
+.kpi-card .sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.kpi-card.alert .value { color: var(--danger); }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-header h2 { font-size: 15px; font-weight: 600; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--primary-light); color: var(--primary); font-weight: 600; }
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; }
+thead th { background: var(--bg); padding: 10px 14px; text-align: left; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); }
+tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg); }
+tbody td { padding: 10px 14px; font-size: 13px; }
+tbody tr.new-row { animation: rowIn .4s ease; }
+@keyframes rowIn { from { background: #d1fae5; } to { background: transparent; } }
+.status-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.status-completed { background: #dcfce7; color: #166534; }
+.status-pending   { background: #fef9c3; color: #854d0e; }
+.status-error     { background: #fee2e2; color: #991b1b; }
+#demo-alert { display: none; margin-bottom: 16px; padding: 14px 18px; border-radius: var(--radius); border-left: 4px solid var(--danger); background: #fef2f2; color: var(--danger); font-weight: 600; animation: pulse 1s ease-in-out infinite alternate; }
+@keyframes pulse { from{opacity:1} to{opacity:.7} }
+.ward-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.ward-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+.ward-name { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.ward-bar-bg { background: var(--bg); border-radius: 4px; height: 8px; margin-bottom: 8px; overflow: hidden; }
+.ward-bar-fill { height: 100%; border-radius: 4px; background: var(--primary); transition: width .6s ease; }
+.ward-bar-fill.high { background: var(--warning); }
+.ward-bar-fill.full { background: var(--danger); }
+.ward-stats { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #ccc; border-top-color: var(--primary); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="zp-topbar"><div class="zp-brand"><span class="zp-hpe">HPE</span><span class="zp-tec">TEC Barcelona</span><span class="zp-sep">/</span><span class="zp-portal">ZERTO DEMO PORTAL</span></div></div>
+<div class="zp-tagline"><span class="zp-badge">ZERTO</span><span class="zp-tagtxt">Hospital · Simulator</span></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🏥</div>
+    <div class="login-title">Hospital Discharge Manager</div>
+    <div class="login-sub" data-i18n="login_sub">Demo · Zerto Business Continuity</div>
+    <div class="login-field">
+      <label data-i18n="login_user">Usuario</label>
+      <input type="text" id="login-user" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label data-i18n="login_pass">Contraseña</label>
+      <input type="password" id="login-pass" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="doLogin()" data-i18n="login_btn">Acceder</button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-footer">HPE · Zerto Demo Suite · v1.0.0</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-wrapper">
+  <aside>
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="icon">🏥</span>
+        <div><div class="name">HDM</div><div class="sub">Hospital Discharge Manager</div></div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section" data-i18n="nav_views">Vistas</div>
+      <div class="nav-item active" onclick="switchView('altas', this)">
+        <span><span class="nav-icon">📋</span><span data-i18n="nav_altas">Altas</span></span>
+        <span class="nav-badge" id="nb-altas">—</span>
+      </div>
+      <div class="nav-item" onclick="switchView('plantas', this)">
+        <span><span class="nav-icon">🏨</span><span data-i18n="nav_plantas">Plantas</span></span>
+        <span class="nav-badge">7</span>
+      </div>
+      <div class="nav-item" onclick="switchView('kpis', this)">
+        <span><span class="nav-icon">📊</span><span data-i18n="nav_kpis">KPIs</span></span>
+      </div>
+      <div class="nav-item" onclick="switchView('about', this)">
+        <span><span class="nav-icon">ℹ️</span><span data-i18n="nav_about">About</span></span>
+      </div>
+    </nav>
+
+    <div class="rbg-widget">
+      <div class="rbg-title" data-i18n="rbg_title">Auto-Generator</div>
+      <div class="rbg-stats">
+        <div class="rbg-stat"><div class="val" id="rbg-count">—</div><div class="lbl" data-i18n="rbg_generated">Generadas</div></div>
+        <div class="rbg-stat"><div class="val" id="rbg-errors" style="color:var(--danger)">0</div><div class="lbl" data-i18n="rbg_errors">Errores</div></div>
+      </div>
+      <div class="rbg-btns">
+        <button class="rbg-btn start" onclick="rbgAction('resume')" data-i18n="rbg_start">▶ Start</button>
+        <button class="rbg-btn stop"  onclick="rbgAction('pause')"  data-i18n="rbg_stop">■ Stop</button>
+      </div>
+      <div class="rbg-status"><span class="rbg-dot" id="rbg-dot"></span><span id="rbg-label">—</span></div>
+    </div>
+
+    <!-- Idioma + Tema -->
+    <div class="sidebar-prefs">
+      <div class="prefs-title" data-i18n="prefs_title">Preferencias</div>
+      <div class="lang-btns">
+        <button class="lang-btn active" onclick="setLang('ca')">CA</button>
+        <button class="lang-btn"       onclick="setLang('es')">ES</button>
+        <button class="lang-btn"       onclick="setLang('pt')">PT</button>
+        <button class="lang-btn"       onclick="setLang('en')">EN</button>
+      </div>
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀️ <span data-i18n="theme_light">Modo claro</span></button>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="conn-status"><span class="conn-dot" id="conn-dot"></span><span id="conn-label" data-i18n="conn_connecting">Conectando...</span></div>
+      <button class="logout-btn" onclick="doLogout()" data-i18n="logout">Log out</button>
+    </div>
+  </aside>
+
+  <div id="main-content">
+    <header>
+      <h1>Hospital Discharge Manager <span id="view-title" data-i18n="nav_altas">Altas recientes</span></h1>
+      <div id="status-pill"><div id="status-dot"></div><span id="status-text" data-i18n="status_ok">Sistema operativo</span></div>
+    </header>
+    <main>
+      <div id="demo-alert"></div>
+
+      <!-- Altas -->
+      <div class="view active" id="view-altas">
+        <div class="section-header">
+          <h2 data-i18n="nav_altas">Altas recientes</h2>
+          <span class="badge" id="table-count">—</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th data-i18n="th_patient">Paciente</th>
+              <th data-i18n="th_ward">Planta / Unidad</th>
+              <th data-i18n="th_bed">Cama</th>
+              <th data-i18n="th_diag">Diagnóstico</th>
+              <th data-i18n="th_type">Tipo de alta</th>
+              <th data-i18n="th_doctor">Médico</th>
+              <th data-i18n="th_proc">Proc. (min)</th>
+              <th data-i18n="th_date">Fecha/hora</th>
+              <th data-i18n="th_status">Estado</th>
+            </tr></thead>
+            <tbody id="discharges-body">
+              <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)"><span class="spinner"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Plantas -->
+      <div class="view" id="view-plantas">
+        <div class="section-header"><h2 data-i18n="nav_plantas">Ocupación por planta</h2></div>
+        <div class="ward-grid" id="ward-grid"></div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="view" id="view-kpis">
+        <div class="section-header"><h2 data-i18n="nav_kpis">KPIs en tiempo real</h2></div>
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="label" data-i18n="kpi_total">Altas procesadas</div><div class="value" id="kpi-total">—</div><div class="sub" data-i18n="kpi_total_sub">acumulado total</div></div>
+          <div class="kpi-card"><div class="label" data-i18n="kpi_hour">Última hora</div><div class="value" id="kpi-hour">—</div><div class="sub" data-i18n="kpi_hour_sub">altas/hora</div></div>
+          <div class="kpi-card"><div class="label" data-i18n="kpi_avg">Tiempo medio</div><div class="value" id="kpi-avg">—</div><div class="sub" data-i18n="kpi_avg_sub">minutos por alta</div></div>
+          <div class="kpi-card"><div class="label" data-i18n="kpi_beds">Camas liberadas hoy</div><div class="value" id="kpi-beds">—</div><div class="sub" data-i18n="kpi_beds_sub">jornada en curso</div></div>
+          <div class="kpi-card" id="kpi-pending-card"><div class="label" data-i18n="kpi_pending">Pacientes en espera</div><div class="value" id="kpi-pending">—</div><div class="sub" data-i18n="kpi_pending_sub">pendientes de alta</div></div>
+          <div class="kpi-card"><div class="label" data-i18n="kpi_24h">Últimas 24h</div><div class="value" id="kpi-24h">—</div><div class="sub" data-i18n="kpi_24h_sub">altas totales</div></div>
+        </div>
+      </div>
+
+      <!-- About -->
+      <div class="view" id="view-about">
+        <div style="max-width:600px">
+          <h2 style="font-size:18px;color:var(--primary);margin-bottom:12px">Hospital Discharge Manager</h2>
+          <p style="color:var(--text-muted);line-height:1.7;margin-bottom:16px" data-i18n="about_desc">
+            Simulador de gestión de altas médicas hospitalarias para demos de continuidad de negocio con Zerto.
+          </p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+// ── i18n ──────────────────────────────────────────
+const STRINGS = {
+  ca: {
+    login_sub:'Demo · Zerto Business Continuity', login_user:'Usuari', login_pass:'Contrasenya',
+    login_btn:'Entrar', login_error:'Usuari o contrasenya incorrectes',
+    nav_views:'Vistes', nav_altas:'Altes', nav_plantas:'Plantes', nav_kpis:'KPIs', nav_about:'Sobre',
+    rbg_title:'Auto-Generador', rbg_generated:'Generades', rbg_errors:'Errors',
+    rbg_start:'▶ Iniciar', rbg_stop:'■ Aturar', rbg_running:'Generant', rbg_paused:'Pausat', rbg_inactive:'Inactiu',
+    prefs_title:'Preferències', theme_light:'Mode clar', theme_dark:'Mode fosc',
+    conn_connecting:'Connectant...', conn_ok:'API connectada', conn_err:'Sense connexió',
+    logout:'Sortir', status_ok:'Sistema operatiu', status_deg:'Sistema degradat',
+    kpi_total:'Altes processades', kpi_total_sub:'acumulat total',
+    kpi_hour:'Última hora', kpi_hour_sub:'altes/hora',
+    kpi_avg:'Temps mitjà', kpi_avg_sub:'minuts per alta',
+    kpi_beds:'Llits alliberats avui', kpi_beds_sub:'jornada en curs',
+    kpi_pending:'Pacients en espera', kpi_pending_sub:'pendents d alta',
+    kpi_24h:'Últimes 24h', kpi_24h_sub:'altes totals',
+    th_patient:'Pacient', th_ward:'Planta / Unitat', th_bed:'Llit',
+    th_diag:'Diagnòstic', th_type:'Tipus d alta', th_doctor:'Metge',
+    th_proc:'Proc. (min)', th_date:'Data/hora', th_status:'Estat',
+    st_completed:'Completada', st_pending:'Pendent', st_error:'Error',
+    ward_freed:'alliberats avui', ward_occ:'ocupació',
+    about_desc:'Simulador de gestió d altes mèdiques hospitalàries per a demos de continuïtat de negoci amb Zerto.',
+    view_altas:'Altes recents', view_plantas:'Ocupació per planta', view_kpis:'KPIs en temps real', view_about:'Sobre',
+  },
+  es: {
+    login_sub:'Demo · Zerto Business Continuity', login_user:'Usuario', login_pass:'Contraseña',
+    login_btn:'Acceder', login_error:'Usuario o contraseña incorrectos',
+    nav_views:'Vistas', nav_altas:'Altas', nav_plantas:'Plantas', nav_kpis:'KPIs', nav_about:'About',
+    rbg_title:'Auto-Generator', rbg_generated:'Generadas', rbg_errors:'Errores',
+    rbg_start:'▶ Start', rbg_stop:'■ Stop', rbg_running:'Generando', rbg_paused:'Pausado', rbg_inactive:'Inactivo',
+    prefs_title:'Preferencias', theme_light:'Modo claro', theme_dark:'Modo oscuro',
+    conn_connecting:'Conectando...', conn_ok:'API conectada', conn_err:'Sin conexión',
+    logout:'Log out', status_ok:'Sistema operativo', status_deg:'Sistema degradado',
+    kpi_total:'Altas procesadas', kpi_total_sub:'acumulado total',
+    kpi_hour:'Última hora', kpi_hour_sub:'altas/hora',
+    kpi_avg:'Tiempo medio', kpi_avg_sub:'minutos por alta',
+    kpi_beds:'Camas liberadas hoy', kpi_beds_sub:'jornada en curso',
+    kpi_pending:'Pacientes en espera', kpi_pending_sub:'pendientes de alta',
+    kpi_24h:'Últimas 24h', kpi_24h_sub:'altas totales',
+    th_patient:'Paciente', th_ward:'Planta / Unidad', th_bed:'Cama',
+    th_diag:'Diagnóstico', th_type:'Tipo de alta', th_doctor:'Médico',
+    th_proc:'Proc. (min)', th_date:'Fecha/hora', th_status:'Estado',
+    st_completed:'Completada', st_pending:'Pendiente', st_error:'Error',
+    ward_freed:'liberadas hoy', ward_occ:'ocupación',
+    about_desc:'Simulador de gestión de altas médicas hospitalarias para demos de continuidad de negocio con Zerto.',
+    view_altas:'Altas recientes', view_plantas:'Ocupación por planta', view_kpis:'KPIs en tiempo real', view_about:'Acerca de',
+  },
+  pt: {
+    login_sub:'Demo · Zerto Business Continuity', login_user:'Utilizador', login_pass:'Palavra-passe',
+    login_btn:'Entrar', login_error:'Utilizador ou palavra-passe incorretos',
+    nav_views:'Vistas', nav_altas:'Altas', nav_plantas:'Enfermarias', nav_kpis:'KPIs', nav_about:'Sobre',
+    rbg_title:'Auto-Gerador', rbg_generated:'Geradas', rbg_errors:'Erros',
+    rbg_start:'▶ Iniciar', rbg_stop:'■ Parar', rbg_running:'A gerar', rbg_paused:'Pausado', rbg_inactive:'Inativo',
+    prefs_title:'Preferências', theme_light:'Modo claro', theme_dark:'Modo escuro',
+    conn_connecting:'A ligar...', conn_ok:'API ligada', conn_err:'Sem ligação',
+    logout:'Sair', status_ok:'Sistema operacional', status_deg:'Sistema degradado',
+    kpi_total:'Altas processadas', kpi_total_sub:'total acumulado',
+    kpi_hour:'Última hora', kpi_hour_sub:'altas/hora',
+    kpi_avg:'Tempo médio', kpi_avg_sub:'minutos por alta',
+    kpi_beds:'Camas libertadas hoje', kpi_beds_sub:'jornada em curso',
+    kpi_pending:'Doentes em espera', kpi_pending_sub:'pendentes de alta',
+    kpi_24h:'Últimas 24h', kpi_24h_sub:'altas totais',
+    th_patient:'Doente', th_ward:'Enfermaria', th_bed:'Cama',
+    th_diag:'Diagnóstico', th_type:'Tipo de alta', th_doctor:'Médico',
+    th_proc:'Proc. (min)', th_date:'Data/hora', th_status:'Estado',
+    st_completed:'Concluída', st_pending:'Pendente', st_error:'Erro',
+    ward_freed:'libertadas hoje', ward_occ:'ocupação',
+    about_desc:'Simulador de gestão de altas hospitalares para demos de continuidade de negócio com Zerto.',
+    view_altas:'Altas recentes', view_plantas:'Ocupação por enfermaria', view_kpis:'KPIs em tempo real', view_about:'Sobre',
+  },
+  en: {
+    login_sub:'Demo · Zerto Business Continuity', login_user:'Username', login_pass:'Password',
+    login_btn:'Sign in', login_error:'Incorrect username or password',
+    nav_views:'Views', nav_altas:'Discharges', nav_plantas:'Wards', nav_kpis:'KPIs', nav_about:'About',
+    rbg_title:'Auto-Generator', rbg_generated:'Generated', rbg_errors:'Errors',
+    rbg_start:'▶ Start', rbg_stop:'■ Stop', rbg_running:'Running', rbg_paused:'Paused', rbg_inactive:'Inactive',
+    prefs_title:'Preferences', theme_light:'Light mode', theme_dark:'Dark mode',
+    conn_connecting:'Connecting...', conn_ok:'API connected', conn_err:'No connection',
+    logout:'Log out', status_ok:'System operational', status_deg:'System degraded',
+    kpi_total:'Discharges processed', kpi_total_sub:'cumulative total',
+    kpi_hour:'Last hour', kpi_hour_sub:'discharges/hour',
+    kpi_avg:'Avg. time', kpi_avg_sub:'minutes per discharge',
+    kpi_beds:'Beds freed today', kpi_beds_sub:'current shift',
+    kpi_pending:'Patients waiting', kpi_pending_sub:'pending discharge',
+    kpi_24h:'Last 24h', kpi_24h_sub:'total discharges',
+    th_patient:'Patient', th_ward:'Ward / Unit', th_bed:'Bed',
+    th_diag:'Diagnosis', th_type:'Discharge type', th_doctor:'Physician',
+    th_proc:'Proc. (min)', th_date:'Date/time', th_status:'Status',
+    st_completed:'Completed', st_pending:'Pending', st_error:'Error',
+    ward_freed:'freed today', ward_occ:'occupancy',
+    about_desc:'Hospital discharge management simulator for business continuity demos with Zerto.',
+    view_altas:'Recent discharges', view_plantas:'Ward occupancy', view_kpis:'Real-time KPIs', view_about:'About',
+  },
+};
+
+let currentLang = localStorage.getItem('hdm_lang') || 'ca';
+let currentTheme = localStorage.getItem('hdm_theme') || 'light';
+
+function t(key) { return STRINGS[currentLang][key] || STRINGS['es'][key] || key; }
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === currentLang.toUpperCase());
+  });
+  const isDark = currentTheme === 'dark';
+  document.getElementById('theme-btn').innerHTML =
+    (isDark ? '☀️ ' : '🌙 ') + t(isDark ? 'theme_light' : 'theme_dark');
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('hdm_lang', lang);
+  applyI18n();
+}
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+  localStorage.setItem('hdm_theme', currentTheme);
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  applyI18n();
+}
+
+// ── Auth ──────────────────────────────────────────
+const USERS = { 'admin':'zerto2024', 'demo':'zerto2024', 'zerto':'zerto2024' };
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  if (USERS[user] && USERS[user] === pass) {
+    sessionStorage.setItem('hdm_auth', '1');
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app-wrapper').classList.add('visible');
+    errEl.textContent = '';
+    refresh();
+  } else {
+    errEl.textContent = t('login_error');
+    document.getElementById('login-pass').value = '';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('hdm_auth');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('app-wrapper').classList.remove('visible');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+['login-user','login-pass'].forEach(id =>
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); })
+);
+
+// ── Navegación ────────────────────────────────────
+const viewKeys = { altas:'view_altas', plantas:'view_plantas', kpis:'view_kpis', about:'view_about' };
+function switchView(id, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  document.getElementById('view-title').textContent = t(viewKeys[id]);
+}
+
+// ── API ───────────────────────────────────────────
+const API = '/api';
+async function api(path, method='GET') {
+  const r = await fetch(API + path, { method });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+let knownIds = new Set();
+let lastAlertMsg = '';
+
+function fmt(ts) {
+  const d = new Date(ts.endsWith('Z') ? ts : ts + 'Z');
+  return d.toLocaleDateString('es-ES') + ' ' + d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── KPIs ──────────────────────────────────────────
+async function refreshKPIs() {
+  const d = await api('/kpis');
+  document.getElementById('kpi-total').textContent   = d.total_discharges.toLocaleString('es-ES');
+  document.getElementById('kpi-hour').textContent    = d.discharges_last_hour;
+  document.getElementById('kpi-avg').textContent     = d.avg_processing_time_min ?? '—';
+  document.getElementById('kpi-beds').textContent    = d.beds_freed_today;
+  document.getElementById('kpi-pending').textContent = d.patients_pending;
+  document.getElementById('kpi-24h').textContent     = d.discharges_last_24h;
+  document.getElementById('kpi-pending-card').classList.toggle('alert', d.patients_pending > 10);
+  document.getElementById('nb-altas').textContent = d.total_discharges > 999
+    ? Math.floor(d.total_discharges/1000)+'k+' : d.total_discharges;
+}
+
+// ── Altas ─────────────────────────────────────────
+async function refreshDischarges() {
+  const rows = await api('/discharges/recent?n=30');
+  const tbody = document.getElementById('discharges-body');
+  document.getElementById('table-count').textContent = rows.length + ' ' + t('nav_altas').toLowerCase();
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">⚠️ Sin datos</td></tr>`;
+    return;
+  }
+  const stMap = { completed: t('st_completed'), pending: t('st_pending'), error: t('st_error') };
+  const stCls = { completed:'status-completed', pending:'status-pending', error:'status-error' };
+  tbody.innerHTML = rows.map(d => {
+    const isNew = !knownIds.has(d.id); if (isNew) knownIds.add(d.id);
+    return `<tr class="${isNew?'new-row':''}">
+      <td><strong>${d.patient_name}</strong><br><small style="color:var(--text-muted)">${d.patient_id}</small></td>
+      <td>${d.ward}</td><td>${d.bed_number}</td>
+      <td><strong>${d.diagnosis_code}</strong> ${d.diagnosis_description||''}</td>
+      <td>${d.discharge_type}</td><td>${d.attending_unit}</td>
+      <td style="text-align:center">${d.processing_time_min}'</td>
+      <td style="color:var(--text-muted)">${fmt(d.discharge_date)}</td>
+      <td><span class="status-badge ${stCls[d.status]||''}">${stMap[d.status]||d.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Plantas ───────────────────────────────────────
+async function refreshWards() {
+  const wards = await api('/wards');
+  document.getElementById('ward-grid').innerHTML = wards.map(w => {
+    const pct = w.occupancy_pct ?? 0;
+    const cls = pct >= 90 ? 'full' : pct >= 75 ? 'high' : '';
+    return `<div class="ward-card">
+      <div class="ward-name">${w.ward_name}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">${w.specialty}</div>
+      <div class="ward-bar-bg"><div class="ward-bar-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div>
+      <div class="ward-stats">
+        <span>${pct}% ${t('ward_occ')}</span>
+        <span style="color:var(--success)">↑ ${w.freed_today} ${t('ward_freed')}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Health ────────────────────────────────────────
+async function refreshHealth() {
+  const h = await api('/health');
+  const ok = h.status === 'ok';
+  document.getElementById('status-dot').className = ok ? '' : 'error';
+  document.getElementById('status-text').textContent = t(ok ? 'status_ok' : 'status_deg');
+  document.getElementById('conn-dot').className = 'conn-dot' + (ok ? '' : ' error');
+  document.getElementById('conn-label').textContent = t(ok ? 'conn_ok' : 'conn_err');
+  const rbg = h.rbg || {};
+  document.getElementById('rbg-count').textContent = rbg.generated_count ?? '—';
+  const dot = document.getElementById('rbg-dot');
+  const lbl = document.getElementById('rbg-label');
+  if (rbg.running && !rbg.paused) { dot.className='rbg-dot running'; lbl.textContent=t('rbg_running'); }
+  else if (rbg.paused)            { dot.className='rbg-dot paused';  lbl.textContent=t('rbg_paused'); }
+  else                            { dot.className='rbg-dot';         lbl.textContent=t('rbg_inactive'); }
+}
+
+// ── Alertas ───────────────────────────────────────
+const ALERT_TTL_MS = 15000;
+async function refreshEvents() {
+  const evs = await api('/events?n=1');
+  const ev = evs[0];
+  const alertDiv = document.getElementById('demo-alert');
+  if (!ev) { alertDiv.style.display='none'; return; }
+  const ageMs = Date.now() - new Date(ev.created_at.endsWith('Z') ? ev.created_at : ev.created_at+'Z').getTime();
+  if (ev.event_type === 'demo_recovery') { alertDiv.style.display='none'; lastAlertMsg=''; return; }
+  if (ageMs < ALERT_TTL_MS && ['critical','warning'].includes(ev.severity)) {
+    alertDiv.textContent = '⚠ ' + ev.message;
+    alertDiv.style.display = 'block';
+    lastAlertMsg = ev.message;
+  } else {
+    alertDiv.style.display = 'none';
+    lastAlertMsg = '';
+  }
+}
+
+async function rbgAction(action) { await api('/rbg/'+action,'POST'); await refreshHealth(); }
+
+// ── Ciclo ─────────────────────────────────────────
+async function refresh() {
+  try { await Promise.allSettled([refreshKPIs(),refreshDischarges(),refreshWards(),refreshHealth(),refreshEvents()]); }
+  catch(e) { console.error(e); }
+}
+
+// ── Init ──────────────────────────────────────────
+document.documentElement.setAttribute('data-theme', currentTheme);
+applyI18n();
+
+if (sessionStorage.getItem('hdm_auth') === '1') {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-wrapper').classList.add('visible');
+}
+
+setInterval(() => { if (sessionStorage.getItem('hdm_auth')==='1') refresh(); }, 3000);
+</script>
+</body>
+</html>
