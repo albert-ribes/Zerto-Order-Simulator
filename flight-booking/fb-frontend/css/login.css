@@ -37,16 +37,26 @@
   background: linear-gradient(90deg, var(--primary), var(--primary-dark));
 }
 
-.login-card .brand-row { justify-content: center; margin-bottom: 4px; }
-.login-card .brand-row__mark { width: 40px; height: 40px; border-radius: 10px; }
-.login-card .brand-row__mark svg { width: 22px; height: 22px; }
+.login-card .brand-row { justify-content: center; margin-bottom: 6px; flex-direction: column; gap: 12px; }
+.login-card .brand-row__mark { width: 64px; height: 64px; border-radius: 16px; background: #f3e8ff; color: var(--primary); }
+.login-card .brand-row__mark svg { width: 28px; height: 28px; }
 .login-card .brand-row__title { font-size: 17px; }
 
-.login-card .partner-logos {
-  justify-content: center;
-  border-bottom: none;
-  margin: 10px 0 4px;
-  padding: 0;
+.login-card__sub {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 4px 0 14px;
+}
+
+.login-card__footer-zp {
+  margin-top: 20px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
 }
 
 .login-card__eyebrow {

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 <style>
 .zp-topbar{position:fixed;top:0;left:0;right:0;z-index:2000;height:52px;background:#fff;border-bottom:1px solid #d8e1df;display:flex;align-items:center;padding:0 20px;font-family:"Trebuchet MS","Segoe UI",sans-serif}
 .zp-brand{display:flex;align-items:center;gap:8px}
-.zp-hpe{background:#01A982;color:#fff;font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 6px;border-radius:3px}
+.zp-hpe-logo{height:20px;width:auto;object-fit:contain;flex-shrink:0}
 .zp-tec,.zp-portal{font-size:12px;font-weight:700;color:#172324}
 .zp-sep{color:#879391;font-size:12px}
 .zp-tagline{position:fixed;top:52px;left:0;right:0;z-index:1999;height:28px;background:#6d28d9;color:#fff;display:flex;align-items:center;gap:10px;padding:0 20px;font-family:"Trebuchet MS","Segoe UI",sans-serif}
@@ -20,7 +20,7 @@ body.login-body{padding-top:80px}
 </style>
 </head>
 <body class="login-body">
-<div class="zp-topbar"><div class="zp-brand"><span class="zp-hpe">HPE</span><span class="zp-tec">TEC Barcelona</span><span class="zp-sep">/</span><span class="zp-portal">ZERTO DEMO PORTAL</span></div></div>
+<div class="zp-topbar"><div class="zp-brand"><img class="zp-hpe-logo" src="data:image/png;base64,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" alt="HPE"><span class="zp-tec">TEC Barcelona</span><span class="zp-sep">/</span><span class="zp-portal">ZERTO DEMO</span></div></div>
 <div class="zp-tagline"><span class="zp-badge">ZERTO</span><span class="zp-tagtxt">Flight Booking · Simulator</span></div>
 
   <div class="login-topbar">
@@ -41,11 +41,7 @@ body.login-body{padding-top:80px}
       <span class="brand-row__title">Flight Booking Simulator</span>
     </div>
 
-    <!-- Huecos para los logos oficiales de HPE y Zerto — ver assets/logos/README.md -->
-    <div class="partner-logos">
-      <img src="assets/logos/hpe-logo.svg" alt="HPE" onerror="this.style.display='none'">
-      <img src="assets/logos/zerto-logo.svg" alt="Zerto" onerror="this.style.display='none'">
-    </div>
+    <div class="login-card__sub">FLIGHT BOOKING · DEMO ZERTO</div>
 
     <div class="login-card__eyebrow" data-i18n="login.eyebrow">Acceso</div>
 
@@ -68,6 +64,7 @@ body.login-body{padding-top:80px}
       <button type="submit" class="btn btn--primary btn--block" data-i18n="login.submit">Entrar</button>
       <p id="loginMessage" class="form-message"></p>
     </form>
+    <div class="login-card__footer-zp">HPE · Zerto Demo Suite · v1.0.0</div>
   </div>
 
   <script src="js/i18n/ca.js"></script>
