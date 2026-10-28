@@ -333,10 +333,16 @@
     });
 
     function hourBg(h) {
-      if (h < 6 || h >= 22) return "rgba(59,130,246,0.65)";
-      if (h < 8 || h >= 20) return "rgba(251,146,60,0.65)";
-      if (h === 13)          return "rgba(234,179,8,0.65)";
-      return "rgba(16,185,129,0.65)";
+      if (h < 6 || h >= 22) return "rgba(59,130,246,0.70)";
+      if (h < 8 || h >= 20) return "rgba(251,146,60,0.70)";
+      if (h === 13)          return "rgba(234,179,8,0.70)";
+      return "rgba(16,185,129,0.70)";
+    }
+    function hourBd(h) {
+      if (h < 6 || h >= 22) return "rgba(59,130,246,1.00)";
+      if (h < 8 || h >= 20) return "rgba(251,146,60,1.00)";
+      if (h === 13)          return "rgba(234,179,8,1.00)";
+      return "rgba(16,185,129,1.00)";
     }
 
     hourlyChart = upsertChart(hourlyChart, "hourlyChart", {
@@ -348,17 +354,21 @@
             label: I18n.t("chart.bookings"),
             data: hourlyBookings,
             backgroundColor: Array.from({ length: 24 }, (_, h) => hourBg(h)),
+            borderColor: Array.from({ length: 24 }, (_, h) => hourBd(h)),
+            borderWidth: 1,
+            borderRadius: 3,
             yAxisID: "y",
           },
           {
             type: "line",
             label: I18n.t("chart.revenue"),
             data: hourlyRevenue,
-            borderColor: "#10b981",
+            borderColor: "#f59e0b",
             backgroundColor: "transparent",
+            borderWidth: 2,
             yAxisID: "y1",
-            tension: 0.3,
-            pointRadius: 0,
+            tension: 0.4,
+            pointRadius: 3,
           },
         ],
       },
