@@ -242,7 +242,9 @@
             type: "bar",
             label: I18n.t("chart.bookings"),
             data: bookingCounts,
-            backgroundColor: "#6366f1",
+            backgroundColor: "#6366f155",
+            borderColor: "#6366f1",
+            borderWidth: 1,
             yAxisID: "y",
             barPercentage: 0.85,
             categoryPercentage: 0.85,
@@ -251,12 +253,12 @@
             type: "line",
             label: I18n.t("chart.revenue"),
             data: revenues,
-            borderColor: colors.green,
+            borderColor: "#10b981",
             backgroundColor: "transparent",
             yAxisID: "y1",
             tension: 0.3,
             pointRadius: 2,
-            pointBackgroundColor: colors.green,
+            pointBackgroundColor: "#10b981",
           },
         ],
       },
@@ -330,6 +332,13 @@
       hourlyRevenue[h] += p.revenue;
     });
 
+    function hourBg(h) {
+      if (h < 6 || h >= 22) return "rgba(59,130,246,0.65)";
+      if (h < 8 || h >= 20) return "rgba(251,146,60,0.65)";
+      if (h === 13)          return "rgba(234,179,8,0.65)";
+      return "rgba(16,185,129,0.65)";
+    }
+
     hourlyChart = upsertChart(hourlyChart, "hourlyChart", {
       data: {
         labels: Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, "0")}h`),
@@ -338,14 +347,14 @@
             type: "bar",
             label: I18n.t("chart.bookings"),
             data: hourlyBookings,
-            backgroundColor: "#6366f1",
+            backgroundColor: Array.from({ length: 24 }, (_, h) => hourBg(h)),
             yAxisID: "y",
           },
           {
             type: "line",
             label: I18n.t("chart.revenue"),
             data: hourlyRevenue,
-            borderColor: colors.green,
+            borderColor: "#10b981",
             backgroundColor: "transparent",
             yAxisID: "y1",
             tension: 0.3,
