@@ -26,7 +26,7 @@ deploy_backend() {
   ssh "$BACKEND_HOST" "
     sudo git -C $REPO_DIR config --global --add safe.directory $REPO_DIR 2>/dev/null || true
     cd $REPO_DIR && sudo git pull origin main -q
-    $VENV/bin/pip install -q -r backend/requirements.txt
+    $VENV/bin/pip install -q -r processed-meat/pm-backend/requirements.txt
     sudo systemctl restart zerto-backend
     sleep 2
     sudo systemctl is-active zerto-backend
@@ -39,7 +39,7 @@ deploy_frontend() {
   ssh "$FRONTEND_HOST" "
     sudo git config --global --add safe.directory $REPO_DIR 2>/dev/null || true
     cd $REPO_DIR && sudo git pull origin main -q
-    sudo cp -r $REPO_DIR/frontend/* /var/www/html/
+    sudo cp -r $REPO_DIR/processed-meat/pm-frontend/* /var/www/html/
     sudo chown -R www-data:www-data /var/www/html/
     sudo nginx -t && sudo systemctl reload nginx
   "
@@ -52,15 +52,15 @@ deploy_observability() {
     sudo git config --global --add safe.directory $REPO_DIR 2>/dev/null || true
     cd $REPO_DIR && sudo git pull origin main -q
 
-    # Shared assets from frontend
-    sudo cp -r $REPO_DIR/frontend/css           /var/www/html/
-    sudo cp    $REPO_DIR/frontend/js/i18n.js    /var/www/html/js/
-    sudo cp    $REPO_DIR/frontend/js/api.js     /var/www/html/js/
-    sudo cp    $REPO_DIR/frontend/js/charts.js  /var/www/html/js/
+    # Shared assets from pm-frontend
+    sudo cp -r $REPO_DIR/processed-meat/pm-frontend/css           /var/www/html/
+    sudo cp    $REPO_DIR/processed-meat/pm-frontend/js/i18n.js    /var/www/html/js/
+    sudo cp    $REPO_DIR/processed-meat/pm-frontend/js/api.js     /var/www/html/js/
+    sudo cp    $REPO_DIR/processed-meat/pm-frontend/js/charts.js  /var/www/html/js/
 
     # Observability-specific files
-    sudo cp    $REPO_DIR/observability/index.html /var/www/html/
-    sudo cp    $REPO_DIR/observability/js/app.js  /var/www/html/js/
+    sudo cp    $REPO_DIR/processed-meat/pm-observability/index.html /var/www/html/
+    sudo cp    $REPO_DIR/processed-meat/pm-observability/js/app.js  /var/www/html/js/
 
     sudo chown -R www-data:www-data /var/www/html/
     sudo nginx -t && sudo systemctl reload nginx

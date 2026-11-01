@@ -1,12 +1,12 @@
 services:
   frontend:
-    build: ./frontend
+    build: ./processed-meat/pm-frontend
     ports:
       - "3000:80"
     environment:
       BACKEND_URL: http://172.30.0.30:8000
     volumes:
-      - ./frontend:/usr/share/nginx/html:ro   # live reload: canvis immediats sense rebuild
+      - ./processed-meat/pm-frontend:/usr/share/nginx/html:ro   # live reload: canvis immediats sense rebuild
     depends_on:
       - backend
     networks:
@@ -14,7 +14,7 @@ services:
         ipv4_address: 172.30.0.10
 
   db-probe:
-    build: ./observability/db-probe
+    build: ./shared/db-probe
     environment:
       DATABASE_URL: postgresql://zerto:zerto@db:5432/zerto
     networks:
@@ -22,19 +22,19 @@ services:
         ipv4_address: 172.30.0.11
 
   sys-probe-frontend:
-    build: ./observability/sys-probe
+    build: ./shared/sys-probe
     networks:
       devnet:
         ipv4_address: 172.30.0.12
 
   sys-probe-db:
-    build: ./observability/sys-probe
+    build: ./shared/sys-probe
     networks:
       devnet:
         ipv4_address: 172.30.0.13
 
   zerto-probe:
-    build: ./observability/zerto-probe
+    build: ./shared/zerto-probe
     networks:
       devnet:
         ipv4_address: 172.30.0.14
@@ -43,17 +43,17 @@ services:
   observability:
     build:
       context: .
-      dockerfile: observability/Dockerfile
+      dockerfile: processed-meat/pm-observability/Dockerfile
     ports:
       - "3001:80"
     volumes:
-      # live reload: shared CSS/JS from frontend + observability-specific files
-      - ./frontend/css:/usr/share/nginx/html/css:ro
-      - ./frontend/js/i18n.js:/usr/share/nginx/html/js/i18n.js:ro
-      - ./frontend/js/api.js:/usr/share/nginx/html/js/api.js:ro
-      - ./frontend/js/charts.js:/usr/share/nginx/html/js/charts.js:ro
-      - ./observability/index.html:/usr/share/nginx/html/index.html:ro
-      - ./observability/js/app.js:/usr/share/nginx/html/js/app.js:ro
+      # live reload: shared CSS/JS from pm-frontend + pm-observability-specific files
+      - ./processed-meat/pm-frontend/css:/usr/share/nginx/html/css:ro
+      - ./processed-meat/pm-frontend/js/i18n.js:/usr/share/nginx/html/js/i18n.js:ro
+      - ./processed-meat/pm-frontend/js/api.js:/usr/share/nginx/html/js/api.js:ro
+      - ./processed-meat/pm-frontend/js/charts.js:/usr/share/nginx/html/js/charts.js:ro
+      - ./processed-meat/pm-observability/index.html:/usr/share/nginx/html/index.html:ro
+      - ./processed-meat/pm-observability/js/app.js:/usr/share/nginx/html/js/app.js:ro
     networks:
       devnet:
         ipv4_address: 172.30.0.20
@@ -68,13 +68,13 @@ services:
       - "zerto-probe:172.30.0.14"
 
   backend:
-    build: ./backend
+    build: ./processed-meat/pm-backend
     ports:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://zerto:zerto@db:5432/zerto
     volumes:
-      - ./backend:/app                         # live reload: canvis immediats sense rebuild
+      - ./processed-meat/pm-backend:/app       # live reload: canvis immediats sense rebuild
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       db:
