@@ -35,12 +35,17 @@ services:
       BACKEND_URL: http://10.20.0.147:8002
 
   # ── Probes (frontend VM) ─────────────────────────────────────────────────────
+  # /containers: the Docker socket is root-equivalent even when mounted :ro.
   sys-probe:
     image: sys-probe:latest
     container_name: sys-probe
     restart: unless-stopped
     ports:
       - "5001:5001"
+    environment:
+      PROBE_CONTAINERS: processed-meat-frontend
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
   zerto-probe:
     image: zerto-probe:latest

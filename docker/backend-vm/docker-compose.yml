@@ -3,6 +3,7 @@
 # Ports:  processed-meat → 8000
 #         hospital        → 8001
 #         flight-booking  → 8002  (step 3)
+# Probes: sys-probe → 5001
 
 services:
   processed-meat-backend:
@@ -35,3 +36,16 @@ services:
       - "8002:8002"
     environment:
       DATABASE_URL: postgresql+asyncpg://flight_app:flight_pass_2024@10.20.0.148:5434/flight_booking
+
+  # ── Sys Probe (backend VM) ─────────────────────────────────────────────────
+  # /containers: the Docker socket is root-equivalent even when mounted :ro.
+  sys-probe:
+    image: sys-probe:latest
+    container_name: sys-probe
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      PROBE_CONTAINERS: processed-meat-backend
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
