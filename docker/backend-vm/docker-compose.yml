@@ -15,7 +15,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://zerto:zerto@10.20.0.148:5432/zerto
     volumes:
-      - /opt/zerto/state/pm-generator.json:/app/generator_state.json
+      - /opt/zerto/state/pm-generator.json:/opt/zerto/backend/generator_state.json
 
   hospital-backend:
     image: hospital-backend:latest
