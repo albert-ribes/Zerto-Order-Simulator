@@ -12,7 +12,7 @@ services:
   processed-meat-postgresql:
     image: postgres:16
     container_name: processed-meat-postgresql
-    restart: unless-stopped
+    restart: always
     ports:
       - "5432:5432"
     volumes:
@@ -30,7 +30,7 @@ services:
   hospital-postgresql:
     image: postgres:16-alpine
     container_name: hospital-postgresql
-    restart: unless-stopped
+    restart: always
     ports:
       - "5433:5432"
     volumes:
@@ -50,7 +50,7 @@ services:
   flight-booking-postgresql:
     image: postgres:16-alpine
     container_name: flight-booking-postgresql
-    restart: unless-stopped
+    restart: always
     ports:
       - "5434:5432"
     volumes:
@@ -74,7 +74,7 @@ services:
   sys-probe:
     image: sys-probe:latest
     container_name: sys-probe
-    restart: unless-stopped
+    restart: always
     ports:
       - "5001:5001"
     environment:

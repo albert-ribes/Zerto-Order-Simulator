@@ -9,16 +9,18 @@ services:
   processed-meat-backend:
     image: processed-meat-backend:latest
     container_name: processed-meat-backend
-    restart: unless-stopped
+    restart: always
     ports:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql+psycopg2://zerto:zerto@10.20.0.148:5432/zerto
+    volumes:
+      - /opt/zerto/state/pm-generator.json:/app/generator_state.json
 
   hospital-backend:
     image: hospital-backend:latest
     container_name: hospital-backend
-    restart: unless-stopped
+    restart: always
     ports:
       - "8001:8001"
     environment:
@@ -31,7 +33,7 @@ services:
   flight-booking-backend:
     image: flight-booking-backend:latest
     container_name: flight-booking-backend
-    restart: unless-stopped
+    restart: always
     ports:
       - "8002:8002"
     environment:
@@ -42,7 +44,7 @@ services:
   sys-probe:
     image: sys-probe:latest
     container_name: sys-probe
-    restart: unless-stopped
+    restart: always
     ports:
       - "5001:5001"
     environment:

@@ -13,7 +13,7 @@ services:
   processed-meat-obs:
     image: processed-meat-obs:latest
     container_name: processed-meat-obs
-    restart: unless-stopped
+    restart: always
     ports:
       - "8090:80"
     environment:
@@ -27,7 +27,7 @@ services:
   hospital-obs:
     image: hospital-obs:latest
     container_name: hospital-obs
-    restart: unless-stopped
+    restart: always
     ports:
       - "8091:80"
     environment:
@@ -41,7 +41,7 @@ services:
   flight-booking-obs:
     image: flight-booking-obs:latest
     container_name: flight-booking-obs
-    restart: unless-stopped
+    restart: always
     ports:
       - "8092:80"
     environment:
@@ -56,7 +56,7 @@ services:
   processed-meat-db-probe:
     image: db-probe:latest
     container_name: processed-meat-db-probe
-    restart: unless-stopped
+    restart: always
     ports:
       - "5000:5000"
     environment:
@@ -65,7 +65,7 @@ services:
   hospital-db-probe:
     image: db-probe:latest
     container_name: hospital-db-probe
-    restart: unless-stopped
+    restart: always
     ports:
       - "5010:5000"
     environment:
@@ -74,7 +74,7 @@ services:
   flight-booking-db-probe:
     image: db-probe:latest
     container_name: flight-booking-db-probe
-    restart: unless-stopped
+    restart: always
     ports:
       - "5020:5000"
     environment:
@@ -84,7 +84,7 @@ services:
   portal:
     image: portal:latest
     container_name: portal
-    restart: unless-stopped
+    restart: always
     ports:
       - "8089:80"
 
@@ -92,13 +92,13 @@ services:
   sys-probe:
     image: sys-probe:latest
     container_name: sys-probe
-    restart: unless-stopped
+    restart: always
     ports:
       - "5001:5001"
 
   zerto-probe:
     image: zerto-probe:latest
     container_name: zerto-probe
-    restart: unless-stopped
+    restart: always
     ports:
       - "5002:5002"

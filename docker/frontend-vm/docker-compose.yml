@@ -10,7 +10,7 @@ services:
   processed-meat-frontend:
     image: processed-meat-frontend:latest
     container_name: processed-meat-frontend
-    restart: unless-stopped
+    restart: always
     ports:
       - "8080:80"
     environment:
@@ -19,7 +19,7 @@ services:
   hospital-frontend:
     image: hospital-frontend:latest
     container_name: hospital-frontend
-    restart: unless-stopped
+    restart: always
     ports:
       - "8081:80"
     environment:
@@ -28,7 +28,7 @@ services:
   flight-booking-frontend:
     image: flight-booking-frontend:latest
     container_name: flight-booking-frontend
-    restart: unless-stopped
+    restart: always
     ports:
       - "8082:80"
     environment:
@@ -39,7 +39,7 @@ services:
   sys-probe:
     image: sys-probe:latest
     container_name: sys-probe
-    restart: unless-stopped
+    restart: always
     ports:
       - "5001:5001"
     environment:
@@ -50,6 +50,6 @@ services:
   zerto-probe:
     image: zerto-probe:latest
     container_name: zerto-probe
-    restart: unless-stopped
+    restart: always
     ports:
       - "5002:5002"
