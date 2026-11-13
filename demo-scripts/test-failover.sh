@@ -28,41 +28,17 @@ echo "=== Zerto Test Failover — $(hostname) ==="
 echo "  Current IP : $(hostname -I | awk '{print $1}')"
 echo "  New IP     : ${NEW_IP}"
 
-# ── 1. Fix interface name (VMware ens33 → KVM enp3s0 or similar) ─────────────
-section "Checking network interface"
+# ── 1. Update netplan ─────────────────────────────────────────────────────────
+section "Updating netplan"
 
 [ ! -f "$NETPLAN_FILE" ] && fail "Netplan file not found: $NETPLAN_FILE"
 
 cp "$NETPLAN_FILE" "${NETPLAN_FILE}.bak"
-
-# Physical interface: skip lo, docker bridges, veth pairs
-CURRENT_IF=$(ip -o link show \
-  | awk -F': ' '{print $2}' \
-  | grep -E '^(en|eth)' \
-  | grep -v '@' \
-  | head -1)
-[ -z "$CURRENT_IF" ] && fail "Cannot detect physical network interface"
-
-# Interface name currently in the netplan file
-NETPLAN_IF=$(grep -Eo '^\s+(en|eth)[^:]+:' "$NETPLAN_FILE" \
-  | tr -d ' :' | head -1)
-[ -z "$NETPLAN_IF" ] && fail "Cannot parse interface name from $NETPLAN_FILE"
-
-if [ "$CURRENT_IF" = "$NETPLAN_IF" ]; then
-  ok "Interface unchanged: ${CURRENT_IF}"
-else
-  sed -i "s/${NETPLAN_IF}/${CURRENT_IF}/g" "$NETPLAN_FILE"
-  ok "Interface renamed in netplan: ${NETPLAN_IF} → ${CURRENT_IF}"
-fi
-
-# ── 2. Update netplan IP ──────────────────────────────────────────────────────
-section "Updating netplan IP"
-
 sed -i "s|addresses: \[10\.[0-9]*\.[0-9]*\.[0-9]*/24\]|addresses: [${NEW_IP}/24]|" "$NETPLAN_FILE"
 sed -i "/gateway4:/d" "$NETPLAN_FILE"
 ok "netplan updated — ${NEW_IP}/24 (no gateway, isolated VLAN)"
 
-# ── 3. Disable unreachable DNS — use /etc/hosts only ─────────────────────────
+# ── 2. Disable unreachable DNS — use /etc/hosts only ─────────────────────────
 section "Configuring DNS for isolated network"
 
 cp /etc/systemd/resolved.conf /etc/systemd/resolved.conf.bak
@@ -77,21 +53,21 @@ DNSEOF
 systemctl restart systemd-resolved
 ok "systemd-resolved reconfigured — /etc/hosts only"
 
-# ── 4. Update /etc/hosts ──────────────────────────────────────────────────────
+# ── 3. Update /etc/hosts ──────────────────────────────────────────────────────
 section "Updating /etc/hosts"
 
 bash "${SCRIPTS_DIR}/modify_hosts.sh" > /dev/null 2>&1 \
     && ok "/etc/hosts updated with recovery IPs" \
     || fail "Failed to update /etc/hosts"
 
-# ── 5. Restart service ────────────────────────────────────────────────────────
+# ── 4. Restart service ────────────────────────────────────────────────────────
 section "Restarting service: ${SERVICE}"
 
 systemctl restart "$SERVICE" \
     && ok "${SERVICE} restarted" \
     || fail "Failed to restart ${SERVICE}"
 
-# ── 6. Apply netplan (IP changes — SSH will drop if connected remotely) ───────
+# ── 5. Apply netplan (IP changes — SSH will drop if connected remotely) ───────
 section "Applying netplan"
 
 echo "  Note: SSH connection will drop if connected remotely."
