@@ -23,7 +23,7 @@ TMPFILE=$(mktemp /tmp/_api_last.XXXXXX)
 trap 'rm -f "$TMPFILE"' EXIT
 
 GRN='\033[0;32m' RED='\033[0;31m' YEL='\033[1;33m'
-BLU='\033[0;34m' BLD='\033[1m' DIM='\033[2m' RST='\033[0m'
+BLU='\033[0;34m' CYA='\033[0;36m' BLD='\033[1m' DIM='\033[2m' RST='\033[0m'
 
 # ── Argument parsing (numeric → LIMIT, keyword → app selector) ───────────────
 LIMIT=""
@@ -37,14 +37,32 @@ for arg in "$@"; do
       *)
         echo "Usage: $0 [LIMIT] [pm|hdm|fb|all] [...]"
         echo "  LIMIT: positive integer (default 3)"
-        echo "  Apps:  pm  hdm  fb  all  (default: all, order-free)"
+        echo "  Apps:  pm  hdm  fb  all  (default: interactive menu)"
         exit 1
         ;;
     esac
   fi
 done
 LIMIT="${LIMIT:-3}"
-[ -z "$APPS" ] && APPS=" all "
+
+# ── Interactive menu (si no s'ha passat cap selector) ─────────────────────────
+if [[ -z "$APPS" ]]; then
+  echo ""
+  echo -e "${GRN}${BLD}  Select target demo:${RST}"
+  echo -e "    ${CYA}1)${RST}  processed-meat    ${CYA}(Order Simulator)${RST}"
+  echo -e "    ${CYA}2)${RST}  hospital          ${CYA}(Hospital Discharge Manager)${RST}"
+  echo -e "    ${CYA}3)${RST}  flight-booking    ${CYA}(Flight Booking System)${RST}"
+  echo -e "    ${CYA}4)${RST}  all               ${CYA}(totes 3 demos)${RST}"
+  echo ""
+  read -rp "  Choice [1-4]: " _CHOICE
+  case "$_CHOICE" in
+    1) APPS=" pm "  ;;
+    2) APPS=" hdm " ;;
+    3) APPS=" fb "  ;;
+    4) APPS=" all " ;;
+    *) echo "ERROR: invalid choice '$_CHOICE'"; exit 1 ;;
+  esac
+fi
 
 should_run() { [[ "$APPS" == *" all "* ]] || [[ "$APPS" == *" $1 "* ]]; }
 
