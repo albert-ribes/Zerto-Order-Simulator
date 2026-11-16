@@ -170,7 +170,7 @@ const chartTimeline = new Chart(
     type: 'bar',
     data: { labels: [], _dayMarkers: [], datasets: [
       {
-        label: 'Ordres',
+        label: t('chart_dataset_orders'),
         data: [],
         backgroundColor: '#6366f155',
         borderColor: '#6366f1',
@@ -179,7 +179,7 @@ const chartTimeline = new Chart(
         yAxisID: 'y',
       },
       {
-        label: 'Ingressos (€)',
+        label: t('chart_dataset_revenue'),
         data: [],
         type: 'line',
         borderColor: '#10b981',
@@ -201,12 +201,12 @@ const chartTimeline = new Chart(
         x: { grid: { color: '#2a2a5044' }, ticks: { maxTicksLimit: 12 } },
         y: {
           grid: { color: '#2a2a5044' },
-          title: { display: true, text: 'Ordres', color: '#6366f1' },
+          title: { display: true, text: t('chart_dataset_orders'), color: '#6366f1' },
           position: 'left',
         },
         y2: {
           grid: { drawOnChartArea: false },
-          title: { display: true, text: 'Ingressos (€)', color: '#10b981' },
+          title: { display: true, text: t('chart_dataset_revenue'), color: '#10b981' },
           position: 'right',
         },
       },
@@ -220,7 +220,7 @@ const ctxCumul = document.getElementById('chartCumulative').getContext('2d');
 const chartCumulative = new Chart(ctxCumul, {
   type: 'line',
   data: { labels: [], _dayMarkers: [], datasets: [{
-    label: 'Ingressos acumulats (€)',
+    label: t('chart_dataset_rev_cum'),
     data: [],
     borderColor: '#f59e0b',
     backgroundColor: makeGradient(ctxCumul, '#f59e0b'),
@@ -292,15 +292,15 @@ const chartCumulative = new Chart(ctxCumul, {
     const fmtV = v => v.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     box.innerHTML = `
-      <div><span class="delta-label">Punt A</span>&nbsp;<strong>${a.label}</strong></div>
-      <div style="padding-left:2px"><span class="delta-label">Acumulat</span> <span style="color:var(--warning);font-weight:600">€${fmtV(a.value)}</span></div>
-      <div style="margin-top:6px"><span class="delta-label">Punt B</span>&nbsp;<strong>${b.label}</strong></div>
-      <div style="padding-left:2px"><span class="delta-label">Acumulat</span> <span style="color:var(--warning);font-weight:600">€${fmtV(b.value)}</span></div>
+      <div><span class="delta-label">${t('cumul_delta_a')}</span>&nbsp;<strong>${a.label}</strong></div>
+      <div style="padding-left:2px"><span class="delta-label">${t('cumul_delta_cumul')}</span> <span style="color:var(--warning);font-weight:600">€${fmtV(a.value)}</span></div>
+      <div style="margin-top:6px"><span class="delta-label">${t('cumul_delta_b')}</span>&nbsp;<strong>${b.label}</strong></div>
+      <div style="padding-left:2px"><span class="delta-label">${t('cumul_delta_cumul')}</span> <span style="color:var(--warning);font-weight:600">€${fmtV(b.value)}</span></div>
       <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border)">
         <span class="delta-label">Δ Revenue A→B</span><br>
         <span class="delta-value ${cls}">${sign}€${fmtV(diff)}</span>
       </div>
-      <button class="delta-close" id="cumulDeltaClose" title="Tancar">✕</button>`;
+      <button class="delta-close" id="cumulDeltaClose" title="${t('btn_close')}">✕</button>`;
 
     box.style.display = 'block';
 
@@ -357,7 +357,7 @@ const chartCumulative = new Chart(ctxCumul, {
 const chartProductQty = document.getElementById('chartProductQty')
   ? new Chart(document.getElementById('chartProductQty').getContext('2d'), {
       type: 'bar',
-      data: { labels: [], datasets: [{ label: 'Unitats', data: [],
+      data: { labels: [], datasets: [{ label: t('chart_dataset_units'), data: [],
         backgroundColor: PALETTE, borderRadius: 3, maxBarThickness: 14 }]},
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -378,7 +378,7 @@ const chartProductRev = document.getElementById('chartProductRev')
   ? new Chart(document.getElementById('chartProductRev').getContext('2d'), {
       type: 'bar',
       data: { labels: [], datasets: [{
-        label: 'Ingressos (€)', data: [], backgroundColor: PALETTE, borderRadius: 4,
+        label: t('chart_dataset_revenue'), data: [], backgroundColor: PALETTE, borderRadius: 4,
       }]},
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -398,7 +398,7 @@ const chartDaily = new Chart(
     type: 'bar',
     data: { labels: [], datasets: [
       {
-        label: 'Ordres',
+        label: t('chart_dataset_orders'),
         data: [],
         backgroundColor: '#6366f155',
         borderColor: '#6366f1',
@@ -408,7 +408,7 @@ const chartDaily = new Chart(
         order: 2,
       },
       {
-        label: 'Facturació (€)',
+        label: t('chart_dataset_billing'),
         data: [],
         type: 'line',
         borderColor: '#f59e0b',
@@ -429,13 +429,13 @@ const chartDaily = new Chart(
         x: { grid: { color: '#2a2a5044' } },
         y: {
           grid: { color: '#2a2a5044' },
-          title: { display: true, text: 'Ordres', color: '#6366f1' },
+          title: { display: true, text: t('chart_dataset_orders'), color: '#6366f1' },
           position: 'left',
           ticks: { precision: 0 },
         },
         y2: {
           grid: { drawOnChartArea: false },
-          title: { display: true, text: 'Facturació (€)', color: '#f59e0b' },
+          title: { display: true, text: t('chart_dataset_billing'), color: '#f59e0b' },
           position: 'right',
           ticks: { callback: v => '€' + v.toLocaleString() },
         },
@@ -452,7 +452,7 @@ const chartHourly = new Chart(
       labels: Array.from({length: 24}, (_, h) => `${String(h).padStart(2,'0')}h`),
       datasets: [
         {
-          label: 'Ordres',
+          label: t('chart_dataset_orders'),
           data: Array(24).fill(0),
           backgroundColor: HOUR_BG,
           borderColor: HOUR_BD,
@@ -462,7 +462,7 @@ const chartHourly = new Chart(
           order: 2,
         },
         {
-          label: 'Facturació (€)',
+          label: t('chart_dataset_billing'),
           data: Array(24).fill(0),
           type: 'line',
           borderColor: '#f59e0b',
@@ -488,8 +488,8 @@ const chartHourly = new Chart(
               const avg = chartHourly._avgCounts?.[idx] ?? 0;
               const avgRev = chartHourly._avgRevs?.[idx] ?? 0;
               return [
-                `Mitja/dia ordres: ${avg}`,
-                `Mitja/dia €: ${avgRev.toLocaleString()}`,
+                `${t('chart_tooltip_avg_orders')} ${avg}`,
+                `${t('chart_tooltip_avg_rev')} ${avgRev.toLocaleString()}`,
               ];
             },
           },
@@ -499,13 +499,13 @@ const chartHourly = new Chart(
         x: { grid: { color: '#2a2a5044' } },
         y: {
           grid: { color: '#2a2a5044' },
-          title: { display: true, text: 'Ordres', color: '#8892a4' },
+          title: { display: true, text: t('chart_dataset_orders'), color: '#8892a4' },
           position: 'left',
           ticks: { precision: 0 },
         },
         y2: {
           grid: { drawOnChartArea: false },
-          title: { display: true, text: 'Facturació (€)', color: '#f59e0b' },
+          title: { display: true, text: t('chart_dataset_billing'), color: '#f59e0b' },
           position: 'right',
           ticks: { callback: v => '€' + v.toLocaleString() },
         },
@@ -568,6 +568,38 @@ function updateDailyChart(data) {
   chartDaily.data.datasets[0].data     = data.map(d => d.count);
   chartDaily.data.datasets[1].data     = data.map(d => d.revenue);
   chartDaily.update('none');
+}
+
+function _refreshChartLabels() {
+  chartTimeline.data.datasets[0].label                    = t('chart_dataset_orders');
+  chartTimeline.data.datasets[1].label                    = t('chart_dataset_revenue');
+  chartTimeline.options.scales.y.title.text               = t('chart_dataset_orders');
+  chartTimeline.options.scales.y2.title.text              = t('chart_dataset_revenue');
+  chartTimeline.update('none');
+
+  chartCumulative.data.datasets[0].label                  = t('chart_dataset_rev_cum');
+  chartCumulative.update('none');
+
+  if (chartProductQty) {
+    chartProductQty.data.datasets[0].label                = t('chart_dataset_units');
+    chartProductQty.update('none');
+  }
+  if (chartProductRev) {
+    chartProductRev.data.datasets[0].label                = t('chart_dataset_revenue');
+    chartProductRev.update('none');
+  }
+
+  chartDaily.data.datasets[0].label                       = t('chart_dataset_orders');
+  chartDaily.data.datasets[1].label                       = t('chart_dataset_billing');
+  chartDaily.options.scales.y.title.text                  = t('chart_dataset_orders');
+  chartDaily.options.scales.y2.title.text                 = t('chart_dataset_billing');
+  chartDaily.update('none');
+
+  chartHourly.data.datasets[0].label                      = t('chart_dataset_orders');
+  chartHourly.data.datasets[1].label                      = t('chart_dataset_billing');
+  chartHourly.options.scales.y.title.text                 = t('chart_dataset_orders');
+  chartHourly.options.scales.y2.title.text                = t('chart_dataset_billing');
+  chartHourly.update('none');
 }
 
 function updateHourlyChart(data) {

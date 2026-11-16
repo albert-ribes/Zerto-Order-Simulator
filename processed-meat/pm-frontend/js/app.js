@@ -157,7 +157,7 @@ function localToISO(val) {
     sidebar.classList.toggle('collapsed', collapsed);
     document.documentElement.style.setProperty('--sidebar-w', collapsed ? '60px' : '248px');
     const btn = document.getElementById('btnSidebarToggle');
-    if (btn) { btn.textContent = collapsed ? '›' : '‹'; btn.title = collapsed ? 'Expandir' : 'Compactar'; }
+    if (btn) { btn.textContent = collapsed ? '›' : '‹'; btn.title = collapsed ? t('sidebar_expand') : t('sidebar_collapse'); }
     if (!animate) requestAnimationFrame(() => { sidebar.style.transition = ''; });
   }
 
@@ -330,6 +330,7 @@ const ordTRP = makeTRP({
 // Hook called by i18n.js applyTranslations() on every language change
 function onLangChanged() {
   ordTRP.renderPresets();
+  if (typeof _refreshChartLabels === 'function') _refreshChartLabels();
 }
 
 // Apply static HTML translations (called here, after all TRP vars are in scope)

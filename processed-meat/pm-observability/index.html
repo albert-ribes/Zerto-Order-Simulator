@@ -27,7 +27,7 @@
     <div class="sidebar-logo">
       <span class="logo-icon">📡</span>
       <span class="logo-text">Observability</span>
-      <button class="sidebar-toggle" id="btnSidebarToggle" title="Compactar">‹</button>
+      <button class="sidebar-toggle" id="btnSidebarToggle" title="">‹</button>
     </div>
     <div class="dev-env-badge hidden" id="devEnvBadge">🐳 dev</div>
 
@@ -57,9 +57,9 @@
         <button class="theme-toggle" id="btnTheme" title="Toggle theme">🌙</button>
       </div>
       <div class="sidebar-refresh">
-        <button class="btn-refresh" id="btnRefreshStatus" title="Actualitzar estat dels serveis">
+        <button class="btn-refresh" id="btnRefreshStatus" data-i18n="btn_refresh_status" data-i18n-attr="title">
           <span class="btn-refresh-icon">↺</span>
-          <span class="btn-refresh-label">Actualitzar</span>
+          <span class="btn-refresh-label" data-i18n="btn_refresh">Actualitzar</span>
         </button>
         <span class="sidebar-refresh-ts" id="refreshTs"></span>
       </div>
@@ -151,7 +151,7 @@
         <div class="card chart-card chart-wide">
           <div class="chart-header">
             <h3 data-i18n="chart_cumulative">Ingressos acumulats</h3>
-            <span class="cumul-hint" id="cumulHint">Clica 2 punts per veure la diferència</span>
+            <span class="cumul-hint" id="cumulHint" data-i18n="cumul_hint">Clica 2 punts per veure la diferència</span>
           </div>
           <div class="chart-wrap" style="position:relative">
             <canvas id="chartCumulative"></canvas>

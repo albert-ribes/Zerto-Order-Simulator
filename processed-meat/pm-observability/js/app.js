@@ -45,7 +45,7 @@ document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
     sidebar.classList.toggle('collapsed', collapsed);
     document.documentElement.style.setProperty('--sidebar-w', collapsed ? '60px' : '248px');
     const btn = document.getElementById('btnSidebarToggle');
-    if (btn) { btn.textContent = collapsed ? '›' : '‹'; btn.title = collapsed ? 'Expandir' : 'Compactar'; }
+    if (btn) { btn.textContent = collapsed ? '›' : '‹'; btn.title = collapsed ? t('sidebar_expand') : t('sidebar_collapse'); }
     if (!animate) requestAnimationFrame(() => { sidebar.style.transition = ''; });
   }
 
@@ -203,6 +203,7 @@ const dashTRP = makeTRP({
 
 function onLangChanged() {
   dashTRP.renderPresets();
+  if (typeof _refreshChartLabels === 'function') _refreshChartLabels();
 }
 
 applyTranslations();
@@ -250,7 +251,7 @@ function _updateCacheBadge() {
   if (!_fromCache || !_cacheTs) { el.classList.add('hidden'); return; }
   el.classList.remove('hidden');
   el.textContent = `📦 cached · ${_elapsed(Date.now() - _cacheTs)}`;
-  el.title = `Última càrrega: ${new Date(_cacheTs).toLocaleTimeString()}`;
+  el.title = `${t('cache_badge_ts')} ${new Date(_cacheTs).toLocaleTimeString()}`;
 }
 
 setInterval(_updateCacheBadge, 1000);
